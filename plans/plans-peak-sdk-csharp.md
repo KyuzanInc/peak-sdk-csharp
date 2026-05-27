@@ -1,5 +1,29 @@
 # peak-sdk-csharp port plan (single-repo adapted)
 
+> **Historical scope notice — read before relying on details below.**
+>
+> The original plan called for `KyuzanInc.Turnkey.Sdk` and its review
+> evidence to live in this repo. That work was extracted to
+> [`KyuzanInc/turnkey-sdk-csharp`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
+> per [`plans/plans-turnkey-import.md`](plans-turnkey-import.md). As a
+> result, **any reference in this document to**:
+>
+> - `packages/turnkey-sdk-csharp/` (deleted)
+> - `upstream-snapshots/turnkey-sdk-unity/` (deleted)
+> - `upstream-snapshots/turnkey-official-src/` (never created in this repo)
+> - `codex-crypto-reviews/` (deleted)
+> - `docs/security/crypto-port-policy.md` (deleted)
+> - CODEOWNERS rules for `/packages/turnkey-sdk-csharp/src/Crypto.cs`
+>
+> is **historical**. Crypto code, its upstream pins, its multi-round
+> Codex review evidence, and the CODEOWNERS gate for those files all
+> live in `KyuzanInc/turnkey-sdk-csharp`. The consumer-side flow in
+> this repo is documented in [`docs/sync-rules.md`](../docs/sync-rules.md).
+>
+> Sections below describe the repo as it was when those paths existed.
+> Do not follow them for new work; they are kept for context on how
+> the v0.1.0-alpha state was assembled.
+
 ## Intent
 
 Port `peak-sdk-unity` + `turnkey-sdk-unity` from Unity-only C# to generic

@@ -29,7 +29,7 @@ The `peak-sdk-unity` repo will become a thin Unity adapter on top of
 
 | Dependency | Source | Pin |
 |---|---|---|
-| `KyuzanInc.Turnkey.Sdk` | [KyuzanInc/turnkey-sdk-csharp](https://github.com/KyuzanInc/turnkey-sdk-csharp) on GitHub Packages | `[0.1.0-alpha.0]` (exact, via CPM + lock files) |
+| `KyuzanInc.Turnkey.Sdk` | [KyuzanInc/turnkey-sdk-csharp](https://github.com/KyuzanInc/turnkey-sdk-csharp) on GitHub Packages | `[0.1.0-alpha.0]` (exact, via CPM; `packages.lock.json` lands in the M11 follow-up) |
 
 The Turnkey port (Crypto, ApiKeyStamper, Http, Encoding) lives in a
 separate repo and ships as a NuGet package. Crypto changes happen
