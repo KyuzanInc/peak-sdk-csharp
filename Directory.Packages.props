@@ -18,7 +18,7 @@
     <PackageVersion Include="BouncyCastle.Cryptography" Version="[2.5.0]" />
 
     <!-- JSON: source generator for AOT / IL2CPP safety -->
-    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.8" />
 
     <!-- Logging abstraction (NullLogger<T>.Instance default) -->
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
