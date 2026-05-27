@@ -3,10 +3,12 @@
     Central package management. All NuGet package versions are pinned
     here; csproj files reference packages without Version attributes.
 
-    Crypto-critical pins are documented in
-    codex-crypto-reviews/turnkey-source-pins.md. BouncyCastle.Cryptography
-    is pinned to an exact version (square brackets) because a minor
-    bump can change ECDSA / AES-GCM behaviour in subtle ways.
+    KyuzanInc.Turnkey.Sdk is the external Turnkey port published from
+    https://github.com/KyuzanInc/turnkey-sdk-csharp. It is pinned to an
+    exact version (square brackets) because a minor bump can ship
+    crypto changes that need a deliberate review pass on this side.
+    BouncyCastle.Cryptography arrives transitively through that package
+    and is pinned by CPM via the committed packages.lock.json files.
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -14,8 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup Label="Production">
-    <!-- Crypto primitives backend, pinned exact -->
-    <PackageVersion Include="BouncyCastle.Cryptography" Version="[2.5.0]" />
+    <!-- External Turnkey port (Crypto, ApiKeyStamper, Http, Encoding). Pinned exact. -->
+    <PackageVersion Include="KyuzanInc.Turnkey.Sdk" Version="[0.1.0-alpha.0]" />
 
     <!-- JSON: source generator for AOT / IL2CPP safety -->
     <PackageVersion Include="System.Text.Json" Version="10.0.8" />

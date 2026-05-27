@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: csharp-ci-${{ github.ref }}
@@ -29,7 +30,29 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Add GitHub Packages NuGet source
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # KyuzanInc.Turnkey.Sdk ships from GitHub Packages until it
+          # lives on nuget.org. The username can be any non-empty
+          # string when authenticating with GITHUB_TOKEN; we pin it to
+          # the bot identity so restore logs are easy to audit.
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username takeshijuan \
+            --password "$GITHUB_TOKEN" \
+            --store-password-in-clear-text
+
       - name: Restore
+        shell: bash
+        # TODO(M11 follow-up): switch to `--locked-mode` once
+        # packages.lock.json files are generated and committed.
+        # First run cannot use --locked-mode because the lock files do
+        # not exist yet and the local restore needed to bootstrap them
+        # requires a PAT with read:packages, which the user has to
+        # configure once.
         run: dotnet restore peak-sdk-csharp.sln
 
       - name: Build
@@ -80,9 +103,27 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - name: Pack
-        run: dotnet pack peak-sdk-csharp.sln -c Release -o ./local-feed
+      - name: Add GitHub Packages NuGet source
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username takeshijuan \
+            --password "$GITHUB_TOKEN" \
+            --store-password-in-clear-text
+      - name: Restore + Pack KyuzanInc.Peak.Sdk
+        shell: bash
+        # TODO(M11 follow-up): add --locked-mode after lock files land.
+        run: |
+          dotnet restore peak-sdk-csharp.sln
+          dotnet pack packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            --no-restore -c Release -o ./local-feed
       - name: Smoke consumer project that references the .nupkg
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/consumer && cd /tmp/consumer
           cat > consumer.csproj <<EOF
@@ -92,68 +133,48 @@ jobs:
               <Nullable>enable</Nullable>
             </PropertyGroup>
             <ItemGroup>
-              <PackageReference Include="KyuzanInc.Turnkey.Sdk" Version="0.1.0-alpha.0" />
+              <PackageReference Include="KyuzanInc.Peak.Sdk" Version="0.1.0-alpha.0" />
             </ItemGroup>
           </Project>
           EOF
           cat > Program.cs <<'EOF'
-          using Turnkey;
+          using KyuzanInc.Peak.Sdk;
           public static class Program {
               public static void Main() {
-                  var bytes = Encoding.Uint8ArrayFromHexString("deadbeef");
-                  System.Console.WriteLine(bytes.Length);
+                  var _ = new PeakClient("https://example.invalid/", "key");
+                  System.Console.WriteLine("ok");
               }
           }
           EOF
-          dotnet new nugetconfig
-          # nuget.config: add local feed
+          # nuget.config: pin local feed, allow GitHub Packages for
+          # the transitive KyuzanInc.Turnkey.Sdk pull, and let
+          # nuget.org cover everything else.
           cat > nuget.config <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <packageSources>
               <clear />
               <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+              <add key="github-kyuzan" value="https://nuget.pkg.github.com/KyuzanInc/index.json" />
               <add key="local" value="${GITHUB_WORKSPACE}/local-feed" />
             </packageSources>
+            <packageSourceMapping>
+              <packageSource key="nuget.org">
+                <package pattern="*" />
+              </packageSource>
+              <packageSource key="github-kyuzan">
+                <package pattern="KyuzanInc.Turnkey.*" />
+              </packageSource>
+              <packageSource key="local">
+                <package pattern="KyuzanInc.Peak.*" />
+              </packageSource>
+            </packageSourceMapping>
+            <packageSourceCredentials>
+              <github-kyuzan>
+                <add key="Username" value="takeshijuan" />
+                <add key="ClearTextPassword" value="${GITHUB_TOKEN}" />
+              </github-kyuzan>
+            </packageSourceCredentials>
           </configuration>
           EOF
           dotnet restore consumer.csproj
-
-  codex-review-evidence-check:
-    name: codex review evidence freshness
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Detect crypto-touching changes
-        id: detect
-        run: |
-          CRYPTO_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
-            'packages/turnkey-sdk-csharp/src/Crypto.cs' \
-            'packages/turnkey-sdk-csharp/src/ApiKeyStamper.cs' \
-            'packages/turnkey-sdk-csharp/src/Http.cs' \
-            'packages/turnkey-sdk-csharp/src/Encoding.cs' || true)
-          if [ -n "$CRYPTO_FILES" ]; then
-            echo "crypto_touched=true" >> $GITHUB_OUTPUT
-            echo "$CRYPTO_FILES"
-          else
-            echo "crypto_touched=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Require fresh review evidence
-        if: steps.detect.outputs.crypto_touched == 'true'
-        run: |
-          echo "Crypto files touched on this PR. Confirming review evidence is fresh..."
-          MISSING=0
-          for FILE in Crypto.cs ApiKeyStamper.cs Http.cs; do
-            COUNT=$(ls codex-crypto-reviews/${FILE}-r*-*.md 2>/dev/null | wc -l | tr -d ' ')
-            if [ "$COUNT" -lt 3 ]; then
-              echo "::error file=codex-crypto-reviews/::Fewer than 3 review rounds present for ${FILE}"
-              MISSING=1
-            fi
-          done
-          if [ "$MISSING" = "1" ]; then
-            echo "Per docs/security/crypto-port-policy.md, crypto-touching PRs require >= 3 Codex review rounds with evidence committed."
-            exit 1
-          fi

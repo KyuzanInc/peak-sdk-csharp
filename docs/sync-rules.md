@@ -1,59 +1,76 @@
-# Sync rules — upstream-snapshots and OpenAPI
+# Sync rules — upstream-snapshots, OpenAPI, and the Turnkey SDK pin
 
 `peak-sdk-csharp` mirrors several external sources into
 `upstream-snapshots/` and an OpenAPI spec into
 `upstream-snapshots/peak-server-openapi/`. The mirrors are read-only
-port references; the build never compiles them directly. This document
-describes when each mirror must be refreshed and how to do it
+port references; the build never compiles them directly. The Turnkey
+crypto layer is consumed as the external
+[`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
+NuGet package pinned in `Directory.Packages.props`. This document
+describes when each pin / mirror must be refreshed and how to do it
 safely.
 
 ## When to re-sync
 
-| Trigger | Affected mirror | Operator action |
+| Trigger | Affected pin / mirror | Operator action |
 |---|---|---|
 | `KyuzanInc/peak-sdk-unity` ships a relevant change | `upstream-snapshots/peak-sdk-unity/` | resync + port if the change is in `Runtime/` |
-| `KyuzanInc/turnkey-sdk-unity` ships a relevant change | `upstream-snapshots/turnkey-sdk-unity/` | resync + port if the change is in `Runtime/` |
-| `tkhq/sdk` ships `@turnkey/{crypto,api-key-stamper,http}` major / minor | `upstream-snapshots/turnkey-official-src/` | resync + re-run Codex multi-round review on the affected C# file |
+| `KyuzanInc/turnkey-sdk-csharp` cuts a new release | `Directory.Packages.props` pin + lock files | bump per "Bump KyuzanInc.Turnkey.Sdk" below |
 | `peak-server` cuts a release we want to support | `upstream-snapshots/peak-server-openapi/public-api.yaml` | resync + regenerate the OpenAPI client |
 | Consumer reports a behaviour mismatch with `peak-sdk-browser` | depends on root cause | usually no resync; instead update the C# DTO wrapper |
 
 ## Workflow
 
+### Upstream snapshot resync
+
 ```
 ./scripts/sync-upstream.sh <name> <pin>
 ```
 
-Where `<name>` is one of `peak-sdk-unity`, `turnkey-sdk-unity`,
-`tkhq-sdk`, or `peak-server-openapi`, and `<pin>` is the new commit
-SHA, tag, or version.
+Where `<name>` is one of `peak-sdk-unity` or `peak-server-openapi`,
+and `<pin>` is the new commit SHA or tag.
 
 The script:
 
 1. Fetches the new source.
 2. Replaces the corresponding `upstream-snapshots/<name>/` directory.
-3. Updates `upstream-snapshots/SOURCES.md` and (for crypto) the pins
-   in `codex-crypto-reviews/turnkey-source-pins.md`.
+3. Updates `upstream-snapshots/SOURCES.md`.
 4. Emits a single commit on a branch `sync/<name>-<short-pin>`.
 5. Prints the next required action (port, regenerate, or both).
 
+### Bump KyuzanInc.Turnkey.Sdk
+
+1. Confirm the new release on
+   <https://github.com/KyuzanInc/turnkey-sdk-csharp/releases>. Read the
+   release notes — crypto changes need extra care.
+2. Edit `Directory.Packages.props` and update the
+   `<PackageVersion Include="KyuzanInc.Turnkey.Sdk" Version="[<new>]" />`
+   row (keep the square brackets — the pin must stay exact).
+3. Re-resolve the lock files:
+   ```
+   dotnet restore peak-sdk-csharp.sln --force-evaluate
+   ```
+4. Inspect the diff on
+   `packages/peak-sdk-csharp/src/packages.lock.json` and
+   `packages/peak-sdk-csharp/tests/packages.lock.json`. Commit both
+   alongside the props change.
+5. Run the wire-format smoke against the new package:
+   ```
+   dotnet test peak-sdk-csharp.sln \
+     --filter "FullyQualifiedName~TurnkeyWireFormatSmokeTests"
+   ```
+   A failure means the external surface drifted in a way the
+   consumer-side code is not yet aligned with.
+6. Open a PR with title prefix `port:` and link the upstream release
+   notes in the body.
+
 ## Post-sync mandatory steps
 
-### `peak-sdk-unity` / `turnkey-sdk-unity` resync
+### `peak-sdk-unity` resync
 
 - Re-run `git diff` against the old mirror to surface the change.
-- Apply the equivalent edit to `packages/<name>-csharp/src/`.
+- Apply the equivalent edit to `packages/peak-sdk-csharp/src/`.
 - Refresh tests if the change touches a tested code path.
-
-### `tkhq-sdk` resync (crypto-critical)
-
-- Re-pin in `codex-crypto-reviews/turnkey-source-pins.md`.
-- Re-run `codex-crypto-reviews/codex-crypto-review.sh` for **every**
-  affected file. Old evidence is preserved for history; the new
-  evidence carries the new date.
-- Add upstream-supplied test vectors to
-  `packages/turnkey-sdk-csharp/tests/Fixtures/` if the change touches
-  HPKE, HKDF, ECDSA, or bundle parsing.
-- The PR title prefix is `port:`.
 
 ### `peak-server-openapi` resync
 

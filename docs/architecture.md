@@ -1,8 +1,10 @@
 # Architecture
 
-`peak-sdk-csharp` is a four-package .NET solution that ports the
-Unity-only `peak-sdk-unity` + `turnkey-sdk-unity` SDKs to generic
-NuGet packages.
+`peak-sdk-csharp` is a multi-package .NET solution that ports the
+Unity-only `peak-sdk-unity` SDK to generic NuGet packages. The Turnkey
+crypto / API key stamping layer is consumed from the external
+[`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
+package; it is no longer built in this repo.
 
 ## Layering
 
@@ -23,29 +25,30 @@ NuGet packages.
 +----------------------------------------------------------+
 |  KyuzanInc.Peak.PublicApiClient                          |
 |  - internal-only OpenAPI codegen                         |
-|  - referenced as <IsPrivateAssets="all">                  |
+|  - referenced as <IsPrivateAssets="all">                 |
 +----------------------------------------------------------+
-|  KyuzanInc.Turnkey.Sdk                                   |
+|  KyuzanInc.Turnkey.Sdk   (third-party NuGet package)     |
 |  - Crypto (HPKE / ECDSA / HKDF / Bundle parse)           |
 |  - ApiKeyStamper (P-256 ECDSA + DER + low-S)             |
 |  - Http (typed activity request signers)                 |
 |  - Encoding (hex / base58 / base58check)                 |
 +----------------------------------------------------------+
-|  BouncyCastle.Cryptography 2.5.0   (primitive backend)   |
-|  System.Text.Json 8.0.5            (source-gen context)  |
+|  BouncyCastle.Cryptography 2.5.0   (transitive backend)  |
+|  System.Text.Json 10.0.8           (source-gen context)  |
 +----------------------------------------------------------+
 ```
 
-The boundary that matters for security review is the
-`KyuzanInc.Turnkey.Sdk` ↔ BouncyCastle line. Everything above
-`Turnkey.Sdk` is business logic; everything below it is well-known
-primitive code we did not write.
+`KyuzanInc.Turnkey.Sdk` is now an external dependency: this repo does
+not build, ship, or audit its crypto code. The security review boundary
+for Peak SDK code is the `KyuzanInc.Peak.Sdk` ↔ `Turnkey.*` line — the
+API surface we consume from the Turnkey package. Wire-format
+expectations on that surface are pinned by
+`packages/peak-sdk-csharp/tests/TurnkeyWireFormatSmokeTests.cs`.
 
 ## Target framework strategy
 
 | Package | TFMs |
 |---|---|
-| `KyuzanInc.Turnkey.Sdk` | `netstandard2.1;net8.0` |
 | `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` |
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` (last one only conditionally compiles `DpapiSecureStorage`) |
 | `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` (Unity 2021.2+ compatible) |
@@ -53,6 +56,8 @@ primitive code we did not write.
 `netstandard2.1` is the lowest common denominator that supports
 Unity 2021.2 LTS and modern .NET. `net8.0` is enabled so consumers on
 modern .NET get faster primitives and source-generated JSON paths.
+`KyuzanInc.Turnkey.Sdk` targets `netstandard2.1;net8.0`, which is a
+strict superset of what we need.
 
 ## Sync vs async
 
@@ -86,8 +91,7 @@ pinned to a `peak-server` tag (see
 packages/<name>-csharp/tests/
   <name>-csharp.Tests.csproj         net8.0 (latest runtime)
   *Tests.cs                          one xUnit file per source file
-  Fixtures/                          committed test fixtures (text files)
-    README.md                        cites the origin of each fixture
+  TurnkeyWireFormatSmokeTests.cs     pins the external Turnkey surface
   E2E/                               env-gated tests; run only when secrets present
 ```
 

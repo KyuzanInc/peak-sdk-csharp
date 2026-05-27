@@ -21,18 +21,18 @@ namespace KyuzanInc.Peak.Sdk.Services
     public sealed class AuthService
     {
         private readonly IPeakHttpClient httpClient;
-        private readonly Func<global::KyuzanInc.Turnkey.Sdk.Crypto.KeyPair> keyPairFactory;
+        private readonly Func<global::Turnkey.Crypto.KeyPair> keyPairFactory;
         private readonly ILogger<AuthService> logger;
 
         public AuthService(
             string apiUrl,
             string projectApiKey,
             IPeakHttpClient? httpClient = null,
-            Func<global::KyuzanInc.Turnkey.Sdk.Crypto.KeyPair>? keyPairFactory = null,
+            Func<global::Turnkey.Crypto.KeyPair>? keyPairFactory = null,
             ILogger<AuthService>? logger = null)
         {
             this.httpClient = httpClient ?? new DefaultPeakHttpClient(apiUrl, projectApiKey);
-            this.keyPairFactory = keyPairFactory ?? global::KyuzanInc.Turnkey.Sdk.Crypto.GenerateP256KeyPair;
+            this.keyPairFactory = keyPairFactory ?? global::Turnkey.Crypto.GenerateP256KeyPair;
             this.logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<AuthService>.Instance;
         }
 

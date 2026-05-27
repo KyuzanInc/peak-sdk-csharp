@@ -22,9 +22,9 @@ commits.
 | ID | Workstream | Status | Evidence | Commit | Finding |
 |---|---|---|---|---|---|
 | W0a | Repo bootstrap (root sln, shared props, CPM, CI workflow, docs scaffold) | ✅ Done | `e712d18`, `4503397`, `d105f7a` | initial commits | new-repo adjustment |
-| W0b | Upstream snapshot import (peak-sdk-unity @ fc560e8, turnkey-sdk-unity @ 039d8e4) | ✅ Done | `4503397` + `upstream-snapshots/SOURCES.md` | `4503397` | Codex D-P1 |
+| W0b | External Turnkey package consumed (KyuzanInc.Turnkey.Sdk via GitHub Packages); peak-sdk-unity @ fc560e8 mirror retained | ✅ Done | `4503397` + `upstream-snapshots/SOURCES.md` + `plans/plans-turnkey-import.md` | `4503397` | Codex D-P1 |
 | W0c | OpenAPI sync workflow + drift CI from peak-server tag | ⬜ Deferred to PR 2 follow-up | OpenAPI codegen not landed yet (OQ-N1 open) | — | Codex D-P1 |
-| W1  | PR 1: turnkey-sdk-csharp vertical slice (port + Codex r1 + threat-model doc) | ✅ Done | 63/63 tests + `codex-crypto-reviews/Crypto.cs-r1-2026-05-27.md` | `482d885` | — |
+| W1  | PR 1: turnkey crypto / API key stamping | ⬜ Out of scope here — lives in `KyuzanInc/turnkey-sdk-csharp` (consumed as `KyuzanInc.Turnkey.Sdk 0.1.0-alpha.0`) | external repo `KyuzanInc/turnkey-sdk-csharp` v0.1.0-alpha.0 release | — | per `plans/plans-turnkey-import.md` |
 | W2  | PR 2: peak-sdk-csharp PeakClient + services + IStorage + PeakError + Codex orgId fix | ✅ Done | 22/22 tests pass | `afc3dc8` | — |
 | W3  | PR 3: Godot + console smoke examples + Unity reference example via local file feed | ⬜ Deferred to v0.1.0-alpha.1 | scope decision | — | — |
 | W4  | PR 4: remaining v0.1.0 API surface (Account × 3 + PrivateKey × 3 + internal × 1) | ✅ Done (folded into W2) | AccountService + PrivateKeyService landed in PR 2 | `afc3dc8` | — |
@@ -60,9 +60,12 @@ The original D1-D20 from the monorepo plan still hold **except** the
 following:
 
 - **D17-CLAR (replaces D17)** — Codex multi-round review (≥3 per crypto
-  file) is **review evidence**, not a security audit. Evidence is stored
-  in `codex-crypto-reviews/<file>-r<N>-<date>.md`. A paid third-party
-  audit remains a v1.0.0 release blocker. R15 severity is **High**.
+  file) is **review evidence**, not a security audit. Since the
+  `plans/plans-turnkey-import.md` migration, crypto code lives in
+  `KyuzanInc/turnkey-sdk-csharp` and the per-file review evidence is
+  committed there (not in this repo). A paid third-party audit of the
+  Turnkey crypto port remains a v1.0.0 release blocker. R15 severity is
+  **High**.
 - **D19-CLAR (reverses D19)** — In this single-repo, csharp is the only
   thing in the repo, so the "keep csharp out of the monorepo root"
   motivation does not apply. We use a single root `peak-sdk-csharp.sln`,

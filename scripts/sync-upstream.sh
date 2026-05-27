@@ -6,13 +6,16 @@
 #
 # Where <name> is one of:
 #   peak-sdk-unity          — KyuzanInc/peak-sdk-unity, pin = commit SHA
-#   turnkey-sdk-unity       — KyuzanInc/turnkey-sdk-unity, pin = commit SHA
-#   tkhq-sdk                — tkhq/sdk (TypeScript), pin = version tag (e.g. crypto@v2.8.9)
 #   peak-server-openapi     — KyuzanInc/peak (subpath), pin = git tag
 #
 # The script writes the new snapshot, updates SOURCES.md, and creates a
 # branch sync/<name>-<short-pin> with a single commit. Operator opens
 # the PR by hand.
+#
+# Turnkey crypto (Crypto / ApiKeyStamper / Http / Encoding) lives in
+# KyuzanInc/turnkey-sdk-csharp and is consumed as the
+# KyuzanInc.Turnkey.Sdk NuGet package; resyncing its sources is done
+# from that repo, not this one. See docs/sync-rules.md.
 
 set -euo pipefail
 
@@ -33,12 +36,6 @@ cd "$REPO_ROOT"
 case "$NAME" in
   peak-sdk-unity)
     SRC_REPO="git@github.com:KyuzanInc/peak-sdk-unity.git"
-    ;;
-  turnkey-sdk-unity)
-    SRC_REPO="git@github.com:KyuzanInc/turnkey-sdk-unity.git"
-    ;;
-  tkhq-sdk)
-    SRC_REPO="git@github.com:tkhq/sdk.git"
     ;;
   peak-server-openapi)
     SRC_REPO="git@github.com:KyuzanInc/peak.git"
@@ -69,16 +66,7 @@ case "$NAME" in
 | \`$PIN\` | $(date -u +%Y-%m-%d) | KyuzanInc/peak \`apps/peak-public-docs/docs/api-references/public-api.yaml\` |
 EOF
     ;;
-  tkhq-sdk)
-    # Pin is something like crypto@v2.8.9 — extract package + version
-    PKG_NAME="$(echo "$PIN" | cut -d@ -f1)"
-    PKG_VERSION="$(echo "$PIN" | cut -d@ -f2)"
-    mkdir -p "$DEST/$PKG_NAME"
-    rm -rf "$DEST/$PKG_NAME"/*
-    cp -R "packages/$PKG_NAME/src" "$DEST/$PKG_NAME/"
-    cp "packages/$PKG_NAME/package.json" "$DEST/$PKG_NAME/" 2>/dev/null || true
-    ;;
-  peak-sdk-unity | turnkey-sdk-unity)
+  peak-sdk-unity)
     rm -rf "$DEST"
     mkdir -p "$DEST"
     cp -R . "$DEST/"

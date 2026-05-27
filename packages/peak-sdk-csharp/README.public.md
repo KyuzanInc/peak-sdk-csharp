@@ -23,6 +23,31 @@ Android, or your own crypto-on-disk implementation) for persistence.
 See [`docs/security/storage-threat-model.md`](https://github.com/KyuzanInc/peak-sdk-csharp/blob/main/docs/security/storage-threat-model.md)
 in the repo.
 
+## Consumer setup: GitHub Packages auth required
+
+`KyuzanInc.Peak.Sdk` depends on the
+[`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
+package, which ships from GitHub Packages until it lands on nuget.org.
+Your project's `nuget.config` (or `~/.nuget/NuGet/NuGet.Config`) must
+include the GitHub Packages source with a PAT that has the
+`read:packages` scope and access to the
+`KyuzanInc/turnkey-sdk-csharp` package:
+
+```
+dotnet nuget add source \
+  https://nuget.pkg.github.com/KyuzanInc/index.json \
+  --name github-kyuzan \
+  --username <your-github-username> \
+  --password "$GITHUB_TOKEN" \
+  --store-password-in-clear-text
+```
+
+CI runners need `permissions: packages: read` and the same explicit
+`dotnet nuget add source` step. See
+[`docs/development.md`](https://github.com/KyuzanInc/peak-sdk-csharp/blob/main/docs/development.md)
+for the full setup, including `packageSourceMapping` for shops that
+restrict resolution per source.
+
 ## Install
 
 ```

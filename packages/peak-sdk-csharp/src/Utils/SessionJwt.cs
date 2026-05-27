@@ -48,7 +48,7 @@ namespace KyuzanInc.Peak.Sdk.Utils
         {
             try
             {
-                var ok = global::KyuzanInc.Turnkey.Sdk.Crypto.VerifySessionJwtSignature(sessionJwt);
+                var ok = global::Turnkey.Crypto.VerifySessionJwtSignature(sessionJwt);
                 if (!ok)
                 {
                     throw new PeakError(PeakErrorCode.InvalidJwt, "Invalid JWT: failed signature verification");
