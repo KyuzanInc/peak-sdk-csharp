@@ -1,0 +1,157 @@
+name: C# CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: csharp-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: build+test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore peak-sdk-csharp.sln
+
+      - name: Build
+        run: dotnet build peak-sdk-csharp.sln --no-restore -c Release
+
+      - name: Format check
+        if: matrix.os == 'ubuntu-latest'
+        run: dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore
+
+      - name: Test (unit, no E2E)
+        env:
+          TURNKEY_TEST_ORG_API_KEY: ${{ secrets.TURNKEY_TEST_ORG_API_KEY }}
+          TURNKEY_TEST_ORG_ID: ${{ secrets.TURNKEY_TEST_ORG_ID }}
+        run: |
+          dotnet test peak-sdk-csharp.sln --no-build -c Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults \
+            --filter "Category!=E2E"
+
+      - name: Test (E2E, ubuntu only, when secrets present)
+        if: matrix.os == 'ubuntu-latest' && env.TURNKEY_TEST_ORG_API_KEY != ''
+        env:
+          TURNKEY_TEST_ORG_API_KEY: ${{ secrets.TURNKEY_TEST_ORG_API_KEY }}
+          TURNKEY_TEST_ORG_ID: ${{ secrets.TURNKEY_TEST_ORG_ID }}
+        run: |
+          dotnet test peak-sdk-csharp.sln --no-build -c Release \
+            --filter "Category=E2E"
+
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: TestResults/**/coverage.cobertura.xml
+
+  consumer-restore-check:
+    name: consumer restore (${{ matrix.tfm }})
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    strategy:
+      fail-fast: false
+      matrix:
+        tfm: [netstandard2.1, net8.0]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Pack
+        run: dotnet pack peak-sdk-csharp.sln -c Release -o ./local-feed
+      - name: Smoke consumer project that references the .nupkg
+        run: |
+          mkdir -p /tmp/consumer && cd /tmp/consumer
+          cat > consumer.csproj <<EOF
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup>
+              <TargetFramework>${{ matrix.tfm }}</TargetFramework>
+              <Nullable>enable</Nullable>
+            </PropertyGroup>
+            <ItemGroup>
+              <PackageReference Include="KyuzanInc.Turnkey.Sdk" Version="0.1.0-alpha.0" />
+            </ItemGroup>
+          </Project>
+          EOF
+          cat > Program.cs <<'EOF'
+          using Turnkey;
+          public static class Program {
+              public static void Main() {
+                  var bytes = Encoding.Uint8ArrayFromHexString("deadbeef");
+                  System.Console.WriteLine(bytes.Length);
+              }
+          }
+          EOF
+          dotnet new nugetconfig
+          # nuget.config: add local feed
+          cat > nuget.config <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+              <add key="local" value="${GITHUB_WORKSPACE}/local-feed" />
+            </packageSources>
+          </configuration>
+          EOF
+          dotnet restore consumer.csproj
+
+  codex-review-evidence-check:
+    name: codex review evidence freshness
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect crypto-touching changes
+        id: detect
+        run: |
+          CRYPTO_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
+            'packages/turnkey-sdk-csharp/src/Crypto.cs' \
+            'packages/turnkey-sdk-csharp/src/ApiKeyStamper.cs' \
+            'packages/turnkey-sdk-csharp/src/Http.cs' \
+            'packages/turnkey-sdk-csharp/src/Encoding.cs' || true)
+          if [ -n "$CRYPTO_FILES" ]; then
+            echo "crypto_touched=true" >> $GITHUB_OUTPUT
+            echo "$CRYPTO_FILES"
+          else
+            echo "crypto_touched=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Require fresh review evidence
+        if: steps.detect.outputs.crypto_touched == 'true'
+        run: |
+          echo "Crypto files touched on this PR. Confirming review evidence is fresh..."
+          MISSING=0
+          for FILE in Crypto.cs ApiKeyStamper.cs Http.cs; do
+            COUNT=$(ls codex-crypto-reviews/${FILE}-r*-*.md 2>/dev/null | wc -l | tr -d ' ')
+            if [ "$COUNT" -lt 3 ]; then
+              echo "::error file=codex-crypto-reviews/::Fewer than 3 review rounds present for ${FILE}"
+              MISSING=1
+            fi
+          done
+          if [ "$MISSING" = "1" ]; then
+            echo "Per docs/security/crypto-port-policy.md, crypto-touching PRs require >= 3 Codex review rounds with evidence committed."
+            exit 1
+          fi

@@ -1,0 +1,25 @@
+# CODEOWNERS for peak-sdk-csharp
+#
+# Per docs/security/crypto-port-policy.md, crypto-touching files require
+# explicit review. The CODEOWNERS entries below auto-request the right
+# reviewers when a PR touches sensitive paths.
+
+# Default owners
+*                                                  @KyuzanInc/peak-sdk
+
+# Crypto-critical files (paid audit will eventually run here)
+/packages/turnkey-sdk-csharp/src/Crypto.cs          @KyuzanInc/peak-sdk-crypto
+/packages/turnkey-sdk-csharp/src/ApiKeyStamper.cs   @KyuzanInc/peak-sdk-crypto
+/packages/turnkey-sdk-csharp/src/Http.cs            @KyuzanInc/peak-sdk-crypto
+/packages/turnkey-sdk-csharp/src/Encoding.cs        @KyuzanInc/peak-sdk-crypto
+/codex-crypto-reviews/                              @KyuzanInc/peak-sdk-crypto
+
+# Security policy
+/docs/security/                                     @KyuzanInc/peak-sdk-crypto
+
+# Upstream snapshots — operator-driven resync only
+/upstream-snapshots/                                @KyuzanInc/peak-sdk
+/scripts/sync-upstream.sh                           @KyuzanInc/peak-sdk
+
+# OpenAPI codegen package — never hand-edited
+/packages/peak-public-api-client-csharp/src/        @KyuzanInc/peak-sdk
