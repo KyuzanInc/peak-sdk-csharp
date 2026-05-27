@@ -66,7 +66,14 @@ namespace KyuzanInc.Peak.Sdk.Utils
 
             var json = JsonSerializer.Serialize(payload, typeInfo);
             logger.LogDebug("POST {Endpoint} body={Body}", endpoint, json);
-            req.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            // Use a ByteArrayContent + explicit Content-Type header so the
+            // wire value is exactly `application/json` (Unity-compatible)
+            // rather than the .NET default of `application/json; charset=utf-8`
+            // that StringContent appends.
+            var bodyBytes = Encoding.UTF8.GetBytes(json);
+            var content = new ByteArrayContent(bodyBytes);
+            content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            req.Content = content;
             return await SendAsync<T>(req, cancellationToken).ConfigureAwait(false);
         }
 

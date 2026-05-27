@@ -40,6 +40,7 @@ jobs:
         run: dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore
 
       - name: Test (unit, no E2E)
+        shell: bash
         env:
           TURNKEY_TEST_ORG_API_KEY: ${{ secrets.TURNKEY_TEST_ORG_API_KEY }}
           TURNKEY_TEST_ORG_ID: ${{ secrets.TURNKEY_TEST_ORG_ID }}
@@ -51,6 +52,7 @@ jobs:
 
       - name: Test (E2E, ubuntu only, when secrets present)
         if: matrix.os == 'ubuntu-latest' && env.TURNKEY_TEST_ORG_API_KEY != ''
+        shell: bash
         env:
           TURNKEY_TEST_ORG_API_KEY: ${{ secrets.TURNKEY_TEST_ORG_API_KEY }}
           TURNKEY_TEST_ORG_ID: ${{ secrets.TURNKEY_TEST_ORG_ID }}

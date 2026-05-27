@@ -7,6 +7,12 @@
       (see docs/security/storage-threat-model.md).
     -->
     <TargetFrameworks>netstandard2.1;net8.0;net8.0-windows</TargetFrameworks>
+    <!--
+      net8.0-windows multi-targeting requires the Windows targeting pack on
+      non-Windows CI runners. EnableWindowsTargeting=true asks NuGet to pull
+      the ref-pack instead of erroring out on ubuntu / macos.
+    -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <RootNamespace>KyuzanInc.Peak.Sdk</RootNamespace>
     <AssemblyName>KyuzanInc.Peak.Sdk</AssemblyName>
 
