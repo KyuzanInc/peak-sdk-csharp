@@ -185,6 +185,19 @@ CC ~3-5 hours of generation; human verification ~1 day.
 
 ## PR 1 — turnkey-sdk-csharp vertical slice (W1)
 
+> **HISTORICAL — superseded by `plans/plans-turnkey-import.md`.**
+> The Turnkey port now lives in
+> [`KyuzanInc/turnkey-sdk-csharp`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
+> and this repo consumes the `KyuzanInc.Turnkey.Sdk` NuGet package.
+> The paths referenced in this section (`packages/turnkey-sdk-csharp/`,
+> `codex-crypto-reviews/`, `upstream-snapshots/turnkey-sdk-unity/`,
+> `upstream-snapshots/turnkey-official-src/`,
+> `docs/security/crypto-port-policy.md`) have been deleted from this
+> repo. Crypto changes go to the external repo; the consumer-side bump
+> procedure is in [`docs/sync-rules.md`](../docs/sync-rules.md).
+> Kept here for historical context only — do not follow these steps
+> for new work.
+
 ### Goal (rewritten per C-A1, replaces D10 references)
 
 Port `Crypto.cs`, `ApiKeyStamper.cs`, `Encoding.cs`, `Http.cs`,

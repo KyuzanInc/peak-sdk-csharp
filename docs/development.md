@@ -15,17 +15,31 @@ to nuget.org. Restoring this repo therefore needs a personal access
 token (classic, scope `read:packages`) — fine-grained tokens with
 package read access also work.
 
+The repo's `nuget.config` already declares the `github-kyuzan` source
+itself, so use `dotnet nuget update source` (not `add source` — that
+would fail with a duplicate-source error) to attach credentials. Pass
+`--configfile` to point at your user-level config so the credentials
+land outside the repo working tree:
+
 ```
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages
-dotnet nuget add source \
-  https://nuget.pkg.github.com/KyuzanInc/index.json \
-  --name github-kyuzan \
+dotnet nuget update source github-kyuzan \
+  --source https://nuget.pkg.github.com/KyuzanInc/index.json \
   --username <your-github-username> \
   --password "$GITHUB_TOKEN" \
-  --store-password-in-clear-text
+  --store-password-in-clear-text \
+  --configfile ~/.nuget/NuGet/NuGet.Config
 ```
 
-Alternatively, edit `~/.nuget/NuGet/NuGet.Config` directly:
+If the user-level config has not declared the source yet,
+`update source` errors with "Cannot find source". In that case run
+`dotnet nuget add source ... --configfile ~/.nuget/NuGet/NuGet.Config`
+once (the user-level config is independent of the repo's), then use
+`update source` for refreshes.
+
+Alternatively, edit `~/.nuget/NuGet/NuGet.Config` directly. Adding only
+a `packageSourceCredentials` block (without re-declaring the source)
+attaches credentials to the repo-declared source without duplication:
 
 ```xml
 <configuration>
@@ -49,14 +63,18 @@ package.
 ## Build
 
 ```
-dotnet restore peak-sdk-csharp.sln --locked-mode
+dotnet restore peak-sdk-csharp.sln
 dotnet build peak-sdk-csharp.sln -c Release
 ```
 
-`--locked-mode` is mandatory for reproducibility. The committed
-`packages.lock.json` files under
-`packages/peak-sdk-csharp/{src,tests}/` are the source of truth for
-the resolved dependency graph; CI uses the same flag.
+> **Bootstrap state (until M11 follow-up lands).** `packages.lock.json`
+> files are not yet committed. Once they are, this command becomes
+> `dotnet restore peak-sdk-csharp.sln --locked-mode` and CI re-enables
+> the same flag. The csprojs already set
+> `RestorePackagesWithLockFile=true`, so a successful restore writes
+> the lock file; commit it and switch to `--locked-mode` in the same
+> PR. See the `TODO(M11 follow-up)` markers in
+> `.github/workflows/csharp-ci.yml` and `csharp-publish.yml`.
 
 The build is deterministic (`Deterministic=true` in
 `Directory.Build.props`) and `ContinuousIntegrationBuild=true` is

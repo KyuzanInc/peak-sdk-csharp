@@ -25,13 +25,17 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Add GitHub Packages NuGet source
+      - name: Authenticate GitHub Packages NuGet source
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --name github-kyuzan \
+          # The `github-kyuzan` source itself is already declared in
+          # the repo's nuget.config, so we use `update source` (not
+          # `add source`) to attach credentials. `add source` would
+          # exit with a duplicate-source error here.
+          dotnet nuget update source github-kyuzan \
+            --source https://nuget.pkg.github.com/KyuzanInc/index.json \
             --username takeshijuan \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text

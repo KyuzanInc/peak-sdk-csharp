@@ -30,17 +30,21 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Add GitHub Packages NuGet source
+      - name: Authenticate GitHub Packages NuGet source
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # The `github-kyuzan` source itself is already declared in
+          # the repo's nuget.config, so we use `update source` (not
+          # `add source`) to attach credentials. `add source` would
+          # exit with a duplicate-source error here.
           # KyuzanInc.Turnkey.Sdk ships from GitHub Packages until it
           # lives on nuget.org. The username can be any non-empty
           # string when authenticating with GITHUB_TOKEN; we pin it to
           # the bot identity so restore logs are easy to audit.
-          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --name github-kyuzan \
+          dotnet nuget update source github-kyuzan \
+            --source https://nuget.pkg.github.com/KyuzanInc/index.json \
             --username takeshijuan \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
@@ -103,13 +107,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - name: Add GitHub Packages NuGet source
+      - name: Authenticate GitHub Packages NuGet source
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --name github-kyuzan \
+          # `github-kyuzan` is already declared in the repo nuget.config;
+          # update (don't add) attaches credentials.
+          dotnet nuget update source github-kyuzan \
+            --source https://nuget.pkg.github.com/KyuzanInc/index.json \
             --username takeshijuan \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
@@ -141,7 +147,15 @@ jobs:
           using KyuzanInc.Peak.Sdk;
           public static class Program {
               public static void Main() {
-                  var _ = new PeakClient("https://example.invalid/", "key");
+                  // PeakClient has a private constructor; the only
+                  // entry point is the static Initialize() factory.
+                  // Use a throwaway options object — we only need to
+                  // verify the consumer compiles + restores.
+                  var _ = PeakClient.Initialize(new PeakClientOptions
+                  {
+                      ApiUrl        = "https://example.invalid/",
+                      ProjectApiKey = "key",
+                  });
                   System.Console.WriteLine("ok");
               }
           }
@@ -178,3 +192,6 @@ jobs:
           </configuration>
           EOF
           dotnet restore consumer.csproj
+          # Build too: restore alone leaves PeakClient unverified, so a
+          # bad ProjectReference + missing constructor would still pass.
+          dotnet build consumer.csproj --no-restore -c Release

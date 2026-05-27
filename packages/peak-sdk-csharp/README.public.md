@@ -39,11 +39,15 @@ dotnet nuget add source \
   --name github-kyuzan \
   --username <your-github-username> \
   --password "$GITHUB_TOKEN" \
-  --store-password-in-clear-text
+  --store-password-in-clear-text \
+  --configfile ~/.nuget/NuGet/NuGet.Config
 ```
 
-CI runners need `permissions: packages: read` and the same explicit
-`dotnet nuget add source` step. See
+Use `dotnet nuget update source github-kyuzan ...` (same arg shape,
+without `--name`) on later token refreshes. CI runners need
+`permissions: packages: read` and the same authentication step
+(`update source` when the repo's `nuget.config` already declares the
+source). See
 [`docs/development.md`](https://github.com/KyuzanInc/peak-sdk-csharp/blob/main/docs/development.md)
 for the full setup, including `packageSourceMapping` for shops that
 restrict resolution per source.
