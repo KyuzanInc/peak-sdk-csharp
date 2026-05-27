@@ -17,7 +17,8 @@ A .NET NuGet port of the Unity-only `peak-sdk-unity` SDK. The
 cryptographic core is consumed from the external
 [`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
 NuGet package (shipped via GitHub Packages, pinned exact in
-`Directory.Packages.props` and the committed `packages.lock.json`).
+`Directory.Packages.props`; `packages.lock.json` files land in the
+M11 follow-up and then become the second pin layer).
 
 ## What this repo is NOT
 
@@ -90,12 +91,13 @@ Before committing, verify (locally, with GitHub Packages auth set up
 per [docs/development.md](docs/development.md)):
 
 ```bash
-dotnet restore peak-sdk-csharp.sln --locked-mode
+dotnet restore peak-sdk-csharp.sln
 dotnet build   peak-sdk-csharp.sln -c Release
 dotnet test    peak-sdk-csharp.sln -c Release --filter "Category!=E2E"
 ```
 
-is green.
+is green. Add `--locked-mode` to the restore step once the M11
+follow-up commits the `packages.lock.json` files.
 
 ## Branch and commit conventions
 
