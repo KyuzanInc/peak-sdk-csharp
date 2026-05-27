@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <RootNamespace>KyuzanInc.Turnkey.Sdk</RootNamespace>
+    <AssemblyName>KyuzanInc.Turnkey.Sdk</AssemblyName>
+
+    <!-- NuGet metadata -->
+    <PackageId>KyuzanInc.Turnkey.Sdk</PackageId>
+    <Version>0.1.0-alpha.0</Version>
+    <Title>KyuzanInc.Turnkey.Sdk (unofficial)</Title>
+    <Description>Unofficial / community-maintained Turnkey SDK by Kyuzan Inc. Not affiliated with Turnkey, Inc. A 1:1 logical port of @turnkey/crypto v2.8.9, @turnkey/api-key-stamper v0.6.0, and @turnkey/http v3.16.0, reviewed by multi-round Codex review (evidence in codex-crypto-reviews/). NOT third-party paid-audited. Use at your own risk. Provides P-256 ECDSA / HPKE / HKDF / API key stamping primitives for .NET.</Description>
+    <PackageTags>turnkey;wallet;crypto;p256;hpke;hkdf;ecdsa;peak</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.public.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KyuzanInc.Turnkey.Sdk.Tests" />
+  </ItemGroup>
+
+</Project>
