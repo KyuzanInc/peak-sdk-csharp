@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <RootNamespace>KyuzanInc.Peak.Sdk</RootNamespace>
+    <AssemblyName>KyuzanInc.Peak.Sdk</AssemblyName>
+
+    <PackageId>KyuzanInc.Peak.Sdk</PackageId>
+    <Version>0.1.0-alpha.0</Version>
+    <Title>KyuzanInc.Peak.Sdk</Title>
+    <Description>Peak embedded-wallet SDK for .NET. OTP login, account management, private key import/export. A generic-NET port of peak-sdk-unity by Kyuzan Inc.; semantic equivalent of the Unity public surface plus selected behaviour from peak-sdk-browser. Includes IStorage / ISecureStorage abstractions; secure storage backends live in KyuzanInc.Peak.Sdk.Unity (Unity) or KyuzanInc.Peak.Sdk (Windows DPAPI).</Description>
+    <PackageTags>peak;wallet;turnkey;sdk;embedded-wallet;p256;otp</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\turnkey-sdk-csharp\src\turnkey-sdk-csharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.public.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KyuzanInc.Peak.Sdk.Tests" />
+  </ItemGroup>
+
+</Project>

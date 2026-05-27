@@ -758,10 +758,13 @@ namespace KyuzanInc.Turnkey.Sdk
 
                 if (hasSignedDataObj)
                 {
+                    // Codex review (2026-05-27) finding: missing organizationId in the
+                    // signed payload must be treated as a mismatch, not a free pass.
+                    // TS @turnkey/crypto rejects when the field is absent.
                     var bundleOrgId = GetStringProp(signedDataObj, "organizationId");
-                    if (!string.IsNullOrEmpty(bundleOrgId) && bundleOrgId != parameters.OrganizationId)
+                    if (bundleOrgId != parameters.OrganizationId)
                     {
-                        throw new Exception($"Organization ID mismatch. Expected: {parameters.OrganizationId}, got: {bundleOrgId}");
+                        throw new Exception($"Organization ID mismatch. Expected: {parameters.OrganizationId}, got: {bundleOrgId ?? "<missing>"}");
                     }
                 }
 

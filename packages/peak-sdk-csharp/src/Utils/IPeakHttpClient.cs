@@ -1,0 +1,20 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace KyuzanInc.Peak.Sdk.Utils
+{
+    /// <summary>
+    /// Tiny HTTP client abstraction the SDK uses for peak-server traffic.
+    /// Equivalent to <c>IPeakHttpClient</c> in <c>peak-sdk-unity</c>. The
+    /// default implementation is <see cref="DefaultPeakHttpClient"/>; consumers
+    /// can inject their own (e.g. wrapping <c>IHttpClientFactory</c>) for tests
+    /// or platform-specific retry policies.
+    /// </summary>
+    public interface IPeakHttpClient
+    {
+        Task<T?> GetAsync<T>(string endpoint, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where T : class;
+        Task<T?> PostAsync<TBody, T>(string endpoint, TBody payload, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where TBody : class where T : class;
+        Task<T?> PostAsync<T>(string endpoint, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where T : class;
+    }
+}
