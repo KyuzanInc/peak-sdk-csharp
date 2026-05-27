@@ -1,7 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <!--
+      net8.0-windows enables DpapiSecureStorage. The TFM is silently ignored
+      on non-Windows hosts; ISecureStorage.IsAvailable returns false there
+      (see docs/security/storage-threat-model.md).
+    -->
+    <TargetFrameworks>netstandard2.1;net8.0;net8.0-windows</TargetFrameworks>
     <RootNamespace>KyuzanInc.Peak.Sdk</RootNamespace>
     <AssemblyName>KyuzanInc.Peak.Sdk</AssemblyName>
 
@@ -21,6 +26,10 @@
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
   </ItemGroup>
 
   <ItemGroup>
