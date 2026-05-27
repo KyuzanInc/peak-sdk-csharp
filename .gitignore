@@ -1,0 +1,53 @@
+# Build artifacts
+bin/
+obj/
+out/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Oo]ut/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/*/lib/
+**/*.nuget.dgspec.json
+**/*.nuget.g.props
+**/*.nuget.g.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+TestResults/
+coverage*.xml
+coverage*.json
+coverage*.cobertura.xml
+*.coverage
+*.coveragexml
+
+# Local artifacts
+local/
+tmp/
+
+# Upstream sources (synced via scripts, not hand-edited)
+# These dirs are committed; this section documents intent only.
+# upstream-snapshots/
+
+# Editor backup
+*.orig
+*.rej
