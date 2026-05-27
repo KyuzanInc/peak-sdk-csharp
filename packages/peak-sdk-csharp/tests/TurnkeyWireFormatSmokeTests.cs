@@ -48,11 +48,25 @@ namespace KyuzanInc.Peak.Sdk.Tests
         }
 
         [Fact]
-        public void Crypto_VerifySessionJwtSignature_MalformedReturnsFalse()
+        public void Crypto_VerifySessionJwtSignature_RejectsMalformed()
         {
-            // Consumed by SessionJwt.VerifySessionJwt.
-            var ok = global::Turnkey.Crypto.VerifySessionJwtSignature("not-a-jwt");
-            ok.Should().BeFalse();
+            // Consumed by SessionJwt.VerifySessionJwt. The Peak wrapper
+            // already normalises both shapes (return-false and throw)
+            // into a PeakError, so the contract this smoke test pins
+            // is "malformed input is rejected" rather than the exact
+            // exception/return signal. Either signal satisfies the
+            // consumer; both let SessionJwt.VerifySessionJwt do its
+            // job.
+            bool rejected;
+            try
+            {
+                rejected = !global::Turnkey.Crypto.VerifySessionJwtSignature("not-a-jwt");
+            }
+            catch
+            {
+                rejected = true;
+            }
+            rejected.Should().BeTrue("Turnkey must not accept a malformed JWT");
         }
 
         // ------------------------------------------------------------------
