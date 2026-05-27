@@ -1,0 +1,50 @@
+<Project>
+  <!--
+    Central package management. All NuGet package versions are pinned
+    here; csproj files reference packages without Version attributes.
+
+    Crypto-critical pins are documented in
+    codex-crypto-reviews/turnkey-source-pins.md. BouncyCastle.Cryptography
+    is pinned to an exact version (square brackets) because a minor
+    bump can change ECDSA / AES-GCM behaviour in subtle ways.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Production">
+    <!-- Crypto primitives backend, pinned exact -->
+    <PackageVersion Include="BouncyCastle.Cryptography" Version="[2.5.0]" />
+
+    <!-- JSON: source generator for AOT / IL2CPP safety -->
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+
+    <!-- Logging abstraction (NullLogger<T>.Instance default) -->
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+
+    <!-- HTTP resilience pattern (Polly v7-line for netstandard2.1 compat) -->
+    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="7.0.20" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
+
+    <!-- DPAPI (Windows-only, used by net8.0-windows TFM of peak-sdk-csharp) -->
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="FsCheck.Xunit" Version="2.16.6" />
+  </ItemGroup>
+
+  <ItemGroup Label="CodegenAndTooling">
+    <!-- For OpenAPI codegen artifacts; pulled by the generator -->
+    <PackageVersion Include="JsonSubTypes" Version="2.0.1" />
+    <PackageVersion Include="Polly" Version="7.2.4" />
+    <PackageVersion Include="RestSharp" Version="111.4.1" />
+  </ItemGroup>
+</Project>

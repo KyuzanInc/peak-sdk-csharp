@@ -1,0 +1,22 @@
+apiRules:
+- include:
+    uidRegex: ^Peak
+    type: Namespace
+- include:
+    uidRegex: ^Peak\.PeakSdk
+    type: Class
+- include:
+    uidRegex: ^Peak\.AuthenticatedPeakSdk
+    type: Class
+- include:
+    uidRegex: ^Peak\.SdkOptions
+    type: Class
+- include:
+    uidRegex: ^Peak\.AuthenticationOptions
+    type: Class
+- exclude:
+    uidRegex: .*
+    type: Type
+- exclude:
+    uidRegex: .*
+    type: Member

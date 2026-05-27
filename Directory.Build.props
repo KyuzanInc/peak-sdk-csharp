@@ -1,0 +1,46 @@
+<Project>
+  <!--
+    Shared MSBuild properties applied to every csproj in this repo.
+    Per Codex finding C-D1, we use a single root Directory.Build.props
+    rather than per-package copies. The new repo's only purpose IS C#,
+    so the original D19 motivation does not apply.
+  -->
+
+  <PropertyGroup>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- CS1591: missing XML doc — we keep our doc bar lower than full XML doc per file -->
+
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <DebugType>portable</DebugType>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!--
+    NuGet packaging defaults. Per-package csproj overrides PackageId,
+    Description, PackageTags, etc. The Unofficial Turnkey SDK
+    disclaimer (D15) and the 1:1-port-but-not-audited disclosure
+    (D17-CLAR) live in each package's own <Description>.
+  -->
+  <PropertyGroup>
+    <Authors>Kyuzan Inc.</Authors>
+    <Company>Kyuzan Inc.</Company>
+    <Copyright>Copyright (c) 2026 Kyuzan Inc.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/KyuzanInc/peak-sdk-csharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/KyuzanInc/peak-sdk-csharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
+  </ItemGroup>
+</Project>

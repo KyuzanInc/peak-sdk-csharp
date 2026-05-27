@@ -1,0 +1,17 @@
+{
+    "name": "com.kyuzan.peak-sdk-unity.runtime",
+    "rootNamespace": "Peak",
+    "references": [
+        "UniTask",
+        "com.kyuzan.turnkey-sdk-unity.runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
