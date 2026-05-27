@@ -89,8 +89,11 @@ namespace KyuzanInc.Peak.Sdk
         {
             var result = await authService.CompleteOtpLoginAsync(email, otpId, otpCode, signup, cancellationToken).ConfigureAwait(false);
 
-            // Persist session synchronously into IStorage. JSON is the wire
-            // format; the SDK never reads SessionData.JSON outside this layer.
+            // Persist session into IStorage. Unity port behaviour: clear any
+            // prior session before writing so a partial write failure cannot
+            // leave a stale session reachable. JSON is the wire format; the
+            // SDK never reads SessionData.JSON outside this layer.
+            storage.Delete(SessionData.StorageKey);
             var sessionData = new SessionData
             {
                 Email = email,

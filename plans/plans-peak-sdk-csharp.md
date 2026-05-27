@@ -21,19 +21,20 @@ commits.
 
 | ID | Workstream | Status | Evidence | Commit | Finding |
 |---|---|---|---|---|---|
-| W0a | Repo bootstrap (root sln, shared props, CPM, CI workflow, docs scaffold) | 🚧 In progress | — | — | new-repo adjustment |
-| W0b | Upstream snapshot import (peak-sdk-unity, turnkey-sdk-unity, @turnkey/*, peak-server OpenAPI) at pinned SHAs | ⬜ Pending | — | — | Codex D-P1 |
-| W0c | OpenAPI sync workflow + drift CI from peak-server tag | ⬜ Pending | — | — | Codex D-P1 |
-| W1  | PR 1: turnkey-sdk-csharp vertical slice (port + Codex multi-round + threat-model doc) | ⬜ Pending | — | — | — |
-| W2  | PR 2: peak-sdk-csharp + OpenAPI codegen + OTP login + IStorage abstraction | ⬜ Pending | — | — | — |
-| W3  | PR 3: Godot + console smoke examples + Unity reference example via local file feed | ⬜ Pending | — | — | — |
-| W4  | PR 4: remaining v0.1.0 API surface (Account × 3 + PrivateKey × 3 + internal × 1) | ⬜ Pending | — | — | — |
-| W4.5| PR 4.5: SecureStorage (peak-sdk-csharp core: Windows DPAPI; peak-sdk-csharp-unity: PlayerPrefs/Keychain/KeyStore) | ⬜ Pending | — | — | Codex C4 |
-| W5  | PR 5 (deferred to separate repo): turn `peak-sdk-unity` into thin adapter | ⬜ Pending | external repo | — | scope-out of this plan |
-| W6  | (skipped) peak monorepo submodule bump — out of scope per user directive | ⛔ N/A | n/a | n/a | — |
-| W7  | PR 7: NuGet.org publish workflow + public docs scaffolding | ⬜ Pending | — | — | — |
-| Wc1 | Crypto fuzz / property tests (was Phase 2 in monorepo plan; front-loaded) | ⬜ Pending | — | — | Codex C-P1 |
-| Wc2 | Cross-SDK conformance suite (TS family equivalence) front-loaded | ⬜ Pending | — | — | Codex E-P2 |
+| W0a | Repo bootstrap (root sln, shared props, CPM, CI workflow, docs scaffold) | ✅ Done | `e712d18`, `4503397`, `d105f7a` | initial commits | new-repo adjustment |
+| W0b | Upstream snapshot import (peak-sdk-unity @ fc560e8, turnkey-sdk-unity @ 039d8e4) | ✅ Done | `4503397` + `upstream-snapshots/SOURCES.md` | `4503397` | Codex D-P1 |
+| W0c | OpenAPI sync workflow + drift CI from peak-server tag | ⬜ Deferred to PR 2 follow-up | OpenAPI codegen not landed yet (OQ-N1 open) | — | Codex D-P1 |
+| W1  | PR 1: turnkey-sdk-csharp vertical slice (port + Codex r1 + threat-model doc) | ✅ Done | 63/63 tests + `codex-crypto-reviews/Crypto.cs-r1-2026-05-27.md` | `482d885` | — |
+| W2  | PR 2: peak-sdk-csharp PeakClient + services + IStorage + PeakError + Codex orgId fix | ✅ Done | 22/22 tests pass | `afc3dc8` | — |
+| W3  | PR 3: Godot + console smoke examples + Unity reference example via local file feed | ⬜ Deferred to v0.1.0-alpha.1 | scope decision | — | — |
+| W4  | PR 4: remaining v0.1.0 API surface (Account × 3 + PrivateKey × 3 + internal × 1) | ✅ Done (folded into W2) | AccountService + PrivateKeyService landed in PR 2 | `afc3dc8` | — |
+| W4.5| PR 4.5: SecureStorage core (Windows DPAPI + UnavailableSecureStorage placeholder) | ✅ Done | `docs/security/secure-storage-platform-matrix.md` | `6847839` | Codex C4 |
+| W5  | PR 5 (deferred to separate repo): turn `peak-sdk-unity` into thin adapter | ⬜ Out of scope here | external repo work | — | per user directive |
+| W6  | (skipped) peak monorepo submodule bump | ⛔ N/A | per user "do not update peak repo" | n/a | — |
+| W7  | PR 7: NuGet.org publish workflow + public docs scaffolding | ✅ Done | `.github/workflows/csharp-publish.yml` | `6847839` | — |
+| Wc1 | Crypto fuzz / property tests (front-loaded from Phase 2) | ⬜ Backlog | scope decision; covered partially by `CryptoTests.cs` | — | Codex C-P1 |
+| Wc2 | Cross-SDK conformance suite (TS family equivalence) | ⬜ Backlog | scope decision | — | Codex E-P2 |
+| WrF | Final Codex review of full implementation | 🚧 In progress | running at commit `6847839` | — | FINISH CONDITION |
 
 ## Codex P1 findings adjudication (review session 2026-05-27)
 
