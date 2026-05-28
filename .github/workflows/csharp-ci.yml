@@ -48,16 +48,9 @@ jobs:
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
 
-      - name: Restore
+      - name: Restore (locked)
         shell: bash
-        # TODO(M11 follow-up): switch to `--locked-mode` once
-        # packages.lock.json files are generated and committed. They
-        # cannot be produced reliably without a maintainer PAT that
-        # has `read:packages` on KyuzanInc.Turnkey.Sdk — the
-        # automatic CI GITHUB_TOKEN gets that scope via the package's
-        # Manage Actions access grant, but cannot push lock files
-        # back to the branch.
-        run: dotnet restore peak-sdk-csharp.sln
+        run: dotnet restore peak-sdk-csharp.sln --locked-mode
 
       - name: Build
         run: dotnet build peak-sdk-csharp.sln --no-restore -c Release
@@ -118,11 +111,10 @@ jobs:
             --username "${{ github.actor }}" \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
-      - name: Restore + Pack KyuzanInc.Peak.Sdk
+      - name: Restore (locked) + Pack KyuzanInc.Peak.Sdk
         shell: bash
-        # TODO(M11 follow-up): add --locked-mode after lock files land.
         run: |
-          dotnet restore peak-sdk-csharp.sln
+          dotnet restore peak-sdk-csharp.sln --locked-mode
           dotnet pack packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
             --no-restore -c Release -o ./local-feed
       - name: Smoke consumer project that references the .nupkg

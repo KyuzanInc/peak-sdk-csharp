@@ -8,11 +8,8 @@
     exact version (square brackets) because a minor bump can ship
     crypto changes that need a deliberate review pass on this side.
     BouncyCastle.Cryptography arrives transitively through that
-    package. Once the M11 follow-up commits the packages.lock.json
-    files and CI re-enables locked-mode restore, BouncyCastle is
-    pinned exactly by the lock file; until then the transitive
-    resolve picks the version KyuzanInc.Turnkey.Sdk 0.1.0-alpha.0
-    itself requires (2.5.0).
+    package and is pinned exactly by the committed packages.lock.json
+    files (CI restores with locked-mode to enforce them).
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

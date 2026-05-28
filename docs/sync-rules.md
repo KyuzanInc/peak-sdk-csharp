@@ -46,9 +46,7 @@ The script:
 2. Edit `Directory.Packages.props` and update the
    `<PackageVersion Include="KyuzanInc.Turnkey.Sdk" Version="[<new>]" />`
    row (keep the square brackets — the pin must stay exact).
-3. Re-resolve the lock files (`--force-evaluate` once the lock files
-   are committed; before that, run a plain `dotnet restore` and commit
-   the generated lock files in the same PR):
+3. Re-resolve the lock files:
    ```
    dotnet restore peak-sdk-csharp.sln --force-evaluate
    ```
