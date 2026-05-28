@@ -151,23 +151,30 @@ packages/peak-sdk-csharp/src/PeakJsonContext.cs     [JsonSerializable] type qual
 .github/workflows/csharp-ci.yml
   - permissions: contents: read, packages: read           (grow)
   - REMOVE codex-review-evidence-check job
-  - In every restore step:
-      env: NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  - Before every restore step, attach credentials to the
+    `github-kyuzan` source the repo's nuget.config already declares
+    (use update-source, not add-source — adding a duplicate source
+    name errors). Drop --source: the URL is already in nuget.config:
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-          --name github-kyuzan \
-          --username ${{ github.actor }} \
-          --password "${{ secrets.GITHUB_TOKEN }}" \
+        dotnet nuget update source github-kyuzan \
+          --username "${{ github.actor }}" \
+          --password "$GITHUB_TOKEN" \
           --store-password-in-clear-text
-        dotnet restore peak-sdk-csharp.sln --locked-mode
+        dotnet restore peak-sdk-csharp.sln
+        # NOTE: --locked-mode lands in the M11 follow-up once
+        # packages.lock.json files are committed.
   - consumer-restore-check: same auth setup before the consumer
     project's `dotnet restore`. Without it, the consumer fails to
     pull KyuzanInc.Turnkey.Sdk transitively.
 
 .github/workflows/csharp-publish.yml
   - permissions: contents: read, packages: read   (publish step already had packages: write)
-  - same dotnet nuget add source step before restore/build/pack/test
-  - restore with --locked-mode
+  - same `dotnet nuget update source github-kyuzan` step before
+    restore/build/pack/test
+  - plain restore for now; --locked-mode lands with the lock files
+    in the M11 follow-up
 
 .github/CODEOWNERS                                  REMOVE rows referring to
                                                      /packages/turnkey-sdk-csharp/src/*.cs and
