@@ -72,7 +72,7 @@ actually exports).
 |---|---|---|
 | MD1 | Pin to **exact** `[0.1.0-alpha.0]` in `Directory.Packages.props`. CPM exact-range plus a `packages.lock.json` per project gives belt + suspenders. | A wallet SDK's Turnkey shim must never floating-bump. |
 | MD2 | `nuget.config` adds a `github-kyuzan` source and uses `packageSourceMapping` so **only `KyuzanInc.Turnkey.*`** resolves through GitHub Packages. `nuget.org` continues to serve everything else (BouncyCastle, System.Text.Json, etc.). `local-feed` retained for downstream Unity adapter consumption and scoped to `KyuzanInc.Peak.*` (Codex P2 note: dropped any reference to `PR 5` numbering). | Two narrow private feeds, neither shadowing nuget.org. |
-| MD3 | CI auth: **explicit `dotnet nuget add source` step** with `--username ${{ github.actor }} --password "$GITHUB_TOKEN"`. We do NOT rely on `actions/setup-dotnet@v4`'s `nuget-auth-token` (that input does not exist on v4 — `setup-dotnet@v3` had `source-url`/`NUGET_AUTH_TOKEN` semantics but v4 dropped per-input auth; the explicit add-source step is the only stable pattern). Workflow `permissions:` MUST grow `packages: read`. Cross-repo read access for `GITHUB_TOKEN` on the package is a separate prerequisite (see OQ-M4). | Stable, debuggable; works on every runner. |
+| MD3 | CI auth: **explicit `dotnet nuget update source github-kyuzan` step** (not `add source` — the repo's nuget.config already declares the source name, and `add source` would error with duplicate-source) with `--username ${{ github.actor }} --password "$GITHUB_TOKEN"`. We do NOT rely on `actions/setup-dotnet@v4`'s `nuget-auth-token` (that input does not exist on v4 — `setup-dotnet@v3` had `source-url`/`NUGET_AUTH_TOKEN` semantics but v4 dropped per-input auth; the explicit update-source step is the only stable pattern). Workflow `permissions:` MUST grow `packages: read`. Cross-repo read access for `GITHUB_TOKEN` on the package is a separate prerequisite (see OQ-M4). | Stable, debuggable; works on every runner. |
 | MD4 | Adopt `Turnkey` namespace in peak-sdk-csharp consumers. The rename target is **every file under `packages/peak-sdk-csharp/src/**/*.cs` AND `packages/peak-sdk-csharp/tests/**/*.cs`** (currently 4 source-side files reference the in-repo namespace: Models.cs, AuthService.cs, PrivateKeyService.cs, SessionJwt.cs; the tests do not reference it directly today but the rename pass must walk both trees so no future regression slips by). | Mechanical search-and-replace `global::KyuzanInc.Turnkey.Sdk.` → `global::Turnkey.` plus the PeakJsonContext `[JsonSerializable]` attributes. |
 | MD5 | Delete `codex-crypto-reviews/`, `upstream-snapshots/turnkey-sdk-unity/`, `upstream-snapshots/turnkey-official-src/` (if present), and `docs/security/crypto-port-policy.md`. | Crypto port + review evidence now lives in `KyuzanInc/turnkey-sdk-csharp`. Stale copies invite drift. |
 | MD6 | Keep `upstream-snapshots/peak-sdk-unity/`. | Still the port base for `KyuzanInc.Peak.Sdk`. |
@@ -265,14 +265,14 @@ After M2-M11:
 **Local (dev machine):**
 
 ```bash
-# One-time GitHub Packages auth
+# One-time GitHub Packages auth. `${{ github.actor }}` is GitHub
+# Actions-only — substitute your own GitHub username here.
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages scope
-dotnet nuget add source \
-  https://nuget.pkg.github.com/KyuzanInc/index.json \
-  --name github-kyuzan \
-  --username ${{ github.actor }} \
+dotnet nuget update source github-kyuzan \
+  --username <your-github-username> \
   --password "$GITHUB_TOKEN" \
-  --store-password-in-clear-text
+  --store-password-in-clear-text \
+  --configfile ~/.nuget/NuGet/NuGet.Config
 
 cd ~/Kyuzan/src/peak-sdk-csharp
 dotnet restore peak-sdk-csharp.sln --locked-mode        # MUST be green
