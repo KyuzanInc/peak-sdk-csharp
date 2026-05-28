@@ -272,14 +272,27 @@ After M2-M11:
 **Local (dev machine):**
 
 ```bash
-# One-time GitHub Packages auth. `${{ github.actor }}` is GitHub
-# Actions-only — substitute your own GitHub username here.
+# One-time GitHub Packages auth. The user-level NuGet config is
+# independent of the repo's, so on a clean machine you first run
+# `add source` (so the user config knows the source name) and then
+# use `update source` for later token refreshes. `${{ github.actor }}`
+# is GitHub Actions-only — substitute your own GitHub username.
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages scope
-dotnet nuget update source github-kyuzan \
+
+# First time on this machine — declare the source in the user config:
+dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+  --name github-kyuzan \
   --username <your-github-username> \
   --password "$GITHUB_TOKEN" \
   --store-password-in-clear-text \
   --configfile ~/.nuget/NuGet/NuGet.Config
+
+# Subsequent token refreshes use update-source instead of re-adding:
+# dotnet nuget update source github-kyuzan \
+#   --username <your-github-username> \
+#   --password "$GITHUB_TOKEN" \
+#   --store-password-in-clear-text \
+#   --configfile ~/.nuget/NuGet/NuGet.Config
 
 cd ~/Kyuzan/src/peak-sdk-csharp
 dotnet restore peak-sdk-csharp.sln                       # MUST be green; --locked-mode lands in the M11 follow-up
