@@ -1,14 +1,15 @@
 # peak-sdk-csharp
 
-.NET (NuGet) SDK for the Peak embedded-wallet platform and its Turnkey
-key-management primitives. A community-maintained port of the Unity-only
-`peak-sdk-unity` + `turnkey-sdk-unity` packages, generalised so that Godot,
-console apps, .NET MAUI, and any modern .NET host can use the same code
-path Unity does today.
+.NET (NuGet) SDK for the Peak embedded-wallet platform. A
+community-maintained port of the Unity-only `peak-sdk-unity` package,
+generalised so that Godot, console apps, .NET MAUI, and any modern
+.NET host can use the same code path Unity does today.
 
 **Status: pre-release (v0.1.0-alpha).** Public NuGet publish is scheduled
 for a later milestone; until then every package is consumed via local
-`.nupkg` feeds or by a project reference.
+`.nupkg` feeds or by a project reference. The Turnkey crypto dependency
+ships from GitHub Packages — consumers need GitHub Packages auth set up
+locally (see [docs/development.md](docs/development.md)).
 
 ## Packages
 
@@ -16,7 +17,6 @@ This is a multi-package repo. Each package builds as its own NuGet artifact.
 
 | Package | TFM | Purpose |
 |---|---|---|
-| `KyuzanInc.Turnkey.Sdk` | `netstandard2.1;net8.0` | Crypto primitives (P-256 ECDSA, HPKE, HKDF, API key stamping) ported from `@turnkey/{crypto,api-key-stamper,http}`. Unofficial; not affiliated with Turnkey, Inc. |
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` | The Peak SDK itself. Adds `PeakClient`, OTP login, account/private-key services, `IStorage`/`ISecureStorage` abstractions, Windows DPAPI secure storage. |
 | `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` | Auto-generated OpenAPI client. `internal` consumers only. Re-exposed by the SDK behind hand-designed DTOs. |
 | `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` | Unity-only platform adapter: PlayerPrefs storage (opt-in only, plaintext warning), iOS Keychain via P/Invoke, Android KeyStore via JNI. |
@@ -25,19 +25,31 @@ The `peak-sdk-unity` repo will become a thin Unity adapter on top of
 `KyuzanInc.Peak.Sdk.Unity` in a later release; the source code lives at
 `upstream-snapshots/peak-sdk-unity/` for now (read-only, port reference).
 
+## Dependencies
+
+| Dependency | Source | Pin |
+|---|---|---|
+| `KyuzanInc.Turnkey.Sdk` | [KyuzanInc/turnkey-sdk-csharp](https://github.com/KyuzanInc/turnkey-sdk-csharp) on GitHub Packages | `[0.1.0-alpha.0]` (exact, via CPM; `packages.lock.json` lands in the M11 follow-up) |
+
+The Turnkey port (Crypto, ApiKeyStamper, Http, Encoding) lives in a
+separate repo and ships as a NuGet package. Crypto changes happen
+there, are reviewed by multi-round Codex in that repo, and reach this
+SDK as a deliberate version bump (see
+[docs/sync-rules.md](docs/sync-rules.md)).
+
 ## What this repo is *not*
 
 - Not on `nuget.org` yet. Public publish is gated on a separate workstream.
-- Not a fork of Turnkey's official TypeScript SDK. The crypto port is
-  byte-compatible with `@turnkey/crypto@2.8.9` and verified by multi-round
-  Codex review; it has not undergone a paid third-party security audit.
+- Not the source of the Turnkey crypto port. Crypto code is in
+  [`KyuzanInc/turnkey-sdk-csharp`](https://github.com/KyuzanInc/turnkey-sdk-csharp);
+  see that repo for the audit status and review evidence.
 - Not a 1:1 mirror of `peak-sdk-browser`. We port the Unity public surface
   first and add browser-only flows (Google OAuth, IndexedDB session) in
   later milestones.
 
 ## Quick start
 
-For consumers (after the SDK is published):
+For consumers (after the SDK is published and GitHub Packages auth is set up):
 
 ```csharp
 using KyuzanInc.Peak.Sdk;
@@ -66,34 +78,31 @@ peak-sdk-csharp/
 ├── peak-sdk-csharp.sln              Root solution (all packages + tests)
 ├── Directory.Build.props            Shared MSBuild props (LangVersion, Nullable, etc.)
 ├── Directory.Packages.props         Central package management (CPM) pins
+├── nuget.config                     packageSourceMapping for nuget.org + GitHub Packages + local feed
 ├── packages/
-│   ├── turnkey-sdk-csharp/          KyuzanInc.Turnkey.Sdk
 │   ├── peak-sdk-csharp/             KyuzanInc.Peak.Sdk
 │   ├── peak-public-api-client-csharp/  KyuzanInc.Peak.PublicApiClient
 │   └── peak-sdk-csharp-unity/       KyuzanInc.Peak.Sdk.Unity (Unity adapter)
 ├── examples/                        Godot + console smoke
 ├── upstream-snapshots/              Read-only copies of port sources:
 │   ├── peak-sdk-unity/              Pinned @ commit SHA in upstream-snapshots/SOURCES.md
-│   ├── turnkey-sdk-unity/           Pinned @ commit SHA
-│   ├── turnkey-official-src/        @turnkey/{crypto,api-key-stamper,http} pin
 │   └── peak-server-openapi/         peak-server OpenAPI spec @ tag
 ├── docs/
 │   ├── architecture.md
 │   ├── development.md
 │   ├── security/
 │   │   ├── storage-threat-model.md
-│   │   └── crypto-port-policy.md
+│   │   └── secure-storage-platform-matrix.md
 │   └── sync-rules.md                OpenAPI + Unity-source sync workflow
 ├── plans/
 │   └── plans-peak-sdk-csharp.md     Active port plan (decisions, status, adjudication)
-├── codex-crypto-reviews/            Per-file Codex multi-round review evidence
 └── .github/workflows/
     ├── csharp-ci.yml                Build + test matrix
-    └── csharp-publish.yml           (deferred) NuGet publish
+    └── csharp-publish.yml           NuGet publish
 ```
 
 ## License
 
-[MIT](LICENSE). Crypto primitives are ported from Turnkey's open-source
-TypeScript SDK under its license terms; see the upstream snapshot for the
-original notices.
+[MIT](LICENSE). Turnkey crypto primitives are consumed from the
+external `KyuzanInc.Turnkey.Sdk` package and licensed under its
+original Turnkey terms; see that package for notices.

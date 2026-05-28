@@ -1,6 +1,6 @@
 // Ported from upstream-snapshots/peak-sdk-unity/Runtime/Services/Authenticated/PrivateKeyService.cs.
 // Logic 1:1 with the Unity port; UniTask -> Task and the TurnkeyUtils.* facade
-// is inlined as direct global::KyuzanInc.Turnkey.Sdk.* calls.
+// is inlined as direct global::Turnkey.* calls.
 
 using System;
 using System.Collections.Generic;
@@ -44,8 +44,8 @@ namespace KyuzanInc.Peak.Sdk.Services
         private Dictionary<string, string> CreateAuthHeaders() =>
             new() { ["Authorization"] = $"Bearer {sessionJwt}" };
 
-        private global::KyuzanInc.Turnkey.Sdk.Http CreateTurnkeyClient() =>
-            global::KyuzanInc.Turnkey.Sdk.Http.FromTargetPrivateKey(targetPrivateKey);
+        private global::Turnkey.Http CreateTurnkeyClient() =>
+            global::Turnkey.Http.FromTargetPrivateKey(targetPrivateKey);
 
         public async Task<InitImportPrivateKeyResult> InitImportPrivateKeyAsync(CancellationToken cancellationToken = default)
         {
@@ -54,12 +54,12 @@ namespace KyuzanInc.Peak.Sdk.Services
             var userId = jwtPayload.TurnkeyUserId ?? throw new PeakError(PeakErrorCode.InvalidJwt, "JWT missing userId");
 
             var turnkeyClient = CreateTurnkeyClient();
-            var initBody = new global::KyuzanInc.Turnkey.Sdk.Http.InitImportPrivateKeyRequestBody
+            var initBody = new global::Turnkey.Http.InitImportPrivateKeyRequestBody
             {
                 OrganizationId = organizationId,
                 Type = "ACTIVITY_TYPE_INIT_IMPORT_PRIVATE_KEY",
                 TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
-                Parameters = new global::KyuzanInc.Turnkey.Sdk.Http.InitImportPrivateKeyParameters { UserId = userId },
+                Parameters = new global::Turnkey.Http.InitImportPrivateKeyParameters { UserId = userId },
             };
             var signedInitImportRequest = turnkeyClient.StampInitImportPrivateKey(initBody);
 
@@ -111,12 +111,12 @@ namespace KyuzanInc.Peak.Sdk.Services
             }
 
             var turnkeyClient = CreateTurnkeyClient();
-            var completeBody = new global::KyuzanInc.Turnkey.Sdk.Http.ImportPrivateKeyRequestBody
+            var completeBody = new global::Turnkey.Http.ImportPrivateKeyRequestBody
             {
                 OrganizationId = organizationId,
                 Type = "ACTIVITY_TYPE_IMPORT_PRIVATE_KEY",
                 TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
-                Parameters = new global::KyuzanInc.Turnkey.Sdk.Http.ImportPrivateKeyParameters
+                Parameters = new global::Turnkey.Http.ImportPrivateKeyParameters
                 {
                     UserId = userId,
                     AddressFormats = new[] { addressFormat },
@@ -164,19 +164,19 @@ namespace KyuzanInc.Peak.Sdk.Services
 
             var sourceType = addressDetail.AccountSource.SourceType;
             var turnkeyClient = CreateTurnkeyClient();
-            global::KyuzanInc.Turnkey.Sdk.Http.SignedRequest signedExportRequest;
+            global::Turnkey.Http.SignedRequest signedExportRequest;
 
             if (string.Equals(sourceType, "private-key", StringComparison.OrdinalIgnoreCase))
             {
                 var privateKeyId = addressDetail.AccountSource.TurnkeyResourceId
                     ?? throw new PeakError(PeakErrorCode.InvalidResponse, "turnkeyResourceId is missing from account source");
 
-                var exportBody = new global::KyuzanInc.Turnkey.Sdk.Http.ExportPrivateKeyRequestBody
+                var exportBody = new global::Turnkey.Http.ExportPrivateKeyRequestBody
                 {
                     OrganizationId = organizationId,
                     Type = "ACTIVITY_TYPE_EXPORT_PRIVATE_KEY",
                     TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
-                    Parameters = new global::KyuzanInc.Turnkey.Sdk.Http.ExportPrivateKeyParameters
+                    Parameters = new global::Turnkey.Http.ExportPrivateKeyParameters
                     {
                         PrivateKeyId = privateKeyId,
                         TargetPublicKey = targetPublicKey,
@@ -186,12 +186,12 @@ namespace KyuzanInc.Peak.Sdk.Services
             }
             else if (string.Equals(sourceType, "recovery-phrase", StringComparison.OrdinalIgnoreCase))
             {
-                var exportBody = new global::KyuzanInc.Turnkey.Sdk.Http.ExportWalletAccountRequestBody
+                var exportBody = new global::Turnkey.Http.ExportWalletAccountRequestBody
                 {
                     OrganizationId = organizationId,
                     Type = "ACTIVITY_TYPE_EXPORT_WALLET_ACCOUNT",
                     TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(),
-                    Parameters = new global::KyuzanInc.Turnkey.Sdk.Http.ExportWalletAccountParameters
+                    Parameters = new global::Turnkey.Http.ExportWalletAccountParameters
                     {
                         Address = address,
                         TargetPublicKey = targetPublicKey,

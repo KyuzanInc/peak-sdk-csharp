@@ -15,6 +15,11 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <RootNamespace>KyuzanInc.Peak.Sdk</RootNamespace>
     <AssemblyName>KyuzanInc.Peak.Sdk</AssemblyName>
+    <!--
+      Lock-file restore: commit packages.lock.json and require
+      'dotnet restore' with locked-mode in CI for reproducible restores.
+    -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 
     <PackageId>KyuzanInc.Peak.Sdk</PackageId>
     <Version>0.1.0-alpha.0</Version>
@@ -25,10 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\turnkey-sdk-csharp\src\turnkey-sdk-csharp.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="KyuzanInc.Turnkey.Sdk" />
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />

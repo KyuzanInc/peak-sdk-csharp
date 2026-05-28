@@ -1,5 +1,29 @@
 # peak-sdk-csharp port plan (single-repo adapted)
 
+> **Historical scope notice — read before relying on details below.**
+>
+> The original plan called for `KyuzanInc.Turnkey.Sdk` and its review
+> evidence to live in this repo. That work was extracted to
+> [`KyuzanInc/turnkey-sdk-csharp`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
+> per [`plans/plans-turnkey-import.md`](plans-turnkey-import.md). As a
+> result, **any reference in this document to**:
+>
+> - `packages/turnkey-sdk-csharp/` (deleted)
+> - `upstream-snapshots/turnkey-sdk-unity/` (deleted)
+> - `upstream-snapshots/turnkey-official-src/` (never created in this repo)
+> - `codex-crypto-reviews/` (deleted)
+> - `docs/security/crypto-port-policy.md` (deleted)
+> - CODEOWNERS rules for `/packages/turnkey-sdk-csharp/src/Crypto.cs`
+>
+> is **historical**. Crypto code, its upstream pins, its multi-round
+> Codex review evidence, and the CODEOWNERS gate for those files all
+> live in `KyuzanInc/turnkey-sdk-csharp`. The consumer-side flow in
+> this repo is documented in [`docs/sync-rules.md`](../docs/sync-rules.md).
+>
+> Sections below describe the repo as it was when those paths existed.
+> Do not follow them for new work; they are kept for context on how
+> the v0.1.0-alpha state was assembled.
+
 ## Intent
 
 Port `peak-sdk-unity` + `turnkey-sdk-unity` from Unity-only C# to generic
@@ -22,9 +46,9 @@ commits.
 | ID | Workstream | Status | Evidence | Commit | Finding |
 |---|---|---|---|---|---|
 | W0a | Repo bootstrap (root sln, shared props, CPM, CI workflow, docs scaffold) | ✅ Done | `e712d18`, `4503397`, `d105f7a` | initial commits | new-repo adjustment |
-| W0b | Upstream snapshot import (peak-sdk-unity @ fc560e8, turnkey-sdk-unity @ 039d8e4) | ✅ Done | `4503397` + `upstream-snapshots/SOURCES.md` | `4503397` | Codex D-P1 |
+| W0b | External Turnkey package consumed (KyuzanInc.Turnkey.Sdk via GitHub Packages); peak-sdk-unity @ fc560e8 mirror retained | ✅ Done | `4503397` + `upstream-snapshots/SOURCES.md` + `plans/plans-turnkey-import.md` | `4503397` | Codex D-P1 |
 | W0c | OpenAPI sync workflow + drift CI from peak-server tag | ⬜ Deferred to PR 2 follow-up | OpenAPI codegen not landed yet (OQ-N1 open) | — | Codex D-P1 |
-| W1  | PR 1: turnkey-sdk-csharp vertical slice (port + Codex r1 + threat-model doc) | ✅ Done | 63/63 tests + `codex-crypto-reviews/Crypto.cs-r1-2026-05-27.md` | `482d885` | — |
+| W1  | PR 1: turnkey crypto / API key stamping | ⬜ Out of scope here — lives in `KyuzanInc/turnkey-sdk-csharp` (consumed as `KyuzanInc.Turnkey.Sdk 0.1.0-alpha.0`) | external repo `KyuzanInc/turnkey-sdk-csharp` v0.1.0-alpha.0 release | — | per `plans/plans-turnkey-import.md` |
 | W2  | PR 2: peak-sdk-csharp PeakClient + services + IStorage + PeakError + Codex orgId fix | ✅ Done | 22/22 tests pass | `afc3dc8` | — |
 | W3  | PR 3: Godot + console smoke examples + Unity reference example via local file feed | ⬜ Deferred to v0.1.0-alpha.1 | scope decision | — | — |
 | W4  | PR 4: remaining v0.1.0 API surface (Account × 3 + PrivateKey × 3 + internal × 1) | ✅ Done (folded into W2) | AccountService + PrivateKeyService landed in PR 2 | `afc3dc8` | — |
@@ -60,9 +84,12 @@ The original D1-D20 from the monorepo plan still hold **except** the
 following:
 
 - **D17-CLAR (replaces D17)** — Codex multi-round review (≥3 per crypto
-  file) is **review evidence**, not a security audit. Evidence is stored
-  in `codex-crypto-reviews/<file>-r<N>-<date>.md`. A paid third-party
-  audit remains a v1.0.0 release blocker. R15 severity is **High**.
+  file) is **review evidence**, not a security audit. Since the
+  `plans/plans-turnkey-import.md` migration, crypto code lives in
+  `KyuzanInc/turnkey-sdk-csharp` and the per-file review evidence is
+  committed there (not in this repo). A paid third-party audit of the
+  Turnkey crypto port remains a v1.0.0 release blocker. R15 severity is
+  **High**.
 - **D19-CLAR (reverses D19)** — In this single-repo, csharp is the only
   thing in the repo, so the "keep csharp out of the monorepo root"
   motivation does not apply. We use a single root `peak-sdk-csharp.sln`,
@@ -181,6 +208,19 @@ CC ~3-5 hours of generation; human verification ~1 day.
 ---
 
 ## PR 1 — turnkey-sdk-csharp vertical slice (W1)
+
+> **HISTORICAL — superseded by `plans/plans-turnkey-import.md`.**
+> The Turnkey port now lives in
+> [`KyuzanInc/turnkey-sdk-csharp`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
+> and this repo consumes the `KyuzanInc.Turnkey.Sdk` NuGet package.
+> The paths referenced in this section (`packages/turnkey-sdk-csharp/`,
+> `codex-crypto-reviews/`, `upstream-snapshots/turnkey-sdk-unity/`,
+> `upstream-snapshots/turnkey-official-src/`,
+> `docs/security/crypto-port-policy.md`) have been deleted from this
+> repo. Crypto changes go to the external repo; the consumer-side bump
+> procedure is in [`docs/sync-rules.md`](../docs/sync-rules.md).
+> Kept here for historical context only — do not follow these steps
+> for new work.
 
 ### Goal (rewritten per C-A1, replaces D10 references)
 

@@ -124,19 +124,19 @@ namespace KyuzanInc.Peak.Sdk.Models
 
     public sealed class InitImportPrivateKeyRequest
     {
-        public global::KyuzanInc.Turnkey.Sdk.Http.SignedRequest? SignedInitImportPrivateKeyRequest { get; set; }
+        public global::Turnkey.Http.SignedRequest? SignedInitImportPrivateKeyRequest { get; set; }
     }
 
     public sealed class CompleteImportPrivateKeyRequest
     {
         public string? ChainType { get; set; }
-        public global::KyuzanInc.Turnkey.Sdk.Http.SignedRequest? SignedCompleteImportPrivateKeyRequest { get; set; }
+        public global::Turnkey.Http.SignedRequest? SignedCompleteImportPrivateKeyRequest { get; set; }
     }
 
     public sealed class ExportPrivateKeyRequest
     {
         public string? SourceType { get; set; }
-        public global::KyuzanInc.Turnkey.Sdk.Http.SignedRequest? SignedExportPrivateKeyRequest { get; set; }
+        public global::Turnkey.Http.SignedRequest? SignedExportPrivateKeyRequest { get; set; }
     }
 
     // --- SDK-level result types ---

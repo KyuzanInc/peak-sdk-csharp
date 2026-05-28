@@ -3,10 +3,77 @@
 ## Prerequisites
 
 - .NET SDK 8.0.x (verify with `dotnet --version`)
+- A GitHub PAT with `read:packages` scope, exported as `GITHUB_TOKEN`,
+  for pulling `KyuzanInc.Turnkey.Sdk` from GitHub Packages (see below)
 - Optional for Unity smoke: Unity 2021.2 LTS or newer, plus
   NuGetForUnity 4.x for consuming locally-packed `.nupkg`s
-- Optional for crypto review: Codex CLI (`npm install -g @openai/codex`)
-  and a valid OpenAI session
+
+## GitHub Packages auth setup (one-time)
+
+`KyuzanInc.Turnkey.Sdk` is published to GitHub Packages until it ships
+to nuget.org. Restoring this repo therefore needs a personal access
+token (classic, scope `read:packages`) — fine-grained tokens with
+package read access also work.
+
+The repo's `nuget.config` already declares the `github-kyuzan` source,
+but it stores no credentials (and must not). Attach credentials to the
+user-level config instead — that file is independent of the repo's
+config, so `add source` does not collide with the repo's declaration
+when scoped via `--configfile`. Use `add source` the first time on a
+machine; `update source` on later token refreshes:
+
+```
+export GITHUB_TOKEN=ghp_...   # PAT with read:packages
+
+# Make sure the user-level NuGet config exists as valid XML
+# (brand-new profiles do not have it yet, and `add source` rejects
+# an empty file with "Root element is missing").
+mkdir -p ~/.nuget/NuGet
+[ -s ~/.nuget/NuGet/NuGet.Config ] || cat > ~/.nuget/NuGet/NuGet.Config <<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+</configuration>
+XML
+
+# First time on this machine — declare the source in the user config:
+dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+  --name github-kyuzan \
+  --username <your-github-username> \
+  --password "$GITHUB_TOKEN" \
+  --store-password-in-clear-text \
+  --configfile ~/.nuget/NuGet/NuGet.Config
+
+# Subsequent token refreshes use update-source (NOT add-source —
+# that would error with duplicate-source on second run):
+# dotnet nuget update source github-kyuzan \
+#   --username <your-github-username> \
+#   --password "$GITHUB_TOKEN" \
+#   --store-password-in-clear-text \
+#   --configfile ~/.nuget/NuGet/NuGet.Config
+```
+
+Alternatively, edit `~/.nuget/NuGet/NuGet.Config` directly. Adding only
+a `packageSourceCredentials` block (without re-declaring the source)
+attaches credentials to the repo-declared source without duplication:
+
+```xml
+<configuration>
+  <packageSources>
+    <add key="github-kyuzan" value="https://nuget.pkg.github.com/KyuzanInc/index.json" />
+  </packageSources>
+  <packageSourceCredentials>
+    <github-kyuzan>
+      <add key="Username" value="<your-github-username>" />
+      <add key="ClearTextPassword" value="ghp_..." />
+    </github-kyuzan>
+  </packageSourceCredentials>
+</configuration>
+```
+
+If `dotnet restore` fails with `401 Unauthorized` against
+`nuget.pkg.github.com`, the token is missing the `read:packages` scope
+or has not been granted access to the `KyuzanInc/turnkey-sdk-csharp`
+package.
 
 ## Build
 
@@ -14,6 +81,15 @@
 dotnet restore peak-sdk-csharp.sln
 dotnet build peak-sdk-csharp.sln -c Release
 ```
+
+> **Bootstrap state (until M11 follow-up lands).** `packages.lock.json`
+> files are not yet committed. Once they are, this command becomes
+> `dotnet restore peak-sdk-csharp.sln --locked-mode` and CI re-enables
+> the same flag. The csprojs already set
+> `RestorePackagesWithLockFile=true`, so a successful restore writes
+> the lock file; commit it and switch to `--locked-mode` in the same
+> PR. See the `TODO(M11 follow-up)` markers in
+> `.github/workflows/csharp-ci.yml` and `csharp-publish.yml`.
 
 The build is deterministic (`Deterministic=true` in
 `Directory.Build.props`) and `ContinuousIntegrationBuild=true` is
@@ -43,9 +119,23 @@ dotnet pack peak-sdk-csharp.sln -c Release -o ./local-feed
 ```
 
 Point a downstream `nuget.config` at the absolute `./local-feed` path
-and `dotnet add package KyuzanInc.Peak.Sdk` from there. Unity
+and `dotnet add package KyuzanInc.Peak.Sdk` from there. The downstream
+project also needs the GitHub Packages source configured, because
+`KyuzanInc.Peak.Sdk` pulls `KyuzanInc.Turnkey.Sdk` transitively. Unity
 consumers via NuGetForUnity follow the same pattern after the
 `.nupkg` is copied into the Unity project's Packages folder.
+
+## Bumping `KyuzanInc.Turnkey.Sdk`
+
+See [docs/sync-rules.md](sync-rules.md) for the full bump procedure.
+TL;DR:
+
+1. Edit `Directory.Packages.props` to set the new version.
+2. `dotnet restore peak-sdk-csharp.sln --force-evaluate`
+3. Commit the refreshed `packages.lock.json` files.
+4. Run the wire-format smoke locally:
+   `dotnet test peak-sdk-csharp.sln --filter "FullyQualifiedName~TurnkeyWireFormatSmokeTests"`
+5. Open a PR with the upstream release notes linked in the body.
 
 ## Lint / format
 
@@ -56,26 +146,10 @@ dotnet format peak-sdk-csharp.sln --verify-no-changes
 The `.editorconfig` is normative. Roslyn analyzer severities flag
 weak / broken cryptographic algorithm usage as errors.
 
-## Crypto multi-round review (when touching `turnkey-sdk-csharp/src/`)
-
-```
-./codex-crypto-reviews/codex-crypto-review.sh Crypto.cs 1
-./codex-crypto-reviews/codex-crypto-review.sh Crypto.cs 2
-./codex-crypto-reviews/codex-crypto-review.sh Crypto.cs 3
-```
-
-Each round saves evidence to
-`codex-crypto-reviews/Crypto.cs-r<N>-<date>.md`. Three consecutive
-"No logic divergence found" rounds are required before a crypto
-change can merge. See
-[docs/security/crypto-port-policy.md](security/crypto-port-policy.md).
-
 ## Re-sync upstream snapshots
 
 ```
 ./scripts/sync-upstream.sh peak-sdk-unity <new-commit-sha>
-./scripts/sync-upstream.sh turnkey-sdk-unity <new-commit-sha>
-./scripts/sync-upstream.sh tkhq-sdk <new-version>
 ./scripts/sync-upstream.sh peak-server-openapi <new-tag>
 ```
 

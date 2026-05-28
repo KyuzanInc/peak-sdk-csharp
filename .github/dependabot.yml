@@ -6,10 +6,11 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     ignore:
-      # BouncyCastle.Cryptography is pinned exactly in Directory.Packages.props.
-      # A bump is a crypto-touching change that requires a fresh Codex
-      # multi-round review; do not auto-bump.
-      - dependency-name: "BouncyCastle.Cryptography"
+      # KyuzanInc.Turnkey.Sdk is the external Turnkey port; a bump
+      # there ships crypto changes that need a deliberate review pass
+      # (see docs/sync-rules.md). Do not auto-bump — the maintainer
+      # opens a PR by hand after running the wire-format smoke.
+      - dependency-name: "KyuzanInc.Turnkey.Sdk"
     labels:
       - "dependencies"
       - "auto"

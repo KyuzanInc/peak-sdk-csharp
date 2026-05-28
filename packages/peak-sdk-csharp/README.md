@@ -15,7 +15,7 @@ The `KyuzanInc.Peak.Sdk` package. For the NuGet-facing README see
 | `src/Models/` | DTOs (camelCase JSON in/out via source-gen context) |
 | `src/Storage/` | IStorage / ISecureStorage / InMemoryStorage / SessionData |
 | `src/Utils/` | SessionJwt, IPeakHttpClient, DefaultPeakHttpClient |
-| `tests/` | xUnit unit + integration tests |
+| `tests/` | xUnit unit + integration tests + TurnkeyWireFormatSmokeTests |
 
 ## Port philosophy
 
@@ -30,12 +30,21 @@ Logic is 1:1 with the Unity port; mechanical changes:
 - All `[Serializable]` field-based POCOs converted to auto-property
   POCOs (so source-gen can introspect them)
 
-The crypto-port-policy and storage-threat-model documents in
-`docs/security/` govern security-critical paths.
+Turnkey-typed members (`Http.SignedRequest`, `Crypto.KeyPair`, etc.)
+come from the external `KyuzanInc.Turnkey.Sdk` package via the
+`Turnkey.*` namespace. The storage-threat-model document in
+`docs/security/` governs security-critical paths.
 
 ## Run tests
 
 ```
 dotnet test ../../peak-sdk-csharp.sln -c Release \
   --filter "FullyQualifiedName~KyuzanInc.Peak.Sdk.Tests"
+```
+
+Run only the wire-format smoke against the pinned Turnkey package:
+
+```
+dotnet test ../../peak-sdk-csharp.sln -c Release \
+  --filter "FullyQualifiedName~TurnkeyWireFormatSmokeTests"
 ```

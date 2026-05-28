@@ -23,10 +23,11 @@ SOFTWARE.
 ---
 
 Notice: This SDK is unofficial / community-maintained by Kyuzan Inc. and is
-NOT affiliated with Turnkey, Inc. The cryptographic primitives in
-packages/turnkey-sdk-csharp are a 1:1 logical port of the official
-@turnkey/crypto v2.8.9, @turnkey/api-key-stamper v0.6.0, and @turnkey/http
-v3.16.0 TypeScript libraries. The port has been reviewed by automated
-multi-round LLM review (Codex), but has NOT undergone a paid third-party
-security audit. Use at your own risk. See docs/security/storage-threat-model.md
-and docs/security/crypto-port-policy.md for the full disclosure.
+NOT affiliated with Turnkey, Inc. The cryptographic primitives are consumed
+from the external KyuzanInc.Turnkey.Sdk NuGet package (source repo:
+https://github.com/KyuzanInc/turnkey-sdk-csharp), itself a 1:1 logical port
+of the official @turnkey/{crypto,api-key-stamper,http} TypeScript libraries.
+The Turnkey port has been reviewed by automated multi-round LLM review
+(Codex) in that repo, but has NOT undergone a paid third-party security
+audit. Use at your own risk. See docs/security/storage-threat-model.md for
+the storage-side threat model.

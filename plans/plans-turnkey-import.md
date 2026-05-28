@@ -25,12 +25,12 @@ actually exports).
 | M3 | Remove `upstream-snapshots/turnkey-sdk-unity/` and `upstream-snapshots/turnkey-official-src/` (if present); trim `upstream-snapshots/SOURCES.md` rows | ⬜ Pending |
 | M4 | Remove `codex-crypto-reviews/` entirely (README, script, pins, evidence files) | ⬜ Pending |
 | M5 | Remove `docs/security/crypto-port-policy.md` (in-repo crypto policy no longer applicable) | ⬜ Pending |
-| M6 | Add `KyuzanInc.Turnkey.Sdk` `PackageReference` + GitHub Packages source in `nuget.config` + `--locked-mode` lock-file restore | ⬜ Pending |
+| M6 | Add `KyuzanInc.Turnkey.Sdk` `PackageReference` + GitHub Packages source in `nuget.config` + `--locked-mode` lock-file restore | 🟡 Partial — package reference + nuget.config source + `RestorePackagesWithLockFile=true` landed; `packages.lock.json` files + `--locked-mode` deferred to the M11 follow-up (the maintainer's gh token lacks `read:packages` to generate the lock files locally). |
 | M7 | Rename `global::KyuzanInc.Turnkey.Sdk.*` → `global::Turnkey.*` in **every file under `packages/peak-sdk-csharp/src/**/*.cs` and `packages/peak-sdk-csharp/tests/**/*.cs`** | ⬜ Pending |
 | M8 | Update **both** CI workflows (`csharp-ci.yml` AND `csharp-publish.yml`) for GitHub Packages auth + locked restore + drop dead `codex-review-evidence-check` job | ⬜ Pending |
 | M9 | Update docs / config: `README.md`, `CLAUDE.md`, `docs/architecture.md`, `docs/development.md`, `docs/sync-rules.md`, `docs/security/storage-threat-model.md`, `.github/CODEOWNERS`, `Directory.Packages.props` (remove BouncyCastle pin), `packages/peak-sdk-csharp/README.md` and `README.public.md` | ⬜ Pending |
 | M10 | Add a wire-format smoke test exercising every external method peak-sdk-csharp consumes + Peak wrapper serialization | ⬜ Pending |
-| M11 | Build + `--locked-mode` restore + test green on all three runners; commit; push | ⬜ Pending |
+| M11 | Build + `--locked-mode` restore + test green on all three runners; commit; push | 🟡 Partial — plain restore + build + tests green on all three runners and the PR is shipped, but `--locked-mode` lands in a follow-up PR alongside the committed `packages.lock.json` files (see M6 + the TODO markers in `.github/workflows/csharp-ci.yml` / `csharp-publish.yml`). |
 | M12 | Codex review of plan; iterate until **no P1 findings remain**, THEN start M2 | ✅ Done — Codex round 2 returned "ALL 11 P1s ADDRESSED" on the revised plan |
 
 ## Background facts (from investigation)
@@ -72,12 +72,12 @@ actually exports).
 |---|---|---|
 | MD1 | Pin to **exact** `[0.1.0-alpha.0]` in `Directory.Packages.props`. CPM exact-range plus a `packages.lock.json` per project gives belt + suspenders. | A wallet SDK's Turnkey shim must never floating-bump. |
 | MD2 | `nuget.config` adds a `github-kyuzan` source and uses `packageSourceMapping` so **only `KyuzanInc.Turnkey.*`** resolves through GitHub Packages. `nuget.org` continues to serve everything else (BouncyCastle, System.Text.Json, etc.). `local-feed` retained for downstream Unity adapter consumption and scoped to `KyuzanInc.Peak.*` (Codex P2 note: dropped any reference to `PR 5` numbering). | Two narrow private feeds, neither shadowing nuget.org. |
-| MD3 | CI auth: **explicit `dotnet nuget add source` step** with `--username takeshijuan --password "$GITHUB_TOKEN"`. We do NOT rely on `actions/setup-dotnet@v4`'s `nuget-auth-token` (that input does not exist on v4 — `setup-dotnet@v3` had `source-url`/`NUGET_AUTH_TOKEN` semantics but v4 dropped per-input auth; the explicit add-source step is the only stable pattern). Workflow `permissions:` MUST grow `packages: read`. Cross-repo read access for `GITHUB_TOKEN` on the package is a separate prerequisite (see OQ-M4). | Stable, debuggable; works on every runner. |
+| MD3 | CI auth: **explicit `dotnet nuget update source github-kyuzan` step** (not `add source` — the repo's nuget.config already declares the source name, and `add source` would error with duplicate-source) with `--username ${{ github.actor }} --password "$GITHUB_TOKEN"`. We do NOT rely on `actions/setup-dotnet@v4`'s `nuget-auth-token` (that input does not exist on v4 — `setup-dotnet@v3` had `source-url`/`NUGET_AUTH_TOKEN` semantics but v4 dropped per-input auth; the explicit update-source step is the only stable pattern). Workflow `permissions:` MUST grow `packages: read`. Cross-repo read access for `GITHUB_TOKEN` on the package is a separate prerequisite (see OQ-M4). | Stable, debuggable; works on every runner. |
 | MD4 | Adopt `Turnkey` namespace in peak-sdk-csharp consumers. The rename target is **every file under `packages/peak-sdk-csharp/src/**/*.cs` AND `packages/peak-sdk-csharp/tests/**/*.cs`** (currently 4 source-side files reference the in-repo namespace: Models.cs, AuthService.cs, PrivateKeyService.cs, SessionJwt.cs; the tests do not reference it directly today but the rename pass must walk both trees so no future regression slips by). | Mechanical search-and-replace `global::KyuzanInc.Turnkey.Sdk.` → `global::Turnkey.` plus the PeakJsonContext `[JsonSerializable]` attributes. |
 | MD5 | Delete `codex-crypto-reviews/`, `upstream-snapshots/turnkey-sdk-unity/`, `upstream-snapshots/turnkey-official-src/` (if present), and `docs/security/crypto-port-policy.md`. | Crypto port + review evidence now lives in `KyuzanInc/turnkey-sdk-csharp`. Stale copies invite drift. |
 | MD6 | Keep `upstream-snapshots/peak-sdk-unity/`. | Still the port base for `KyuzanInc.Peak.Sdk`. |
 | MD7 | Drop the dead `codex-review-evidence-check` job from `csharp-ci.yml`. The CI job is currently the only validation that the crypto evidence files were updated when crypto code changed; with crypto out of repo, the gate becomes a vacuous pass and is misleading dead code. | The corresponding gate lives in `KyuzanInc/turnkey-sdk-csharp` from now on. |
-| MD8 | Lock-file restore: enable `<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>` on **both** `packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj` AND `packages/peak-sdk-csharp/tests/peak-sdk-csharp.Tests.csproj`. Commit both `packages.lock.json` files. CI restores with `--locked-mode`. | One project under lock + one without would split the truth between them. |
+| MD8 | Lock-file restore: enable `<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>` on **both** `packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj` AND `packages/peak-sdk-csharp/tests/peak-sdk-csharp.Tests.csproj`. Commit both `packages.lock.json` files. CI restores with `--locked-mode`. **Bootstrap note:** the `RestorePackagesWithLockFile=true` properties shipped with this PR; committing the lock files and re-enabling `--locked-mode` in CI is deferred to the M11 follow-up because the maintainer's local gh token cannot pull KyuzanInc.Turnkey.Sdk and CI cannot push lock files back to the branch on its own. | One project under lock + one without would split the truth between them. |
 | MD9 | Remove `BouncyCastle.Cryptography` pin from `Directory.Packages.props`. peak-sdk-csharp never references it directly; it now arrives transitively through `KyuzanInc.Turnkey.Sdk`. | CPM transitive pinning will still freeze the BouncyCastle version from the lock files; an explicit pin in our props is dead weight that has to be kept in sync with the external repo. |
 | MD10 | Update **both** CI workflows. `csharp-ci.yml` for build + locked restore + tests on Linux/macOS/Windows runners. `csharp-publish.yml` for the publish job which also restores + packs and therefore needs the same GitHub Packages auth + locked restore. | A previous draft of this plan said the publish workflow was untouched. That was wrong — `dotnet pack` triggers a transitive restore. |
 | MD11 | Verification adds a wire-format smoke test (M10) that compiles against the external `KyuzanInc.Turnkey.Sdk 0.1.0-alpha.0` and asserts the actual byte-level JSON shape produced by `Http.StampInitImportPrivateKey`, `Http.StampImportPrivateKey`, `Http.StampExportPrivateKey`, `Http.StampExportWalletAccount`, `Http.StampGetWhoami`, plus `Crypto.GenerateP256KeyPair()` and `Crypto.VerifySessionJwtSignature(...)`. It also exercises `PeakJsonContext`-driven serialization of `InitImportPrivateKeyRequest`, `CompleteImportPrivateKeyRequest`, `ExportPrivateKeyRequest` (the Peak wrappers around the Turnkey `SignedRequest`) and asserts the outer JSON key names. | Codex r1 P1: surface assumption needs proof from the actual `.nupkg`. |
@@ -151,23 +151,32 @@ packages/peak-sdk-csharp/src/PeakJsonContext.cs     [JsonSerializable] type qual
 .github/workflows/csharp-ci.yml
   - permissions: contents: read, packages: read           (grow)
   - REMOVE codex-review-evidence-check job
-  - In every restore step:
-      env: NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  - Before every restore step, attach credentials to the
+    `github-kyuzan` source the repo's nuget.config already declares
+    (use update-source, not add-source — adding a duplicate source
+    name errors). Drop --source: the URL is already in nuget.config:
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-          --name github-kyuzan \
-          --username takeshijuan \
-          --password "${{ secrets.GITHUB_TOKEN }}" \
+        dotnet nuget update source github-kyuzan \
+          --username "${{ github.actor }}" \
+          --password "$GITHUB_TOKEN" \
           --store-password-in-clear-text
-        dotnet restore peak-sdk-csharp.sln --locked-mode
+        dotnet restore peak-sdk-csharp.sln
+        # NOTE: --locked-mode lands in the M11 follow-up once the
+        # maintainer's PAT with read:packages scope can generate the
+        # lock files locally. CI cannot push lock files back to the
+        # branch on its own.
   - consumer-restore-check: same auth setup before the consumer
     project's `dotnet restore`. Without it, the consumer fails to
     pull KyuzanInc.Turnkey.Sdk transitively.
 
 .github/workflows/csharp-publish.yml
   - permissions: contents: read, packages: read   (publish step already had packages: write)
-  - same dotnet nuget add source step before restore/build/pack/test
-  - restore with --locked-mode
+  - same `dotnet nuget update source github-kyuzan` step before
+    restore/build/pack/test
+  - plain restore for now; --locked-mode lands with the lock files
+    in the M11 follow-up
 
 .github/CODEOWNERS                                  REMOVE rows referring to
                                                      /packages/turnkey-sdk-csharp/src/*.cs and
@@ -226,8 +235,8 @@ plans/plans-turnkey-import.md                       this file.
 ### Added (M6, M10)
 
 ```
-packages/peak-sdk-csharp/src/packages.lock.json     generated by `dotnet restore` after M6
-packages/peak-sdk-csharp/tests/packages.lock.json   generated by `dotnet restore` after M6
+packages/peak-sdk-csharp/src/packages.lock.json     M11 follow-up — generated by `dotnet restore` once a maintainer with a read:packages PAT can resolve KyuzanInc.Turnkey.Sdk locally
+packages/peak-sdk-csharp/tests/packages.lock.json   M11 follow-up — same as above
 
 packages/peak-sdk-csharp/tests/TurnkeyWireFormatSmokeTests.cs
                                                      M10 deliverable. Compiles against the external package
@@ -265,28 +274,55 @@ After M2-M11:
 **Local (dev machine):**
 
 ```bash
-# One-time GitHub Packages auth
+# One-time GitHub Packages auth. The user-level NuGet config is
+# independent of the repo's, so on a clean machine you first run
+# `add source` (so the user config knows the source name) and then
+# use `update source` for later token refreshes. `${{ github.actor }}`
+# is GitHub Actions-only — substitute your own GitHub username.
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages scope
-dotnet nuget add source \
-  https://nuget.pkg.github.com/KyuzanInc/index.json \
+
+# Make sure the user-level NuGet config exists as valid XML.
+# On a fresh user profile this file does not exist yet and
+# `add source --configfile` rejects an empty file with
+# "Root element is missing".
+mkdir -p ~/.nuget/NuGet
+[ -s ~/.nuget/NuGet/NuGet.Config ] || cat > ~/.nuget/NuGet/NuGet.Config <<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+</configuration>
+XML
+
+# First time on this machine — declare the source in the user config:
+dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
   --name github-kyuzan \
-  --username takeshijuan \
+  --username <your-github-username> \
   --password "$GITHUB_TOKEN" \
-  --store-password-in-clear-text
+  --store-password-in-clear-text \
+  --configfile ~/.nuget/NuGet/NuGet.Config
+
+# Subsequent token refreshes use update-source instead of re-adding:
+# dotnet nuget update source github-kyuzan \
+#   --username <your-github-username> \
+#   --password "$GITHUB_TOKEN" \
+#   --store-password-in-clear-text \
+#   --configfile ~/.nuget/NuGet/NuGet.Config
 
 cd ~/Kyuzan/src/peak-sdk-csharp
-dotnet restore peak-sdk-csharp.sln --locked-mode        # MUST be green
-dotnet build  peak-sdk-csharp.sln -c Release            # MUST be green (netstandard2.1 + net8.0 + net8.0-windows)
+dotnet restore peak-sdk-csharp.sln                       # MUST be green; --locked-mode lands in the M11 follow-up
+dotnet build  peak-sdk-csharp.sln -c Release             # MUST be green (netstandard2.1 + net8.0 + net8.0-windows)
 dotnet test   peak-sdk-csharp.sln -c Release \
               --filter "Category!=E2E"                   # 22 existing peak tests + N new wire-format smoke tests
 ```
 
 **CI matrix (`csharp-ci.yml`, ubuntu + macos + windows):**
 
-- `dotnet nuget add source` step succeeds (proves `secrets.GITHUB_TOKEN`
-  has `read:packages` on the target package — see OQ-M4).
-- `dotnet restore peak-sdk-csharp.sln --locked-mode` succeeds (proves
-  the committed `packages.lock.json` matches the resolved graph).
+- `dotnet nuget update source github-kyuzan` step succeeds (proves
+  `secrets.GITHUB_TOKEN` has `packages: read` permission via the
+  workflow grant AND that the package owner repo has granted this
+  repo read access on the published nupkg — see OQ-M4).
+- `dotnet restore peak-sdk-csharp.sln` succeeds. Add `--locked-mode`
+  after the M11 follow-up commits the `packages.lock.json` files; the
+  current bootstrap intentionally runs without it.
 - `dotnet build` succeeds.
 - `dotnet test --filter Category!=E2E` succeeds, including the new
   wire-format smoke.
