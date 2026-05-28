@@ -35,17 +35,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # The `github-kyuzan` source itself is already declared in
-          # the repo's nuget.config, so we use `update source` (not
-          # `add source`) to attach credentials. `add source` would
-          # exit with a duplicate-source error here.
-          # KyuzanInc.Turnkey.Sdk ships from GitHub Packages until it
-          # lives on nuget.org. The username can be any non-empty
-          # string when authenticating with GITHUB_TOKEN; we pin it to
-          # the bot identity so restore logs are easy to audit.
+          # The `github-kyuzan` source itself (URL included) is already
+          # declared in the repo's nuget.config; this step just
+          # attaches credentials. `add source` would exit with a
+          # duplicate-source error here, so we use `update source`.
+          # The username can be any non-empty string when
+          # authenticating with GITHUB_TOKEN; ${{ github.actor }} is
+          # the documented GitHub Packages convention and avoids
+          # leaking maintainer identity into the workflow file.
           dotnet nuget update source github-kyuzan \
-            --source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --username takeshijuan \
+            --username "${{ github.actor }}" \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
 
@@ -115,8 +114,7 @@ jobs:
           # `github-kyuzan` is already declared in the repo nuget.config;
           # update (don't add) attaches credentials.
           dotnet nuget update source github-kyuzan \
-            --source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --username takeshijuan \
+            --username "${{ github.actor }}" \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
       - name: Restore + Pack KyuzanInc.Peak.Sdk
@@ -184,7 +182,7 @@ jobs:
             </packageSourceMapping>
             <packageSourceCredentials>
               <github-kyuzan>
-                <add key="Username" value="takeshijuan" />
+                <add key="Username" value="${{ github.actor }}" />
                 <add key="ClearTextPassword" value="${GITHUB_TOKEN}" />
               </github-kyuzan>
             </packageSourceCredentials>

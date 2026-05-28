@@ -30,13 +30,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # The `github-kyuzan` source itself is already declared in
-          # the repo's nuget.config, so we use `update source` (not
-          # `add source`) to attach credentials. `add source` would
-          # exit with a duplicate-source error here.
+          # The `github-kyuzan` source itself (URL included) is already
+          # declared in the repo's nuget.config; this step just
+          # attaches credentials. `add source` would exit with a
+          # duplicate-source error here.
           dotnet nuget update source github-kyuzan \
-            --source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --username takeshijuan \
+            --username "${{ github.actor }}" \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
 
