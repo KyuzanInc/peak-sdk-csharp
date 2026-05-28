@@ -39,9 +39,10 @@ jobs:
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
 
-      - name: Restore (locked)
+      - name: Restore
         shell: bash
-        run: dotnet restore peak-sdk-csharp.sln --locked-mode
+        # TODO(M11 follow-up): add --locked-mode after lock files land.
+        run: dotnet restore peak-sdk-csharp.sln
 
       - name: Build
         run: dotnet build peak-sdk-csharp.sln --no-restore -c Release

@@ -78,14 +78,18 @@ package.
 ## Build
 
 ```
-dotnet restore peak-sdk-csharp.sln --locked-mode
+dotnet restore peak-sdk-csharp.sln
 dotnet build peak-sdk-csharp.sln -c Release
 ```
 
-`--locked-mode` is mandatory for reproducibility. The committed
-`packages.lock.json` files under
-`packages/peak-sdk-csharp/{src,tests}/` are the source of truth for
-the resolved dependency graph; CI uses the same flag.
+> **Bootstrap state (until M11 follow-up lands).** `packages.lock.json`
+> files are not yet committed. Once they are, this command becomes
+> `dotnet restore peak-sdk-csharp.sln --locked-mode` and CI re-enables
+> the same flag. The csprojs already set
+> `RestorePackagesWithLockFile=true`, so a successful restore writes
+> the lock file; commit it and switch to `--locked-mode` in the same
+> PR. See the `TODO(M11 follow-up)` markers in
+> `.github/workflows/csharp-ci.yml` and `csharp-publish.yml`.
 
 The build is deterministic (`Deterministic=true` in
 `Directory.Build.props`) and `ContinuousIntegrationBuild=true` is
