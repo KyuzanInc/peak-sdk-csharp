@@ -34,9 +34,15 @@ include the GitHub Packages source with a PAT that has the
 `KyuzanInc/turnkey-sdk-csharp` package:
 
 ```
-# Make sure the user-level NuGet config exists (brand-new profiles
-# do not have it yet).
-mkdir -p ~/.nuget/NuGet && touch ~/.nuget/NuGet/NuGet.Config
+# Make sure the user-level NuGet config exists as valid XML
+# (brand-new profiles do not have it yet, and `add source` rejects
+# an empty file with "Root element is missing").
+mkdir -p ~/.nuget/NuGet
+[ -s ~/.nuget/NuGet/NuGet.Config ] || cat > ~/.nuget/NuGet/NuGet.Config <<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+</configuration>
+XML
 
 dotnet nuget add source \
   https://nuget.pkg.github.com/KyuzanInc/index.json \

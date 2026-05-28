@@ -279,10 +279,16 @@ After M2-M11:
 # is GitHub Actions-only — substitute your own GitHub username.
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages scope
 
-# Make sure the user-level NuGet config exists. On a fresh user
-# profile this file does not exist yet and `add source --configfile`
-# would fail to open it.
-mkdir -p ~/.nuget/NuGet && touch ~/.nuget/NuGet/NuGet.Config
+# Make sure the user-level NuGet config exists as valid XML.
+# On a fresh user profile this file does not exist yet and
+# `add source --configfile` rejects an empty file with
+# "Root element is missing".
+mkdir -p ~/.nuget/NuGet
+[ -s ~/.nuget/NuGet/NuGet.Config ] || cat > ~/.nuget/NuGet/NuGet.Config <<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+</configuration>
+XML
 
 # First time on this machine — declare the source in the user config:
 dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
