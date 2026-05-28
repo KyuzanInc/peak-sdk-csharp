@@ -149,13 +149,12 @@ jobs:
               public static void Main() {
                   // PeakClient has a private constructor; the only
                   // entry point is the static Initialize() factory.
-                  // Use a throwaway options object — we only need to
-                  // verify the consumer compiles + restores.
-                  var _ = PeakClient.Initialize(new PeakClientOptions
-                  {
-                      ApiUrl        = "https://example.invalid/",
-                      ProjectApiKey = "key",
-                  });
+                  // Use the (apiUrl, projectApiKey) overload to keep
+                  // the smoke consumer LangVersion-agnostic — the
+                  // options-bag overload needs C# 9+ (init) and 11+
+                  // (required), which a default netstandard2.1
+                  // consumer does NOT pick up automatically.
+                  var _ = PeakClient.Initialize("https://example.invalid/", "key");
                   System.Console.WriteLine("ok");
               }
           }
