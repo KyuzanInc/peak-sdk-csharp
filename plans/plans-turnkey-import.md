@@ -282,18 +282,21 @@ dotnet nuget update source github-kyuzan \
   --configfile ~/.nuget/NuGet/NuGet.Config
 
 cd ~/Kyuzan/src/peak-sdk-csharp
-dotnet restore peak-sdk-csharp.sln --locked-mode        # MUST be green
-dotnet build  peak-sdk-csharp.sln -c Release            # MUST be green (netstandard2.1 + net8.0 + net8.0-windows)
+dotnet restore peak-sdk-csharp.sln                       # MUST be green; --locked-mode lands in the M11 follow-up
+dotnet build  peak-sdk-csharp.sln -c Release             # MUST be green (netstandard2.1 + net8.0 + net8.0-windows)
 dotnet test   peak-sdk-csharp.sln -c Release \
               --filter "Category!=E2E"                   # 22 existing peak tests + N new wire-format smoke tests
 ```
 
 **CI matrix (`csharp-ci.yml`, ubuntu + macos + windows):**
 
-- `dotnet nuget add source` step succeeds (proves `secrets.GITHUB_TOKEN`
-  has `read:packages` on the target package — see OQ-M4).
-- `dotnet restore peak-sdk-csharp.sln --locked-mode` succeeds (proves
-  the committed `packages.lock.json` matches the resolved graph).
+- `dotnet nuget update source github-kyuzan` step succeeds (proves
+  `secrets.GITHUB_TOKEN` has `packages: read` permission via the
+  workflow grant AND that the package owner repo has granted this
+  repo read access on the published nupkg — see OQ-M4).
+- `dotnet restore peak-sdk-csharp.sln` succeeds. Add `--locked-mode`
+  after the M11 follow-up commits the `packages.lock.json` files; the
+  current bootstrap intentionally runs without it.
 - `dotnet build` succeeds.
 - `dotnet test --filter Category!=E2E` succeeds, including the new
   wire-format smoke.
