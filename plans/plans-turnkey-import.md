@@ -279,6 +279,11 @@ After M2-M11:
 # is GitHub Actions-only — substitute your own GitHub username.
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages scope
 
+# Make sure the user-level NuGet config exists. On a fresh user
+# profile this file does not exist yet and `add source --configfile`
+# would fail to open it.
+mkdir -p ~/.nuget/NuGet && touch ~/.nuget/NuGet/NuGet.Config
+
 # First time on this machine — declare the source in the user config:
 dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
   --name github-kyuzan \

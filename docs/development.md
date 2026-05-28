@@ -23,6 +23,11 @@ land outside the repo working tree:
 
 ```
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages
+
+# Make sure the user-level NuGet config exists (brand-new profiles
+# do not have it yet).
+mkdir -p ~/.nuget/NuGet && touch ~/.nuget/NuGet/NuGet.Config
+
 dotnet nuget update source github-kyuzan \
   --source https://nuget.pkg.github.com/KyuzanInc/index.json \
   --username <your-github-username> \
