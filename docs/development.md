@@ -15,11 +15,12 @@ to nuget.org. Restoring this repo therefore needs a personal access
 token (classic, scope `read:packages`) — fine-grained tokens with
 package read access also work.
 
-The repo's `nuget.config` already declares the `github-kyuzan` source
-itself, so use `dotnet nuget update source` (not `add source` — that
-would fail with a duplicate-source error) to attach credentials. Pass
-`--configfile` to point at your user-level config so the credentials
-land outside the repo working tree:
+The repo's `nuget.config` already declares the `github-kyuzan` source,
+but it stores no credentials (and must not). Attach credentials to the
+user-level config instead — that file is independent of the repo's
+config, so `add source` does not collide with the repo's declaration
+when scoped via `--configfile`. Use `add source` the first time on a
+machine; `update source` on later token refreshes:
 
 ```
 export GITHUB_TOKEN=ghp_...   # PAT with read:packages
@@ -34,19 +35,22 @@ mkdir -p ~/.nuget/NuGet
 </configuration>
 XML
 
-dotnet nuget update source github-kyuzan \
-  --source https://nuget.pkg.github.com/KyuzanInc/index.json \
+# First time on this machine — declare the source in the user config:
+dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+  --name github-kyuzan \
   --username <your-github-username> \
   --password "$GITHUB_TOKEN" \
   --store-password-in-clear-text \
   --configfile ~/.nuget/NuGet/NuGet.Config
-```
 
-If the user-level config has not declared the source yet,
-`update source` errors with "Cannot find source". In that case run
-`dotnet nuget add source ... --configfile ~/.nuget/NuGet/NuGet.Config`
-once (the user-level config is independent of the repo's), then use
-`update source` for refreshes.
+# Subsequent token refreshes use update-source (NOT add-source —
+# that would error with duplicate-source on second run):
+# dotnet nuget update source github-kyuzan \
+#   --username <your-github-username> \
+#   --password "$GITHUB_TOKEN" \
+#   --store-password-in-clear-text \
+#   --configfile ~/.nuget/NuGet/NuGet.Config
+```
 
 Alternatively, edit `~/.nuget/NuGet/NuGet.Config` directly. Adding only
 a `packageSourceCredentials` block (without re-declaring the source)
