@@ -162,9 +162,7 @@ packages/peak-sdk-csharp/src/PeakJsonContext.cs     [JsonSerializable] type qual
           --username "${{ github.actor }}" \
           --password "$GITHUB_TOKEN" \
           --store-password-in-clear-text
-        dotnet restore peak-sdk-csharp.sln
-        # NOTE: --locked-mode lands in the M11 follow-up once
-        # packages.lock.json files are committed.
+        dotnet restore peak-sdk-csharp.sln --locked-mode
   - consumer-restore-check: same auth setup before the consumer
     project's `dotnet restore`. Without it, the consumer fails to
     pull KyuzanInc.Turnkey.Sdk transitively.
@@ -173,8 +171,7 @@ packages/peak-sdk-csharp/src/PeakJsonContext.cs     [JsonSerializable] type qual
   - permissions: contents: read, packages: read   (publish step already had packages: write)
   - same `dotnet nuget update source github-kyuzan` step before
     restore/build/pack/test
-  - plain restore for now; --locked-mode lands with the lock files
-    in the M11 follow-up
+  - restore with --locked-mode (lock files are committed)
 
 .github/CODEOWNERS                                  REMOVE rows referring to
                                                      /packages/turnkey-sdk-csharp/src/*.cs and
@@ -306,7 +303,7 @@ dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
 #   --configfile ~/.nuget/NuGet/NuGet.Config
 
 cd ~/Kyuzan/src/peak-sdk-csharp
-dotnet restore peak-sdk-csharp.sln                       # MUST be green; --locked-mode lands in the M11 follow-up
+dotnet restore peak-sdk-csharp.sln --locked-mode         # MUST be green
 dotnet build  peak-sdk-csharp.sln -c Release             # MUST be green (netstandard2.1 + net8.0 + net8.0-windows)
 dotnet test   peak-sdk-csharp.sln -c Release \
               --filter "Category!=E2E"                   # 22 existing peak tests + N new wire-format smoke tests
@@ -318,9 +315,9 @@ dotnet test   peak-sdk-csharp.sln -c Release \
   `secrets.GITHUB_TOKEN` has `packages: read` permission via the
   workflow grant AND that the package owner repo has granted this
   repo read access on the published nupkg — see OQ-M4).
-- `dotnet restore peak-sdk-csharp.sln` succeeds. Add `--locked-mode`
-  after the M11 follow-up commits the `packages.lock.json` files; the
-  current bootstrap intentionally runs without it.
+- `dotnet restore peak-sdk-csharp.sln --locked-mode` succeeds
+  (proves the committed `packages.lock.json` files match the
+  resolved graph).
 - `dotnet build` succeeds.
 - `dotnet test --filter Category!=E2E` succeeds, including the new
   wire-format smoke.
