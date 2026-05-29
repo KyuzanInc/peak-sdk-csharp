@@ -47,7 +47,7 @@ commits.
 |---|---|---|---|---|---|
 | W0a | Repo bootstrap (root sln, shared props, CPM, CI workflow, docs scaffold) | ✅ Done | `e712d18`, `4503397`, `d105f7a` | initial commits | new-repo adjustment |
 | W0b | External Turnkey package consumed (KyuzanInc.Turnkey.Sdk via GitHub Packages); peak-sdk-unity @ fc560e8 mirror retained | ✅ Done | `4503397` + `upstream-snapshots/SOURCES.md` + `plans/plans-turnkey-import.md` | `4503397` | Codex D-P1 |
-| W0c | OpenAPI sync workflow + drift CI from peak-server tag | ⬜ Deferred to PR 2 follow-up | OpenAPI codegen not landed yet (OQ-N1 open) | — | Codex D-P1 |
+| W0c | OpenAPI sync workflow + drift CI from peak-server tag | ✅ Done | `scripts/generate-public-api-client.sh` + `openapi-client-drift` CI job; internal `KyuzanInc.Peak.PublicApiClient` generated from `peak-server` @ v0.3.0 (provisional, OQ-N1). NOT yet wired into the SDK (follow-up). | (this PR) | Codex D-P1 |
 | W1  | PR 1: turnkey crypto / API key stamping | ⬜ Out of scope here — lives in `KyuzanInc/turnkey-sdk-csharp` (consumed as `KyuzanInc.Turnkey.Sdk 0.1.0-alpha.0`) | external repo `KyuzanInc/turnkey-sdk-csharp` v0.1.0-alpha.0 release | — | per `plans/plans-turnkey-import.md` |
 | W2  | PR 2: peak-sdk-csharp PeakClient + services + IStorage + PeakError + Codex orgId fix | ✅ Done | 22/22 tests pass | `afc3dc8` | — |
 | W3  | PR 3: Godot + console smoke examples + Unity reference example via local file feed | ⬜ Deferred to v0.1.0-alpha.1 | scope decision | — | — |
@@ -110,6 +110,16 @@ following:
   `upstream-snapshots/peak-server-openapi/PIN.md`. The codegen runs
   inside this repo; drift CI compares the generated artefacts against
   the committed `packages/peak-public-api-client-csharp/src/`.
+- **D24 (new)** — C# OpenAPI client generation runs **in this repo**
+  (Option B), not as an extra generator inside peak's `openapi:generate`
+  (Option A). Same engine (`openapi-generator-cli` core `7.9.0`) and same
+  source spec, but the C# client is generated here from the synced
+  snapshot and drift-checked in CI. Option A was declined because the C#
+  client's output belongs to this repo, peak is a Node/Nest repo (adding a
+  C# artifact crosses the repo boundary D23 draws), and the snapshot model
+  keeps peak free of C#-build concerns. **Accepted cost:** the trigger is an
+  operator-run resync, not automatic on a peak merge; automatic cross-repo
+  dispatch is the deferred B+ follow-up.
 
 ## What stays as-is from the monorepo plan
 
@@ -134,7 +144,7 @@ following:
 
 | # | Question | Owner | Deadline | Status |
 |---|---|---|---|---|
-| OQ-N1 | `peak-server` tag to pin OpenAPI to. Pick the latest tag that has the public-api endpoints PR 2 needs (init-login + complete-login + accounts + private-keys). | Komy CTO | PR 2 start | ⬜ Open |
+| OQ-N1 | `peak-server` tag to pin OpenAPI to. Pick the latest tag that has the public-api endpoints PR 2 needs (init-login + complete-login + accounts + private-keys). | Komy CTO | PR 2 start | 🟡 Provisionally pinned to `v0.3.0` (latest tag, has the PR2 endpoints); Komy CTO to confirm before v0.1.0 |
 | OQ-N2 | Paid third-party crypto audit vendor + budget for v1.0.0 (was OQ in the monorepo plan but de-emphasised by D17; restored as v1.0.0 blocker by D17-CLAR) | Komy CTO | v1.0.0 cut | ⬜ Open |
 | OQ-N3 | Submodule vs scripted-snapshot for `upstream-snapshots/`. Submodule keeps history pointers but adds clone friction. Snapshot keeps reviewability but loses upstream history. **Recommend snapshot + scripted resync.** | TJ | W0b start | ⬜ Open, default = snapshot |
 | OQ-N4 | Is a NuGet `local file feed` enough for PR 5 (Unity thin-adapter) consumption, or does PR 5 need GitHub Packages? | Komy CTO | PR 5 start | ⬜ Open, default = local file feed |
