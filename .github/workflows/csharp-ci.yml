@@ -227,11 +227,19 @@ jobs:
         run: ./scripts/generate-public-api-client.sh
       - name: Fail if the committed client drifted from the spec
         run: |
-          if ! git diff --quiet -- \
+          # Stage adds, deletes, AND modifications so the check sees the
+          # TOTAL state. Plain `git diff` only inspects tracked files, so a
+          # spec change that ADDS a new model/endpoint (a brand-new untracked
+          # .cs) would slip through; `git add -A` + `git diff --cached` makes
+          # additions and deletions first-class.
+          git add -A -- \
+            packages/peak-public-api-client-csharp/src \
+            packages/peak-public-api-client-csharp/.openapi-generator
+          if ! git diff --cached --quiet -- \
               packages/peak-public-api-client-csharp/src \
               packages/peak-public-api-client-csharp/.openapi-generator; then
             echo "::error::Generated client is out of sync with the pinned spec. Run scripts/generate-public-api-client.sh and commit the result."
-            git --no-pager diff --stat -- \
+            git --no-pager diff --cached --stat -- \
               packages/peak-public-api-client-csharp/src \
               packages/peak-public-api-client-csharp/.openapi-generator
             exit 1

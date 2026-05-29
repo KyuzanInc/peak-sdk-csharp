@@ -663,6 +663,14 @@ Plan complete and saved to `docs/superpowers/plans/2026-05-29-csharp-public-api-
 
 Per the session goal, execution proceeds inline (the implementer already has every artifact empirically validated), then `/ship`, iterating until CI and review are clean.
 
+## Implementation amendments (post-landing)
+
+Two refinements were made during execution; they supersede the matching snippets above:
+
+1. **Generated-client deps use `VersionOverride`, not central `PackageVersion` (NU1004 fix).** Task 3 Step 1 originally added `Newtonsoft.Json` and `System.ComponentModel.Annotations` to the central `CodegenAndTooling` group. With `CentralPackageTransitivePinningEnabled=true` those are transitive deps of `peak-sdk-csharp` and its tests, so the central pins invalidated their committed lock files (NU1004) and would have re-pinned the SDK's resolved graph. The shipped fix removes the central `CodegenAndTooling` group entirely and gives the client its versions via `VersionOverride` in its csproj, scoping them to that one isolated, never-published project. SDK/tests lock files stay valid (those deps remain `Transitive`/floating). Caught by CI `build-and-test`/`consumer-restore-check` (`--locked-mode`), fixed, re-verified green.
+
+2. **Drift gate uses `git add -A` + `git diff --cached` (catches additions).** Task 4's gate used plain `git diff`, which only inspects tracked files — a spec change that ADDS a new model/endpoint emits a brand-new untracked `.cs` that `git diff` would miss (a false green, saved only accidentally by the rewritten `.openapi-generator/FILES`). The shipped job stages all changes first so additions and deletions are first-class. Verified locally: no-drift → clean; a new untracked file → caught.
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
