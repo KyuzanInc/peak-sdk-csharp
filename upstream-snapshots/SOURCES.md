@@ -18,11 +18,12 @@ build input.
 | Snapshot path | `upstream-snapshots/peak-sdk-unity/` |
 | Purpose | Source of the Unity-shaped Peak SDK API (PeakSdk, AuthenticatedPeakSdk, services, models, exceptions) |
 
-## peak-server-openapi (deferred until PR 2)
+## peak-server-openapi
 
 | Field | Value |
 |---|---|
 | Source repo | https://github.com/KyuzanInc/peak (path: `apps/peak-public-docs/docs/api-references/public-api.yaml`) |
-| Pinned tag | TBD — OQ-N1, Komy CTO to pick before PR 2 |
+| Pinned tag | `v0.3.0` (provisional — OQ-N1, Komy CTO to confirm before v0.1.0) |
+| Snapshot date | 2026-05-29 |
 | Snapshot path | `upstream-snapshots/peak-server-openapi/` |
-| Status | Deferred to PR 2 start |
+| Purpose | Source spec for the internal `KyuzanInc.Peak.PublicApiClient` OpenAPI codegen (see `docs/sync-rules.md`) |

@@ -56,6 +56,7 @@ git checkout --quiet "$PIN"
 
 case "$NAME" in
   peak-server-openapi)
+    mkdir -p "$DEST"
     cp "apps/peak-public-docs/docs/api-references/public-api.yaml" "$DEST/public-api.yaml"
     # Update the PIN.md
     cat > "$DEST/PIN.md" <<EOF
