@@ -43,10 +43,25 @@ jobs:
           # authenticating with GITHUB_TOKEN; ${{ github.actor }} is
           # the documented GitHub Packages convention and avoids
           # leaking maintainer identity into the workflow file.
+          # NOTE: --store-password-in-clear-text writes the token to the
+          # runner's user-level NuGet config. Safe on ephemeral
+          # GitHub-hosted runners (the token is the job-scoped, job-lived
+          # GITHUB_TOKEN). Reconsider if self-hosted/persistent runners
+          # are ever added.
           dotnet nuget update source github-kyuzan \
             --username "${{ github.actor }}" \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
+          # Auth-liveness probe: `update source` only writes config and
+          # exits 0 regardless of token validity, so a bad/expired/
+          # under-scoped token would otherwise stay invisible until a
+          # COLD-cache restore. Hit the package's auth-required index
+          # now so a 401/403 fails loudly here instead of silently
+          # serving a stale cached package once NuGet caching exists.
+          curl -sSf -o /dev/null \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://nuget.pkg.github.com/KyuzanInc/download/kyuzaninc.turnkey.sdk/index.json" \
+            || { echo "::error::GitHub Packages auth failed for KyuzanInc.Turnkey.Sdk (token scope/expiry/grant?)."; exit 1; }
 
       - name: Restore (locked)
         shell: bash
@@ -106,11 +121,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # `github-kyuzan` is already declared in the repo nuget.config;
-          # update (don't add) attaches credentials.
+          # update (don't add) attaches credentials. See the build job's
+          # auth step for why --store-password-in-clear-text is safe here.
           dotnet nuget update source github-kyuzan \
             --username "${{ github.actor }}" \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
+          # Auth-liveness probe (see build job for rationale).
+          curl -sSf -o /dev/null \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://nuget.pkg.github.com/KyuzanInc/download/kyuzaninc.turnkey.sdk/index.json" \
+            || { echo "::error::GitHub Packages auth failed for KyuzanInc.Turnkey.Sdk (token scope/expiry/grant?)."; exit 1; }
       - name: Restore (locked) + Pack KyuzanInc.Peak.Sdk
         shell: bash
         run: |

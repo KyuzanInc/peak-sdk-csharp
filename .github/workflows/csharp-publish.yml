@@ -38,6 +38,13 @@ jobs:
             --username "${{ github.actor }}" \
             --password "$GITHUB_TOKEN" \
             --store-password-in-clear-text
+          # Auth-liveness probe: fail loudly on a bad/expired token here
+          # rather than letting a cold-cache restore surface it later
+          # (or a warm cache hide it entirely).
+          curl -sSf -o /dev/null \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://nuget.pkg.github.com/KyuzanInc/download/kyuzaninc.turnkey.sdk/index.json" \
+            || { echo "::error::GitHub Packages auth failed for KyuzanInc.Turnkey.Sdk (token scope/expiry/grant?)."; exit 1; }
 
       - name: Restore (locked)
         shell: bash
