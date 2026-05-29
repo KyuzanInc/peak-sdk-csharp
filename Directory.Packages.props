@@ -44,19 +44,15 @@
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.3" />
   </ItemGroup>
 
-  <ItemGroup Label="CodegenAndTooling">
-    <!--
-      Runtime deps of the internal KyuzanInc.Peak.PublicApiClient (OpenAPI
-      csharp generator 7.9.0, restsharp library). Versions match the
-      generator's own pins. RestSharp 112.0.0 fixes GHSA-4rr6-2v9v-wcpc
-      (the advisory present in 111.4.1). JSON is Newtonsoft (the restsharp
-      library does not honour useSystemTextJson in 7.9.0).
-      System.ComponentModel.Annotations is required for the DataAnnotations
-      attributes on the netstandard2.1 target (net8.0 has them built in).
-    -->
-    <PackageVersion Include="RestSharp" Version="112.0.0" />
-    <PackageVersion Include="Polly" Version="8.1.0" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
-  </ItemGroup>
+  <!--
+    The internal KyuzanInc.Peak.PublicApiClient (OpenAPI csharp generator
+    7.9.0, restsharp library) deliberately keeps its runtime deps OUT of
+    central management. With CentralPackageTransitivePinningEnabled=true,
+    a central PackageVersion for Newtonsoft.Json / System.ComponentModel.Annotations
+    would re-pin those packages where the wallet SDK and tests pull them
+    transitively (NU1004) and silently change the SDK's resolved graph.
+    Instead the client csproj uses VersionOverride so its deps are scoped
+    to that one isolated, internal, never-published project.
+    RestSharp is held at 112.0.0 there (fixes GHSA-4rr6-2v9v-wcpc).
+  -->
 </Project>

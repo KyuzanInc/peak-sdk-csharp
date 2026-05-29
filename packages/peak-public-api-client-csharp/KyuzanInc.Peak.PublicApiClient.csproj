@@ -32,11 +32,19 @@
     <Compile Include="src/KyuzanInc.Peak.PublicApiClient/**/*.cs" />
   </ItemGroup>
 
+  <!--
+    VersionOverride (not central PackageVersion) so these generated-client
+    deps stay scoped to this isolated internal project and do not re-pin the
+    same packages where peak-sdk-csharp / its tests pull them transitively
+    (that would trip NU1004 under CentralPackageTransitivePinningEnabled and
+    change the SDK's resolved graph). Versions match the generator's pins;
+    RestSharp 112.0.0 clears GHSA-4rr6-2v9v-wcpc.
+  -->
   <ItemGroup>
-    <PackageReference Include="RestSharp" />
-    <PackageReference Include="Polly" />
-    <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="System.ComponentModel.Annotations" />
+    <PackageReference Include="RestSharp" VersionOverride="112.0.0" />
+    <PackageReference Include="Polly" VersionOverride="8.1.0" />
+    <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.3" />
+    <PackageReference Include="System.ComponentModel.Annotations" VersionOverride="5.0.0" />
   </ItemGroup>
 
 </Project>
