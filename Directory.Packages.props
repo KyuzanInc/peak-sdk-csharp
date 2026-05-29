@@ -45,9 +45,18 @@
   </ItemGroup>
 
   <ItemGroup Label="CodegenAndTooling">
-    <!-- For OpenAPI codegen artifacts; pulled by the generator -->
-    <PackageVersion Include="JsonSubTypes" Version="2.0.1" />
-    <PackageVersion Include="Polly" Version="7.2.4" />
-    <PackageVersion Include="RestSharp" Version="111.4.1" />
+    <!--
+      Runtime deps of the internal KyuzanInc.Peak.PublicApiClient (OpenAPI
+      csharp generator 7.9.0, restsharp library). Versions match the
+      generator's own pins. RestSharp 112.0.0 fixes GHSA-4rr6-2v9v-wcpc
+      (the advisory present in 111.4.1). JSON is Newtonsoft (the restsharp
+      library does not honour useSystemTextJson in 7.9.0).
+      System.ComponentModel.Annotations is required for the DataAnnotations
+      attributes on the netstandard2.1 target (net8.0 has them built in).
+    -->
+    <PackageVersion Include="RestSharp" Version="112.0.0" />
+    <PackageVersion Include="Polly" Version="8.1.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
+    <AssemblyName>KyuzanInc.Peak.PublicApiClient</AssemblyName>
+    <RootNamespace>KyuzanInc.Peak.PublicApiClient</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <!--
+      Generated OpenAPI code: relax the repo-wide strictness from the root
+      Directory.Build.props so the output builds clean. CS1591 = missing XML
+      doc, CS8019 = unnecessary using (the generator emits an unused
+      `using System.Web;`), CS0618 = RestSharp 112 obsolete members.
+    -->
+    <Nullable>annotations</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;CS8019;CS0618</NoWarn>
+
+    <!-- Internal-only, never published (D13). -->
+    <IsPackable>false</IsPackable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+
+    <!--
+      Compile only the generated client sources. The generator can also emit
+      a sample .Test project; scoping the glob to the client directory keeps
+      it out even if .openapi-generator-ignore ever changes.
+    -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src/KyuzanInc.Peak.PublicApiClient/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RestSharp" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.ComponentModel.Annotations" />
+  </ItemGroup>
+
+</Project>
