@@ -6,7 +6,8 @@
 #
 # Where <name> is one of:
 #   peak-sdk-unity          — KyuzanInc/peak-sdk-unity, pin = commit SHA
-#   peak-server-openapi     — KyuzanInc/peak (subpath), pin = git tag
+#   peak-server-openapi     — KyuzanInc/peak (subpath), pin = main (tracks
+#                             the branch; records the resolved HEAD commit)
 #
 # The script writes the new snapshot, updates SOURCES.md, and creates a
 # branch sync/<name>-<short-pin> with a single commit. Operator opens

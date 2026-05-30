@@ -32,6 +32,33 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     public partial class InitOtpLoginRequestDto : IValidatableObject
     {
         /// <summary>
+        /// Language for the OTP email template
+        /// </summary>
+        /// <value>Language for the OTP email template</value>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public enum LanguageEnum
+        {
+            /// <summary>
+            /// Enum En for value: en
+            /// </summary>
+            [EnumMember(Value = "en")]
+            En = 1,
+
+            /// <summary>
+            /// Enum Ja for value: ja
+            /// </summary>
+            [EnumMember(Value = "ja")]
+            Ja = 2
+        }
+
+
+        /// <summary>
+        /// Language for the OTP email template
+        /// </summary>
+        /// <value>Language for the OTP email template</value>
+        [DataMember(Name = "language", EmitDefaultValue = false)]
+        public LanguageEnum? Language { get; set; }
+        /// <summary>
         /// Initializes a new instance of the <see cref="InitOtpLoginRequestDto" /> class.
         /// </summary>
         [JsonConstructorAttribute]
@@ -40,7 +67,8 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// Initializes a new instance of the <see cref="InitOtpLoginRequestDto" /> class.
         /// </summary>
         /// <param name="email">Email of the user (required).</param>
-        public InitOtpLoginRequestDto(string email = default(string))
+        /// <param name="language">Language for the OTP email template (default to LanguageEnum.En).</param>
+        public InitOtpLoginRequestDto(string email = default(string), LanguageEnum? language = LanguageEnum.En)
         {
             // to ensure "email" is required (not null)
             if (email == null)
@@ -48,6 +76,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
                 throw new ArgumentNullException("email is a required property for InitOtpLoginRequestDto and cannot be null");
             }
             this.Email = email;
+            this.Language = language;
         }
 
         /// <summary>
@@ -69,6 +98,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
             StringBuilder sb = new StringBuilder();
             sb.Append("class InitOtpLoginRequestDto {\n");
             sb.Append("  Email: ").Append(Email).Append("\n");
+            sb.Append("  Language: ").Append(Language).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }

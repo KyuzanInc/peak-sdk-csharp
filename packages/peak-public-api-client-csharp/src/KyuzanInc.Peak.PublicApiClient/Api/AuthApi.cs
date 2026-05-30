@@ -30,7 +30,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// Complete OTP Login
         /// </summary>
         /// <remarks>
-        /// Completes OTP authentication by verifying the code and returning session token
+        /// Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
@@ -42,13 +42,57 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// Complete OTP Login
         /// </summary>
         /// <remarks>
-        /// Completes OTP authentication by verifying the code and returning session token
+        /// Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
         /// <param name="operationIndex">Index associated with the operation.</param>
         /// <returns>ApiResponse of CompleteOtpLoginResponseDto</returns>
         ApiResponse<CompleteOtpLoginResponseDto> CompleteOtpLoginWithHttpInfo(CompleteOtpLoginRequestDto completeOtpLoginRequestDto, int operationIndex = 0);
+        /// <summary>
+        /// Get Google OAuth Config
+        /// </summary>
+        /// <remarks>
+        /// Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>GoogleConfigResponseDto</returns>
+        GoogleConfigResponseDto GetGoogleConfig(int operationIndex = 0);
+
+        /// <summary>
+        /// Get Google OAuth Config
+        /// </summary>
+        /// <remarks>
+        /// Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>ApiResponse of GoogleConfigResponseDto</returns>
+        ApiResponse<GoogleConfigResponseDto> GetGoogleConfigWithHttpInfo(int operationIndex = 0);
+        /// <summary>
+        /// Google OAuth Login
+        /// </summary>
+        /// <remarks>
+        /// Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>GoogleLoginResponseDto</returns>
+        GoogleLoginResponseDto GoogleLogin(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0);
+
+        /// <summary>
+        /// Google OAuth Login
+        /// </summary>
+        /// <remarks>
+        /// Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>ApiResponse of GoogleLoginResponseDto</returns>
+        ApiResponse<GoogleLoginResponseDto> GoogleLoginWithHttpInfo(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0);
         /// <summary>
         /// Initialize OTP Login
         /// </summary>
@@ -75,6 +119,9 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// <summary>
         /// Signup
         /// </summary>
+        /// <remarks>
+        /// Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
+        /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>
         /// <param name="operationIndex">Index associated with the operation.</param>
@@ -85,7 +132,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// Signup
         /// </summary>
         /// <remarks>
-        /// 
+        /// Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
         /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>
@@ -105,7 +152,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// Complete OTP Login
         /// </summary>
         /// <remarks>
-        /// Completes OTP authentication by verifying the code and returning session token
+        /// Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
@@ -118,7 +165,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// Complete OTP Login
         /// </summary>
         /// <remarks>
-        /// Completes OTP authentication by verifying the code and returning session token
+        /// Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
@@ -126,6 +173,54 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
         /// <returns>Task of ApiResponse (CompleteOtpLoginResponseDto)</returns>
         System.Threading.Tasks.Task<ApiResponse<CompleteOtpLoginResponseDto>> CompleteOtpLoginWithHttpInfoAsync(CompleteOtpLoginRequestDto completeOtpLoginRequestDto, int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken));
+        /// <summary>
+        /// Get Google OAuth Config
+        /// </summary>
+        /// <remarks>
+        /// Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of GoogleConfigResponseDto</returns>
+        System.Threading.Tasks.Task<GoogleConfigResponseDto> GetGoogleConfigAsync(int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Get Google OAuth Config
+        /// </summary>
+        /// <remarks>
+        /// Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of ApiResponse (GoogleConfigResponseDto)</returns>
+        System.Threading.Tasks.Task<ApiResponse<GoogleConfigResponseDto>> GetGoogleConfigWithHttpInfoAsync(int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken));
+        /// <summary>
+        /// Google OAuth Login
+        /// </summary>
+        /// <remarks>
+        /// Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of GoogleLoginResponseDto</returns>
+        System.Threading.Tasks.Task<GoogleLoginResponseDto> GoogleLoginAsync(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken));
+
+        /// <summary>
+        /// Google OAuth Login
+        /// </summary>
+        /// <remarks>
+        /// Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </remarks>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of ApiResponse (GoogleLoginResponseDto)</returns>
+        System.Threading.Tasks.Task<ApiResponse<GoogleLoginResponseDto>> GoogleLoginWithHttpInfoAsync(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken));
         /// <summary>
         /// Initialize OTP Login
         /// </summary>
@@ -155,7 +250,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// Signup
         /// </summary>
         /// <remarks>
-        /// 
+        /// Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
         /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>
@@ -168,7 +263,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         /// Signup
         /// </summary>
         /// <remarks>
-        /// 
+        /// Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
         /// </remarks>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>
@@ -297,7 +392,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token
+        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
@@ -310,7 +405,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token
+        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
@@ -373,7 +468,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token
+        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
@@ -387,7 +482,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token
+        /// Complete OTP Login Completes OTP authentication by verifying the code and returning session token. When signup&#x3D;true (default), creates a new user if not exists.
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="completeOtpLoginRequestDto"></param>
@@ -443,6 +538,298 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
             if (this.ExceptionFactory != null)
             {
                 Exception _exception = this.ExceptionFactory("CompleteOtpLogin", localVarResponse);
+                if (_exception != null)
+                {
+                    throw _exception;
+                }
+            }
+
+            return localVarResponse;
+        }
+
+        /// <summary>
+        /// Get Google OAuth Config Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>GoogleConfigResponseDto</returns>
+        public GoogleConfigResponseDto GetGoogleConfig(int operationIndex = 0)
+        {
+            KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleConfigResponseDto> localVarResponse = GetGoogleConfigWithHttpInfo();
+            return localVarResponse.Data;
+        }
+
+        /// <summary>
+        /// Get Google OAuth Config Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>ApiResponse of GoogleConfigResponseDto</returns>
+        public KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleConfigResponseDto> GetGoogleConfigWithHttpInfo(int operationIndex = 0)
+        {
+            KyuzanInc.Peak.PublicApiClient.Client.RequestOptions localVarRequestOptions = new KyuzanInc.Peak.PublicApiClient.Client.RequestOptions();
+
+            string[] _contentTypes = new string[] {
+            };
+
+            // to determine the Accept header
+            string[] _accepts = new string[] {
+                "application/json"
+            };
+
+            var localVarContentType = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderContentType(_contentTypes);
+            if (localVarContentType != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Content-Type", localVarContentType);
+            }
+
+            var localVarAccept = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderAccept(_accepts);
+            if (localVarAccept != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Accept", localVarAccept);
+            }
+
+
+            localVarRequestOptions.Operation = "AuthApi.GetGoogleConfig";
+            localVarRequestOptions.OperationIndex = operationIndex;
+
+            // authentication (public-api-project-api-key) required
+            if (!string.IsNullOrEmpty(this.Configuration.GetApiKeyWithPrefix("X-API-Key")))
+            {
+                localVarRequestOptions.HeaderParameters.Add("X-API-Key", this.Configuration.GetApiKeyWithPrefix("X-API-Key"));
+            }
+
+            // make the HTTP request
+            var localVarResponse = this.Client.Get<GoogleConfigResponseDto>("/public-api/v1/auth/google/config", localVarRequestOptions, this.Configuration);
+            if (this.ExceptionFactory != null)
+            {
+                Exception _exception = this.ExceptionFactory("GetGoogleConfig", localVarResponse);
+                if (_exception != null)
+                {
+                    throw _exception;
+                }
+            }
+
+            return localVarResponse;
+        }
+
+        /// <summary>
+        /// Get Google OAuth Config Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of GoogleConfigResponseDto</returns>
+        public async System.Threading.Tasks.Task<GoogleConfigResponseDto> GetGoogleConfigAsync(int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+        {
+            KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleConfigResponseDto> localVarResponse = await GetGoogleConfigWithHttpInfoAsync(operationIndex, cancellationToken).ConfigureAwait(false);
+            return localVarResponse.Data;
+        }
+
+        /// <summary>
+        /// Get Google OAuth Config Get Google OAuth configuration including client ID and callback URL. SDK uses this to construct the Google OAuth authorization URL.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of ApiResponse (GoogleConfigResponseDto)</returns>
+        public async System.Threading.Tasks.Task<KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleConfigResponseDto>> GetGoogleConfigWithHttpInfoAsync(int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+        {
+
+            KyuzanInc.Peak.PublicApiClient.Client.RequestOptions localVarRequestOptions = new KyuzanInc.Peak.PublicApiClient.Client.RequestOptions();
+
+            string[] _contentTypes = new string[] {
+            };
+
+            // to determine the Accept header
+            string[] _accepts = new string[] {
+                "application/json"
+            };
+
+            var localVarContentType = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderContentType(_contentTypes);
+            if (localVarContentType != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Content-Type", localVarContentType);
+            }
+
+            var localVarAccept = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderAccept(_accepts);
+            if (localVarAccept != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Accept", localVarAccept);
+            }
+
+
+            localVarRequestOptions.Operation = "AuthApi.GetGoogleConfig";
+            localVarRequestOptions.OperationIndex = operationIndex;
+
+            // authentication (public-api-project-api-key) required
+            if (!string.IsNullOrEmpty(this.Configuration.GetApiKeyWithPrefix("X-API-Key")))
+            {
+                localVarRequestOptions.HeaderParameters.Add("X-API-Key", this.Configuration.GetApiKeyWithPrefix("X-API-Key"));
+            }
+
+            // make the HTTP request
+            var localVarResponse = await this.AsynchronousClient.GetAsync<GoogleConfigResponseDto>("/public-api/v1/auth/google/config", localVarRequestOptions, this.Configuration, cancellationToken).ConfigureAwait(false);
+
+            if (this.ExceptionFactory != null)
+            {
+                Exception _exception = this.ExceptionFactory("GetGoogleConfig", localVarResponse);
+                if (_exception != null)
+                {
+                    throw _exception;
+                }
+            }
+
+            return localVarResponse;
+        }
+
+        /// <summary>
+        /// Google OAuth Login Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>GoogleLoginResponseDto</returns>
+        public GoogleLoginResponseDto GoogleLogin(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0)
+        {
+            KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleLoginResponseDto> localVarResponse = GoogleLoginWithHttpInfo(googleLoginRequestDto);
+            return localVarResponse.Data;
+        }
+
+        /// <summary>
+        /// Google OAuth Login Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <returns>ApiResponse of GoogleLoginResponseDto</returns>
+        public KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleLoginResponseDto> GoogleLoginWithHttpInfo(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0)
+        {
+            // verify the required parameter 'googleLoginRequestDto' is set
+            if (googleLoginRequestDto == null)
+            {
+                throw new KyuzanInc.Peak.PublicApiClient.Client.ApiException(400, "Missing required parameter 'googleLoginRequestDto' when calling AuthApi->GoogleLogin");
+            }
+
+            KyuzanInc.Peak.PublicApiClient.Client.RequestOptions localVarRequestOptions = new KyuzanInc.Peak.PublicApiClient.Client.RequestOptions();
+
+            string[] _contentTypes = new string[] {
+                "application/json"
+            };
+
+            // to determine the Accept header
+            string[] _accepts = new string[] {
+                "application/json"
+            };
+
+            var localVarContentType = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderContentType(_contentTypes);
+            if (localVarContentType != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Content-Type", localVarContentType);
+            }
+
+            var localVarAccept = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderAccept(_accepts);
+            if (localVarAccept != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Accept", localVarAccept);
+            }
+
+            localVarRequestOptions.Data = googleLoginRequestDto;
+
+            localVarRequestOptions.Operation = "AuthApi.GoogleLogin";
+            localVarRequestOptions.OperationIndex = operationIndex;
+
+            // authentication (public-api-project-api-key) required
+            if (!string.IsNullOrEmpty(this.Configuration.GetApiKeyWithPrefix("X-API-Key")))
+            {
+                localVarRequestOptions.HeaderParameters.Add("X-API-Key", this.Configuration.GetApiKeyWithPrefix("X-API-Key"));
+            }
+
+            // make the HTTP request
+            var localVarResponse = this.Client.Post<GoogleLoginResponseDto>("/public-api/v1/auth/google/login", localVarRequestOptions, this.Configuration);
+            if (this.ExceptionFactory != null)
+            {
+                Exception _exception = this.ExceptionFactory("GoogleLogin", localVarResponse);
+                if (_exception != null)
+                {
+                    throw _exception;
+                }
+            }
+
+            return localVarResponse;
+        }
+
+        /// <summary>
+        /// Google OAuth Login Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of GoogleLoginResponseDto</returns>
+        public async System.Threading.Tasks.Task<GoogleLoginResponseDto> GoogleLoginAsync(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+        {
+            KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleLoginResponseDto> localVarResponse = await GoogleLoginWithHttpInfoAsync(googleLoginRequestDto, operationIndex, cancellationToken).ConfigureAwait(false);
+            return localVarResponse.Data;
+        }
+
+        /// <summary>
+        /// Google OAuth Login Completes Google OAuth authentication by verifying the ID token and returning session token. When signup&#x3D;true (default), creates a new user if not exists. For existing OTP users, automatically links their Google account.
+        /// </summary>
+        /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
+        /// <param name="googleLoginRequestDto"></param>
+        /// <param name="operationIndex">Index associated with the operation.</param>
+        /// <param name="cancellationToken">Cancellation Token to cancel the request.</param>
+        /// <returns>Task of ApiResponse (GoogleLoginResponseDto)</returns>
+        public async System.Threading.Tasks.Task<KyuzanInc.Peak.PublicApiClient.Client.ApiResponse<GoogleLoginResponseDto>> GoogleLoginWithHttpInfoAsync(GoogleLoginRequestDto googleLoginRequestDto, int operationIndex = 0, System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+        {
+            // verify the required parameter 'googleLoginRequestDto' is set
+            if (googleLoginRequestDto == null)
+            {
+                throw new KyuzanInc.Peak.PublicApiClient.Client.ApiException(400, "Missing required parameter 'googleLoginRequestDto' when calling AuthApi->GoogleLogin");
+            }
+
+
+            KyuzanInc.Peak.PublicApiClient.Client.RequestOptions localVarRequestOptions = new KyuzanInc.Peak.PublicApiClient.Client.RequestOptions();
+
+            string[] _contentTypes = new string[] {
+                "application/json"
+            };
+
+            // to determine the Accept header
+            string[] _accepts = new string[] {
+                "application/json"
+            };
+
+            var localVarContentType = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderContentType(_contentTypes);
+            if (localVarContentType != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Content-Type", localVarContentType);
+            }
+
+            var localVarAccept = KyuzanInc.Peak.PublicApiClient.Client.ClientUtils.SelectHeaderAccept(_accepts);
+            if (localVarAccept != null)
+            {
+                localVarRequestOptions.HeaderParameters.Add("Accept", localVarAccept);
+            }
+
+            localVarRequestOptions.Data = googleLoginRequestDto;
+
+            localVarRequestOptions.Operation = "AuthApi.GoogleLogin";
+            localVarRequestOptions.OperationIndex = operationIndex;
+
+            // authentication (public-api-project-api-key) required
+            if (!string.IsNullOrEmpty(this.Configuration.GetApiKeyWithPrefix("X-API-Key")))
+            {
+                localVarRequestOptions.HeaderParameters.Add("X-API-Key", this.Configuration.GetApiKeyWithPrefix("X-API-Key"));
+            }
+
+            // make the HTTP request
+            var localVarResponse = await this.AsynchronousClient.PostAsync<GoogleLoginResponseDto>("/public-api/v1/auth/google/login", localVarRequestOptions, this.Configuration, cancellationToken).ConfigureAwait(false);
+
+            if (this.ExceptionFactory != null)
+            {
+                Exception _exception = this.ExceptionFactory("GoogleLogin", localVarResponse);
                 if (_exception != null)
                 {
                     throw _exception;
@@ -609,7 +996,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Signup 
+        /// Signup Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>
@@ -622,7 +1009,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Signup 
+        /// Signup Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>
@@ -685,7 +1072,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Signup 
+        /// Signup Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>
@@ -699,7 +1086,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
         }
 
         /// <summary>
-        /// Signup 
+        /// Signup Creates a new user with email. This API is blacklisted by default for new projects. For most web applications, the unified OTP flow is recommended: call initOtpLogin, then completeOtpLogin with signup&#x3D;true (default). Use this API directly when you need to create users without immediate email verification (e.g., native apps where email auth happens later).
         /// </summary>
         /// <exception cref="KyuzanInc.Peak.PublicApiClient.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="signupRequestDto"></param>

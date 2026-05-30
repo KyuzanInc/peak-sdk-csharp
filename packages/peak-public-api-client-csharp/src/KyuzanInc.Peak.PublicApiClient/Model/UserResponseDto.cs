@@ -32,6 +32,42 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     public partial class UserResponseDto : IValidatableObject
     {
         /// <summary>
+        /// Deletion approval status
+        /// </summary>
+        /// <value>Deletion approval status</value>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public enum DeletionStatusEnum
+        {
+            /// <summary>
+            /// Enum None for value: none
+            /// </summary>
+            [EnumMember(Value = "none")]
+            None = 1,
+
+            /// <summary>
+            /// Enum Approved for value: approved
+            /// </summary>
+            [EnumMember(Value = "approved")]
+            Approved = 2,
+
+            /// <summary>
+            /// Enum InProgress for value: in_progress
+            /// </summary>
+            [EnumMember(Value = "in_progress")]
+            InProgress = 3
+        }
+
+
+        /// <summary>
+        /// Deletion approval status
+        /// </summary>
+        /// <value>Deletion approval status</value>
+        /*
+        <example>none</example>
+        */
+        [DataMember(Name = "deletionStatus", IsRequired = true, EmitDefaultValue = true)]
+        public DeletionStatusEnum DeletionStatus { get; set; }
+        /// <summary>
         /// Initializes a new instance of the <see cref="UserResponseDto" /> class.
         /// </summary>
         [JsonConstructorAttribute]
@@ -44,8 +80,8 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// <param name="originProjectId">Project ID that created this user (required).</param>
         /// <param name="turnkeySubOrgId">Turnkey sub-organization id (required).</param>
         /// <param name="turnkeyRootUserId">Turnkey root user id (required).</param>
-        /// <param name="isAuthenticated">Whether the user is authenticated (required).</param>
-        public UserResponseDto(string id = default(string), string email = default(string), string originProjectId = default(string), string turnkeySubOrgId = default(string), string turnkeyRootUserId = default(string), bool isAuthenticated = default(bool))
+        /// <param name="deletionStatus">Deletion approval status (required).</param>
+        public UserResponseDto(string id = default(string), string email = default(string), string originProjectId = default(string), string turnkeySubOrgId = default(string), string turnkeyRootUserId = default(string), DeletionStatusEnum deletionStatus = default(DeletionStatusEnum))
         {
             // to ensure "id" is required (not null)
             if (id == null)
@@ -77,7 +113,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
                 throw new ArgumentNullException("turnkeyRootUserId is a required property for UserResponseDto and cannot be null");
             }
             this.TurnkeyRootUserId = turnkeyRootUserId;
-            this.IsAuthenticated = isAuthenticated;
+            this.DeletionStatus = deletionStatus;
         }
 
         /// <summary>
@@ -131,16 +167,6 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         public string TurnkeyRootUserId { get; set; }
 
         /// <summary>
-        /// Whether the user is authenticated
-        /// </summary>
-        /// <value>Whether the user is authenticated</value>
-        /*
-        <example>true</example>
-        */
-        [DataMember(Name = "isAuthenticated", IsRequired = true, EmitDefaultValue = true)]
-        public bool IsAuthenticated { get; set; }
-
-        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
@@ -153,7 +179,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
             sb.Append("  OriginProjectId: ").Append(OriginProjectId).Append("\n");
             sb.Append("  TurnkeySubOrgId: ").Append(TurnkeySubOrgId).Append("\n");
             sb.Append("  TurnkeyRootUserId: ").Append(TurnkeyRootUserId).Append("\n");
-            sb.Append("  IsAuthenticated: ").Append(IsAuthenticated).Append("\n");
+            sb.Append("  DeletionStatus: ").Append(DeletionStatus).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }

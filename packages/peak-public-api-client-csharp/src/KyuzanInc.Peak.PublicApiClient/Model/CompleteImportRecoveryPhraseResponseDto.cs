@@ -40,7 +40,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// Initializes a new instance of the <see cref="CompleteImportRecoveryPhraseResponseDto" /> class.
         /// </summary>
         /// <param name="account">Imported account (required).</param>
-        /// <param name="accountAddresses">Account addresses (EVM, Bitcoin, Solana) (required).</param>
+        /// <param name="accountAddresses">Account addresses (EVM, Bitcoin, Solana, Sui) (required).</param>
         /// <param name="accountSource">Account source information (required).</param>
         public CompleteImportRecoveryPhraseResponseDto(AccountResponseDto account = default(AccountResponseDto), List<AccountAddressResponseDto> accountAddresses = default(List<AccountAddressResponseDto>), AccountSourceResponseDto accountSource = default(AccountSourceResponseDto))
         {
@@ -72,9 +72,9 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         public AccountResponseDto Account { get; set; }
 
         /// <summary>
-        /// Account addresses (EVM, Bitcoin, Solana)
+        /// Account addresses (EVM, Bitcoin, Solana, Sui)
         /// </summary>
-        /// <value>Account addresses (EVM, Bitcoin, Solana)</value>
+        /// <value>Account addresses (EVM, Bitcoin, Solana, Sui)</value>
         [DataMember(Name = "accountAddresses", IsRequired = true, EmitDefaultValue = true)]
         public List<AccountAddressResponseDto> AccountAddresses { get; set; }
 

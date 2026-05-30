@@ -42,7 +42,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// <param name="user">Created Peak User (required).</param>
         /// <param name="accountSource">Created account source (required).</param>
         /// <param name="account">Created default account (required).</param>
-        /// <param name="accountAddresses">Created account addresses (EVM, Bitcoin, Solana) (required).</param>
+        /// <param name="accountAddresses">Created account addresses (EVM, Bitcoin, Solana, Sui) (required).</param>
         public SignupResponseDto(UserResponseDto user = default(UserResponseDto), AccountSourceResponseDto accountSource = default(AccountSourceResponseDto), AccountResponseDto account = default(AccountResponseDto), List<AccountAddressResponseDto> accountAddresses = default(List<AccountAddressResponseDto>))
         {
             // to ensure "user" is required (not null)
@@ -93,9 +93,9 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         public AccountResponseDto Account { get; set; }
 
         /// <summary>
-        /// Created account addresses (EVM, Bitcoin, Solana)
+        /// Created account addresses (EVM, Bitcoin, Solana, Sui)
         /// </summary>
-        /// <value>Created account addresses (EVM, Bitcoin, Solana)</value>
+        /// <value>Created account addresses (EVM, Bitcoin, Solana, Sui)</value>
         [DataMember(Name = "accountAddresses", IsRequired = true, EmitDefaultValue = true)]
         public List<AccountAddressResponseDto> AccountAddresses { get; set; }
 

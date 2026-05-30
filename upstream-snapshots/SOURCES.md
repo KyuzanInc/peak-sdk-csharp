@@ -23,7 +23,8 @@ build input.
 | Field | Value |
 |---|---|
 | Source repo | https://github.com/KyuzanInc/peak (path: `apps/peak-public-docs/docs/api-references/public-api.yaml`) |
-| Pinned tag | `v0.3.0` (provisional — OQ-N1, Komy CTO to confirm before v0.1.0) |
-| Snapshot date | 2026-05-29 |
+| Tracks | `main` (latest commit, not a release tag) |
+| Last synced commit | `72ca08b3eade7117334ad481f6a1b29a6bee73a9` |
+| Snapshot date | 2026-05-30 |
 | Snapshot path | `upstream-snapshots/peak-server-openapi/` |
 | Purpose | Source spec for the internal `KyuzanInc.Peak.PublicApiClient` OpenAPI codegen (see `docs/sync-rules.md`) |

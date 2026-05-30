@@ -16,7 +16,7 @@ safely.
 |---|---|---|
 | `KyuzanInc/peak-sdk-unity` ships a relevant change | `upstream-snapshots/peak-sdk-unity/` | resync + port if the change is in `Runtime/` |
 | `KyuzanInc/turnkey-sdk-csharp` cuts a new release | `Directory.Packages.props` pin + lock files | bump per "Bump KyuzanInc.Turnkey.Sdk" below |
-| `peak-server` cuts a release we want to support | `upstream-snapshots/peak-server-openapi/public-api.yaml` | resync + regenerate the OpenAPI client |
+| We want peak-server's latest public API (its `main` moved) | `upstream-snapshots/peak-server-openapi/public-api.yaml` | resync from `main` + regenerate the OpenAPI client |
 | Consumer reports a behaviour mismatch with `peak-sdk-browser` | depends on root cause | usually no resync; instead update the C# DTO wrapper |
 
 ## Workflow
@@ -28,7 +28,9 @@ safely.
 ```
 
 Where `<name>` is one of `peak-sdk-unity` or `peak-server-openapi`,
-and `<pin>` is the new commit SHA or tag.
+and `<pin>` is the new commit SHA, tag, or branch. For
+`peak-server-openapi` we track `main` — pass `main` and the script records
+the resolved HEAD commit in `PIN.md`.
 
 The script:
 
@@ -101,4 +103,4 @@ The script:
 The job needs a JRE + Node (the generator is Java, launched via `npx`). It
 does **not** fetch peak; comparing the snapshot against the live
 `peak-server` tag is a manual operator step via
-`scripts/sync-upstream.sh peak-server-openapi <tag>`.
+`scripts/sync-upstream.sh peak-server-openapi main`.

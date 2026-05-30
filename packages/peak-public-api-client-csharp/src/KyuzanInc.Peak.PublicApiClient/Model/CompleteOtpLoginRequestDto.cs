@@ -43,7 +43,8 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// <param name="otpId">OTP ID returned from init-otp-login (required).</param>
         /// <param name="otpCode">OTP code sent to user email (required).</param>
         /// <param name="targetPublicKey">Target public key for session creation (required).</param>
-        public CompleteOtpLoginRequestDto(string email = default(string), string otpId = default(string), string otpCode = default(string), string targetPublicKey = default(string))
+        /// <param name="signup">Whether to create a new user if not exists. Defaults to true (unified flow). (default to true).</param>
+        public CompleteOtpLoginRequestDto(string email = default(string), string otpId = default(string), string otpCode = default(string), string targetPublicKey = default(string), bool signup = true)
         {
             // to ensure "email" is required (not null)
             if (email == null)
@@ -69,6 +70,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
                 throw new ArgumentNullException("targetPublicKey is a required property for CompleteOtpLoginRequestDto and cannot be null");
             }
             this.TargetPublicKey = targetPublicKey;
+            this.Signup = signup;
         }
 
         /// <summary>
@@ -112,6 +114,16 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         public string TargetPublicKey { get; set; }
 
         /// <summary>
+        /// Whether to create a new user if not exists. Defaults to true (unified flow).
+        /// </summary>
+        /// <value>Whether to create a new user if not exists. Defaults to true (unified flow).</value>
+        /*
+        <example>true</example>
+        */
+        [DataMember(Name = "signup", EmitDefaultValue = true)]
+        public bool Signup { get; set; }
+
+        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
@@ -123,6 +135,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
             sb.Append("  OtpId: ").Append(OtpId).Append("\n");
             sb.Append("  OtpCode: ").Append(OtpCode).Append("\n");
             sb.Append("  TargetPublicKey: ").Append(TargetPublicKey).Append("\n");
+            sb.Append("  Signup: ").Append(Signup).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }

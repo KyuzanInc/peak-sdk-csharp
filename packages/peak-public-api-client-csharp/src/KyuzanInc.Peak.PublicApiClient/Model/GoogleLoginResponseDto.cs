@@ -26,18 +26,18 @@ using OpenAPIDateConverter = KyuzanInc.Peak.PublicApiClient.Client.OpenAPIDateCo
 namespace KyuzanInc.Peak.PublicApiClient.Model
 {
     /// <summary>
-    /// CompleteOtpLoginResponseDto
+    /// GoogleLoginResponseDto
     /// </summary>
-    [DataContract(Name = "CompleteOtpLoginResponseDto")]
-    public partial class CompleteOtpLoginResponseDto : IValidatableObject
+    [DataContract(Name = "GoogleLoginResponseDto")]
+    public partial class GoogleLoginResponseDto : IValidatableObject
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CompleteOtpLoginResponseDto" /> class.
+        /// Initializes a new instance of the <see cref="GoogleLoginResponseDto" /> class.
         /// </summary>
         [JsonConstructorAttribute]
-        protected CompleteOtpLoginResponseDto() { }
+        protected GoogleLoginResponseDto() { }
         /// <summary>
-        /// Initializes a new instance of the <see cref="CompleteOtpLoginResponseDto" /> class.
+        /// Initializes a new instance of the <see cref="GoogleLoginResponseDto" /> class.
         /// </summary>
         /// <param name="user">Peak User (required).</param>
         /// <param name="sessionJwt">Turnkey session JWT for authentication (required).</param>
@@ -45,18 +45,18 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// <param name="accountSource">Created account source (only present for new users).</param>
         /// <param name="account">Created default account (only present for new users).</param>
         /// <param name="accountAddresses">Created account addresses (EVM, Bitcoin, Solana, Sui) (only present for new users).</param>
-        public CompleteOtpLoginResponseDto(UserResponseDto user = default(UserResponseDto), string sessionJwt = default(string), bool isNewUser = default(bool), AccountSourceResponseDto accountSource = default(AccountSourceResponseDto), AccountResponseDto account = default(AccountResponseDto), List<AccountAddressResponseDto> accountAddresses = default(List<AccountAddressResponseDto>))
+        public GoogleLoginResponseDto(UserResponseDto user = default(UserResponseDto), string sessionJwt = default(string), bool isNewUser = default(bool), AccountSourceResponseDto accountSource = default(AccountSourceResponseDto), AccountResponseDto account = default(AccountResponseDto), List<AccountAddressResponseDto> accountAddresses = default(List<AccountAddressResponseDto>))
         {
             // to ensure "user" is required (not null)
             if (user == null)
             {
-                throw new ArgumentNullException("user is a required property for CompleteOtpLoginResponseDto and cannot be null");
+                throw new ArgumentNullException("user is a required property for GoogleLoginResponseDto and cannot be null");
             }
             this.User = user;
             // to ensure "sessionJwt" is required (not null)
             if (sessionJwt == null)
             {
-                throw new ArgumentNullException("sessionJwt is a required property for CompleteOtpLoginResponseDto and cannot be null");
+                throw new ArgumentNullException("sessionJwt is a required property for GoogleLoginResponseDto and cannot be null");
             }
             this.SessionJwt = sessionJwt;
             this.IsNewUser = isNewUser;
@@ -114,7 +114,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("class CompleteOtpLoginResponseDto {\n");
+            sb.Append("class GoogleLoginResponseDto {\n");
             sb.Append("  User: ").Append(User).Append("\n");
             sb.Append("  SessionJwt: ").Append(SessionJwt).Append("\n");
             sb.Append("  IsNewUser: ").Append(IsNewUser).Append("\n");

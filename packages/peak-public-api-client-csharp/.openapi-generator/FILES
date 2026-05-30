@@ -43,6 +43,7 @@ src/KyuzanInc.Peak.PublicApiClient/Model/CreateAccountRequestDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/CreateAccountResponseDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/DeleteUserRequestDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/DeleteUserResponseDto.cs
+src/KyuzanInc.Peak.PublicApiClient/Model/ErrorResponseDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/EvmSignMessageRequestDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/EvmSignMessageResponseDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/EvmSignTransactionRequestDto.cs
@@ -56,7 +57,9 @@ src/KyuzanInc.Peak.PublicApiClient/Model/GetAccountSourceByAccountIdResponseDto.
 src/KyuzanInc.Peak.PublicApiClient/Model/GetAccountSourceResponseDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/GetMaxAccountIndexResponseDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/GetMeResponseDto.cs
-src/KyuzanInc.Peak.PublicApiClient/Model/GetUserResponseDto.cs
+src/KyuzanInc.Peak.PublicApiClient/Model/GoogleConfigResponseDto.cs
+src/KyuzanInc.Peak.PublicApiClient/Model/GoogleLoginRequestDto.cs
+src/KyuzanInc.Peak.PublicApiClient/Model/GoogleLoginResponseDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/InitImportPrivateKeyRequestDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/InitImportPrivateKeyResponseDto.cs
 src/KyuzanInc.Peak.PublicApiClient/Model/InitImportRecoveryPhraseRequestDto.cs

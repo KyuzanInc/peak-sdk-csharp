@@ -39,10 +39,22 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         Evm = 1,
 
         /// <summary>
+        /// Enum Bitcoin for value: bitcoin
+        /// </summary>
+        [EnumMember(Value = "bitcoin")]
+        Bitcoin = 2,
+
+        /// <summary>
         /// Enum Solana for value: solana
         /// </summary>
         [EnumMember(Value = "solana")]
-        Solana = 2
+        Solana = 3,
+
+        /// <summary>
+        /// Enum Sui for value: sui
+        /// </summary>
+        [EnumMember(Value = "sui")]
+        Sui = 4
     }
 
 }

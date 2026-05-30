@@ -671,6 +671,8 @@ Two refinements were made during execution; they supersede the matching snippets
 
 2. **Drift gate uses `git add -A` + `git diff --cached` (catches additions).** Task 4's gate used plain `git diff`, which only inspects tracked files — a spec change that ADDS a new model/endpoint emits a brand-new untracked `.cs` that `git diff` would miss (a false green, saved only accidentally by the rewritten `.openapi-generator/FILES`). The shipped job stages all changes first so additions and deletions are first-class. Verified locally: no-drift → clean; a new untracked file → caught.
 
+3. **Pin tracks `main`, not a release tag (user directive, OQ-N1 resolved).** Task 1 pinned the spec to tag `v0.3.0`; per the user it now tracks `KyuzanInc/peak` `main` HEAD instead. The snapshot is re-synced from `main` and PIN.md records the exact HEAD commit (`72ca08b3…`) so it stays reproducible while following main. Resync is `scripts/sync-upstream.sh peak-server-openapi main`. Continuous auto-following (a scheduled resync job) is the open decision; the manual/operator resync is the interim, same as before.
+
 ## GSTACK REVIEW REPORT
 
 | Review | Trigger | Why | Runs | Status | Findings |
