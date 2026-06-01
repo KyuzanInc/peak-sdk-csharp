@@ -24,7 +24,8 @@ files under `packages/peak-sdk-csharp/{src,tests}/`).
 
 - It is NOT the canonical source of the Peak public OpenAPI spec. That
   lives in the `KyuzanInc/peak` monorepo. We sync the spec into
-  `upstream-snapshots/peak-server-openapi/` at fixed tags.
+  `upstream-snapshots/peak-server-openapi/`, tracking `main` HEAD recorded
+  as an exact commit in `PIN.md`.
 - It is NOT the source of the Turnkey crypto port. Crypto code, its
   pinned upstream sources, and the multi-round Codex review evidence
   all live in `KyuzanInc/turnkey-sdk-csharp`. Open a PR there for any
@@ -54,7 +55,7 @@ These files are generated; never hand-edit them:
 
 - `packages/peak-public-api-client-csharp/src/**/*` — OpenAPI codegen
 - `upstream-snapshots/peak-server-openapi/public-api.yaml` — synced from
-  `KyuzanInc/peak` at a pinned tag (see
+  `KyuzanInc/peak` `main` HEAD, recorded as an exact commit (see
   [docs/sync-rules.md](docs/sync-rules.md))
 - `upstream-snapshots/peak-sdk-unity/` — pinned port source
 - `packages/peak-sdk-csharp/src/packages.lock.json`,

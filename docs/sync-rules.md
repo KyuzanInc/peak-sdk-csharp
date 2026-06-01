@@ -35,10 +35,13 @@ the resolved HEAD commit in `PIN.md`.
 The script:
 
 1. Fetches the new source.
-2. Replaces the corresponding `upstream-snapshots/<name>/` directory.
-3. Updates `upstream-snapshots/SOURCES.md`.
-4. Emits a single commit on a branch `sync/<name>-<short-pin>`.
-5. Prints the next required action (port, regenerate, or both).
+2. Replaces the corresponding `upstream-snapshots/<name>/` directory (and,
+   for `peak-server-openapi`, writes its `PIN.md` with the resolved HEAD
+   commit).
+3. Creates a branch `sync/<name>-<short-pin>` and stages the snapshot.
+4. Prints the manual follow-up: update `upstream-snapshots/SOURCES.md`, then
+   `git add` + `git commit` + `git push` (the script does not commit for you),
+   and regenerate downstream artefacts (e.g. the OpenAPI client).
 
 ### Bump KyuzanInc.Turnkey.Sdk
 
