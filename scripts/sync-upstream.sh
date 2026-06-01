@@ -6,7 +6,8 @@
 #
 # Where <name> is one of:
 #   peak-sdk-unity          — KyuzanInc/peak-sdk-unity, pin = commit SHA
-#   peak-server-openapi     — KyuzanInc/peak (subpath), pin = git tag
+#   peak-server-openapi     — KyuzanInc/peak (subpath), pin = main (tracks
+#                             the branch; records the resolved HEAD commit)
 #
 # The script writes the new snapshot, updates SOURCES.md, and creates a
 # branch sync/<name>-<short-pin> with a single commit. Operator opens
@@ -56,14 +57,29 @@ git checkout --quiet "$PIN"
 
 case "$NAME" in
   peak-server-openapi)
+    # Replace the snapshot wholesale (match the peak-sdk-unity branch) so a
+    # stale file from an older spec layout can't survive a resync. Only the
+    # spec + PIN.md belong here; both are rewritten below.
+    rm -rf "$DEST"
+    mkdir -p "$DEST"
     cp "apps/peak-public-docs/docs/api-references/public-api.yaml" "$DEST/public-api.yaml"
-    # Update the PIN.md
+    # Record the RESOLVED HEAD commit (reproducible) while tracking the ref
+    # given as $PIN (e.g. `main`). Writing the literal $PIN would leave an
+    # unpinned branch name behind, so resolve it to a SHA here.
+    RESOLVED_COMMIT="$(git rev-parse HEAD)"
     cat > "$DEST/PIN.md" <<EOF
 # peak-server OpenAPI snapshot
 
-| Pin tag | Snapshot date | Source path |
-|---|---|---|
-| \`$PIN\` | $(date -u +%Y-%m-%d) | KyuzanInc/peak \`apps/peak-public-docs/docs/api-references/public-api.yaml\` |
+Tracks **\`$PIN\`** of \`KyuzanInc/peak\`. Each resync grabs that ref's current
+HEAD and records the exact commit below, so the snapshot stays a reproducible,
+pinned artifact while following the ref's latest.
+
+| Tracks | Last synced commit | Snapshot date | Source path |
+|---|---|---|---|
+| \`$PIN\` | \`$RESOLVED_COMMIT\` | $(date -u +%Y-%m-%d) | KyuzanInc/peak \`apps/peak-public-docs/docs/api-references/public-api.yaml\` |
+
+> Re-sync with \`scripts/sync-upstream.sh peak-server-openapi $PIN\`, then
+> regenerate the client (\`scripts/generate-public-api-client.sh\`) and commit.
 EOF
     ;;
   peak-sdk-unity)

@@ -1,0 +1,15 @@
+# Keep ONLY the generated C# sources under
+# src/KyuzanInc.Peak.PublicApiClient/. Everything else the csharp generator
+# emits (project scaffolding, docs, the sample .Test project, the vestigial
+# git_push.sh / appveyor.yml) is ignored, so our hand-authored, CPM-aware
+# csproj and the repo's own tooling own the build.
+*.csproj
+*.sln
+src/**/*.csproj
+appveyor.yml
+git_push.sh
+README.md
+.gitignore
+docs/
+api/
+src/KyuzanInc.Peak.PublicApiClient.Test/

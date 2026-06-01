@@ -1,0 +1,4 @@
+# Generated OpenAPI client — store with LF so regeneration is byte-stable
+# across machines and the drift-check job never trips on line endings.
+* text=auto eol=lf
+*.cs text eol=lf

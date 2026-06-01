@@ -16,7 +16,7 @@ safely.
 |---|---|---|
 | `KyuzanInc/peak-sdk-unity` ships a relevant change | `upstream-snapshots/peak-sdk-unity/` | resync + port if the change is in `Runtime/` |
 | `KyuzanInc/turnkey-sdk-csharp` cuts a new release | `Directory.Packages.props` pin + lock files | bump per "Bump KyuzanInc.Turnkey.Sdk" below |
-| `peak-server` cuts a release we want to support | `upstream-snapshots/peak-server-openapi/public-api.yaml` | resync + regenerate the OpenAPI client |
+| We want peak-server's latest public API (its `main` moved) | `upstream-snapshots/peak-server-openapi/public-api.yaml` | resync from `main` + regenerate the OpenAPI client |
 | Consumer reports a behaviour mismatch with `peak-sdk-browser` | depends on root cause | usually no resync; instead update the C# DTO wrapper |
 
 ## Workflow
@@ -28,15 +28,20 @@ safely.
 ```
 
 Where `<name>` is one of `peak-sdk-unity` or `peak-server-openapi`,
-and `<pin>` is the new commit SHA or tag.
+and `<pin>` is the new commit SHA, tag, or branch. For
+`peak-server-openapi` we track `main` — pass `main` and the script records
+the resolved HEAD commit in `PIN.md`.
 
 The script:
 
 1. Fetches the new source.
-2. Replaces the corresponding `upstream-snapshots/<name>/` directory.
-3. Updates `upstream-snapshots/SOURCES.md`.
-4. Emits a single commit on a branch `sync/<name>-<short-pin>`.
-5. Prints the next required action (port, regenerate, or both).
+2. Replaces the corresponding `upstream-snapshots/<name>/` directory (and,
+   for `peak-server-openapi`, writes its `PIN.md` with the resolved HEAD
+   commit).
+3. Creates a branch `sync/<name>-<short-pin>` and stages the snapshot.
+4. Prints the manual follow-up: update `upstream-snapshots/SOURCES.md`, then
+   `git add` + `git commit` + `git push` (the script does not commit for you),
+   and regenerate downstream artefacts (e.g. the OpenAPI client).
 
 ### Bump KyuzanInc.Turnkey.Sdk
 
@@ -74,24 +79,32 @@ The script:
 
 ### `peak-server-openapi` resync
 
-- Re-generate `packages/peak-public-api-client-csharp/src/` with
-  `pnpm openapi-generator-cli generate` (or the project-local
-  equivalent — codegen settings live in
+- Re-generate the client with `scripts/generate-public-api-client.sh`
+  (engine: `@openapitools/openapi-generator-cli`, core pinned to 7.9.0 by
+  `packages/peak-public-api-client-csharp/openapitools.json`; settings in
   `packages/peak-public-api-client-csharp/openapi-config.yaml`).
+- Build the client and commit the regenerated
+  `packages/peak-public-api-client-csharp/src/` plus the refreshed
+  `packages.lock.json`.
 - Drift CI compares the regenerated artefacts byte-for-byte with the
   committed `src/`; a mismatch fails the build.
-- Update the DTO wrappers in `packages/peak-sdk-csharp/src/Models/`
-  if the public surface gained or lost fields.
+- If/when the client is wired into `KyuzanInc.Peak.Sdk`, update the DTO
+  wrappers in `packages/peak-sdk-csharp/src/Models/` if the public surface
+  gained or lost fields.
 
 ## Drift CI
 
-`.github/workflows/csharp-ci.yml` runs a `drift-check` job that:
+`.github/workflows/csharp-ci.yml` runs an `openapi-client-drift` job that:
 
-- Diffs `upstream-snapshots/peak-server-openapi/public-api.yaml`
-  against the live spec at the pinned `peak-server` tag.
-- Diffs the generated `peak-public-api-client-csharp/src/` against
-  what the codegen produces today.
-- Fails the build with a clear message naming the file that drifted.
+- Regenerates the C# client from the committed
+  `upstream-snapshots/peak-server-openapi/public-api.yaml` using
+  `scripts/generate-public-api-client.sh`.
+- Fails the build if the committed
+  `packages/peak-public-api-client-csharp/src/` differs from the
+  regenerated output, naming the drift in the log.
 
-Drift CI is informative only; merging a drift-failing PR requires an
-explicit "resync intended" label.
+The job needs a JRE + Node (the generator is Java, launched from the
+project-local npm wrapper after `npm ci --ignore-scripts`). It does **not**
+fetch peak; comparing the snapshot against the live `peak-server` `main` HEAD
+is a manual operator step via
+`scripts/sync-upstream.sh peak-server-openapi main`.

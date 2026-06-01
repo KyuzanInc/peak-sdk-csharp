@@ -1,0 +1,2312 @@
+openapi: 3.0.0
+paths:
+  /public-api/v1/accounts/list:
+    get:
+      operationId: listAccounts
+      summary: ""
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListAccountsResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/accounts/create:
+    post:
+      operationId: createAccount
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountRequestDto"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAccountResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/accounts/update-display-name:
+    post:
+      operationId: updateDisplayName
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccountDisplayNameRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateAccountDisplayNameResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/accounts/get-source:
+    get:
+      operationId: getSource
+      summary: ""
+      parameters:
+        - name: accountSourceId
+          required: true
+          in: query
+          description: Account source ID
+          schema:
+            example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAccountSourceResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/accounts/get-source-by-account:
+    get:
+      operationId: getSourceByAccount
+      summary: ""
+      parameters:
+        - name: accountId
+          required: true
+          in: query
+          description: Account ID
+          schema:
+            example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAccountSourceByAccountIdResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/accounts/get-max-index:
+    get:
+      operationId: getMaxIndex
+      summary: ""
+      parameters:
+        - name: accountSourceId
+          required: true
+          in: query
+          description: Account source ID
+          schema:
+            example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMaxAccountIndexResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/accounts/list-addresses:
+    get:
+      operationId: listAddresses
+      summary: ""
+      parameters:
+        - name: accountId
+          required: true
+          in: query
+          description: Account ID
+          schema:
+            example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListAccountAddressesResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/accounts/get-address-detail:
+    get:
+      operationId: getAddressDetail
+      summary: ""
+      parameters:
+        - name: address
+          required: true
+          in: query
+          description: Account address
+          schema:
+            example: "0x742d35Cc6634C0532925a3b844Bc9e7595f6E2dC"
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAccountAddressWithAccountAndSourceResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Account
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/auth/signup:
+    post:
+      operationId: signup
+      summary: Signup
+      description: "Creates a new user with email. This API is blacklisted by default
+        for new projects. For most web applications, the unified OTP flow is
+        recommended: call initOtpLogin, then completeOtpLogin with signup=true
+        (default). Use this API directly when you need to create users without
+        immediate email verification (e.g., native apps where email auth happens
+        later)."
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupRequestDto"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignupResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Auth
+      security:
+        - public-api-project-api-key: []
+  /public-api/v1/auth/otp/init-login:
+    post:
+      operationId: initOtpLogin
+      summary: Initialize OTP Login
+      description: Initializes OTP-based login by sending a one-time password to the
+        user email
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitOtpLoginRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitOtpLoginResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Auth
+      security:
+        - public-api-project-api-key: []
+  /public-api/v1/auth/otp/complete-login:
+    post:
+      operationId: completeOtpLogin
+      summary: Complete OTP Login
+      description: Completes OTP authentication by verifying the code and returning
+        session token. When signup=true (default), creates a new user if not
+        exists.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteOtpLoginRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompleteOtpLoginResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Auth
+      security:
+        - public-api-project-api-key: []
+  /public-api/v1/auth/google/config:
+    get:
+      operationId: getGoogleConfig
+      summary: Get Google OAuth Config
+      description: Get Google OAuth configuration including client ID and callback
+        URL. SDK uses this to construct the Google OAuth authorization URL.
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleConfigResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Auth
+      security:
+        - public-api-project-api-key: []
+  /public-api/v1/auth/google/login:
+    post:
+      operationId: googleLogin
+      summary: Google OAuth Login
+      description: Completes Google OAuth authentication by verifying the ID token and
+        returning session token. When signup=true (default), creates a new user
+        if not exists. For existing OTP users, automatically links their Google
+        account.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleLoginRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleLoginResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Auth
+      security:
+        - public-api-project-api-key: []
+  /public-api/v1/private-keys/init-import:
+    post:
+      operationId: initImportPrivateKey
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitImportPrivateKeyRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitImportPrivateKeyResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Private Key
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/private-keys/complete-import:
+    post:
+      operationId: completeImportPrivateKey
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteImportPrivateKeyRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompleteImportPrivateKeyResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Private Key
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/private-keys/export:
+    post:
+      operationId: exportPrivateKey
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportPrivateKeyRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportPrivateKeyResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Private Key
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/recovery-phrases/init-import:
+    post:
+      operationId: initImportRecoveryPhrase
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitImportRecoveryPhraseRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitImportRecoveryPhraseResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Recovery Phrase
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/recovery-phrases/complete-import:
+    post:
+      operationId: completeImportRecoveryPhrase
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteImportRecoveryPhraseRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompleteImportRecoveryPhraseResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Recovery Phrase
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/recovery-phrases/export:
+    post:
+      operationId: exportRecoveryPhrase
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportRecoveryPhraseRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportRecoveryPhraseResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Recovery Phrase
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/user/me:
+    get:
+      operationId: getMe
+      summary: ""
+      parameters: []
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMeResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - User
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/user/delete:
+    post:
+      operationId: deleteUser
+      summary: ""
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteUserRequestDto"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteUserResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - User
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/transaction/evm/sign:
+    post:
+      operationId: evmSignTransaction
+      summary: Sign an EVM transaction
+      description: Signs an EVM transaction (Ethereum, Polygon, Arbitrum, etc.) using
+        Turnkey and returns the signed transaction ready for broadcasting.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvmSignTransactionRequestDto"
+      responses:
+        "200":
+          description: Transaction signed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvmSignTransactionResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Transaction
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/transaction/bitcoin/sign:
+    post:
+      operationId: bitcoinSignTransaction
+      summary: Sign a Bitcoin transaction
+      description: Signs a Bitcoin transaction using Turnkey and returns the signed
+        transaction ready for broadcasting.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BitcoinSignTransactionRequestDto"
+      responses:
+        "200":
+          description: Transaction signed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BitcoinSignTransactionResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Transaction
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/transaction/solana/sign:
+    post:
+      operationId: solanaSignTransaction
+      summary: Sign a Solana transaction
+      description: Signs a Solana transaction using Turnkey and returns the signed
+        transaction ready for broadcasting.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolanaSignTransactionRequestDto"
+      responses:
+        "200":
+          description: Transaction signed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolanaSignTransactionResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Transaction
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/transaction/sui/sign:
+    post:
+      operationId: suiSignTransaction
+      summary: Sign a Sui transaction
+      description: Signs a Sui transaction using Turnkey and returns the signature
+        ready for broadcasting.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuiSignTransactionRequestDto"
+      responses:
+        "200":
+          description: Transaction signed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuiSignTransactionResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Transaction
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/message/evm/sign:
+    post:
+      operationId: evmSignMessage
+      summary: Sign an EVM message
+      description: Signs an EVM message (personal_sign, eth_signTypedData, EIP-7702
+        authorization) using Turnkey and returns the signature
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvmSignMessageRequestDto"
+      responses:
+        "200":
+          description: Signature generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvmSignMessageResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Messages
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/message/bitcoin/sign:
+    post:
+      operationId: bitcoinSignMessage
+      summary: Sign a Bitcoin message
+      description: Signs a Bitcoin message using Turnkey and returns the signature
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BitcoinSignMessageRequestDto"
+      responses:
+        "200":
+          description: Signature generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BitcoinSignMessageResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Messages
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/message/solana/sign:
+    post:
+      operationId: solanaSignMessage
+      summary: Sign a Solana message
+      description: Signs a Solana message using Turnkey and returns the signature
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolanaSignMessageRequestDto"
+      responses:
+        "200":
+          description: Signature generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SolanaSignMessageResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Messages
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+  /public-api/v1/message/sui/sign:
+    post:
+      operationId: suiSignMessage
+      summary: Sign a Sui message
+      description: Signs a Sui message using Turnkey and returns the signature
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuiSignMessageRequestDto"
+      responses:
+        "200":
+          description: Signature generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuiSignMessageResponseDto"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+        "502":
+          description: Bad Gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDto"
+      tags:
+        - Messages
+      security:
+        - public-api-turnkey-session-jwt: []
+        - public-api-project-api-key: []
+info:
+  title: Peak Public API
+  description: Peak Public API for Users
+  version: "1.0"
+  contact: {}
+tags: []
+servers:
+  - url: http://localhost:3000/
+    description: Local environment
+  - url: https://development.yourapi.com/
+    description: Development
+  - url: https://production.yourapi.com/
+    description: Production
+components:
+  securitySchemes:
+    public-api-project-api-key:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Project API Key for authentication
+    public-api-access-token:
+      scheme: bearer
+      bearerFormat: token
+      description: Public API Access Token
+      type: http
+    public-api-turnkey-session-jwt:
+      scheme: bearer
+      bearerFormat: JWT
+      description: Turnkey Session JWT
+      type: http
+  schemas:
+    AccountResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Account ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        userId:
+          type: string
+          description: User ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        accountSourceId:
+          type: string
+          description: Account source ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        accountIndex:
+          type: number
+          description: Account index within the account source
+          example: 0
+        originProjectId:
+          type: string
+          description: Origin project ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        displayName:
+          type: string
+          description: User-defined display name
+          example: My Main Account
+      required:
+        - id
+        - userId
+        - accountSourceId
+        - accountIndex
+        - originProjectId
+    ListAccountsResponseDto:
+      type: object
+      properties:
+        accounts:
+          description: List of accounts
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountResponseDto"
+      required:
+        - accounts
+    ErrorResponseDto:
+      type: object
+      properties:
+        statusCode:
+          type: number
+          description: HTTP status code
+          enum:
+            - 400
+            - 401
+            - 403
+            - 404
+            - 409
+            - 429
+            - 500
+            - 502
+            - 503
+          example: 400
+        errorCode:
+          type: string
+          description: Machine-readable error code for client-side handling. This is a
+            stable contract.
+          example: REQUEST_VALIDATION_ERROR
+        message:
+          type: string
+          description: Human-readable error message for debugging. Do not use for
+            programmatic handling.
+          example: Invalid request data
+        details:
+          type: object
+          description: Additional error details (e.g., validation errors)
+          example:
+            field: email
+            reason: must be a valid email
+        timestamp:
+          type: string
+          description: ISO 8601 timestamp when the error occurred
+          example: 2024-01-01T00:00:00.000Z
+        path:
+          type: string
+          description: Request path that caused the error
+          example: /public-api/v1/auth/login
+      required:
+        - statusCode
+        - errorCode
+        - message
+        - timestamp
+        - path
+    Stamp:
+      type: object
+      properties:
+        stampHeaderName:
+          type: string
+          description: Stamp header name
+          example: X-Stamp
+        stampHeaderValue:
+          type: string
+          description: Stamp header value
+          example: eyJwdWJsaWNLZXkiOiIwMjVmNzg0ZjZhYjc1MzU5NTQ5NTBkZjMzZmJkMTVkMTMwNDFhMzNjNGIyMmY2ZDk4ZTMzYzJhYzU3Nzc5MTdjY2UiLCJzY2hlbWUiOiJTSUdOQVRVUkVfU0NIRU1FX1RLX0FQSV9QMjU2Iiwic2lnbmF0dXJlIjoiMzA0NDAyMjA0OWFmMjE3NzRiYWYwODI2NTZjYzgyYjZmODQ5ZTNlMmI4MDg2ZmYyMDNkMTQ4YWY3MTdiNGZhMDgxMjg3NDEyMDIyMDY4ZjQwYmU2Yjk4YTNjNWRjN2VlMmZlNjFhYmRiYzE3YzMwZjU0MjFlNzQxODBkMDZiNTcwM2Y0OTUyN2U5NjQifQ
+      required:
+        - stampHeaderName
+        - stampHeaderValue
+    SignedRequest:
+      type: object
+      properties:
+        body:
+          type: string
+          description: Body
+          example: '{"organizationId":"c0731898-7908-472a-aaff-373417cdb213"}'
+        stamp:
+          description: Stamp
+          allOf:
+            - $ref: "#/components/schemas/Stamp"
+        url:
+          type: string
+          description: URL
+          example: https://api.turnkey.com/public/v1/query/whoami
+      required:
+        - body
+        - stamp
+        - url
+    CreateAccountRequestDto:
+      type: object
+      properties:
+        signedCreateWalletAccountsRequest:
+          description: Signed create wallet accounts request. The walletId in
+            body.parameters is used to identify the account source.
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+        displayName:
+          type: string
+          description: User-defined display name
+          example: My Account
+      required:
+        - signedCreateWalletAccountsRequest
+    ChainTypeEnum:
+      type: string
+      description: Chain type
+      enum:
+        - evm
+        - bitcoin
+        - solana
+        - sui
+    BitcoinAddressTypeEnum:
+      type: string
+      description: Bitcoin address type (only for bitcoin chain)
+      enum:
+        - p2pkh
+        - p2sh
+        - p2wpkh
+        - p2wsh
+        - p2tr
+    AccountAddressResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Account address ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        accountId:
+          type: string
+          description: Account ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        address:
+          type: string
+          description: Blockchain address
+          example: "0x1234567890abcdef1234567890abcdef12345678"
+        chainType:
+          example: evm
+          $ref: "#/components/schemas/ChainTypeEnum"
+        bitcoinAddressType:
+          example: p2wpkh
+          $ref: "#/components/schemas/BitcoinAddressTypeEnum"
+      required:
+        - id
+        - accountId
+        - address
+        - chainType
+    CreateAccountResponseDto:
+      type: object
+      properties:
+        account:
+          description: Created account
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+        accountAddresses:
+          description: Account addresses (EVM, Bitcoin, Solana, Sui)
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountAddressResponseDto"
+      required:
+        - account
+        - accountAddresses
+    UpdateAccountDisplayNameRequestDto:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: Account ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        displayName:
+          type: string
+          description: New display name
+          example: My Main Account
+      required:
+        - accountId
+        - displayName
+    UpdateAccountDisplayNameResponseDto:
+      type: object
+      properties:
+        account:
+          description: Updated account
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+      required:
+        - account
+    AccountSourceTypeEnum:
+      type: string
+      description: Account source type
+      enum:
+        - recovery-phrase
+        - private-key
+    AccountSourceCreationMethodEnum:
+      type: string
+      description: Creation method
+      enum:
+        - imported
+        - created
+    AccountSourceResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Account source ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        userId:
+          type: string
+          description: User ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        originProjectId:
+          type: string
+          description: Origin project ID
+          example: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        sourceType:
+          example: recovery-phrase
+          $ref: "#/components/schemas/AccountSourceTypeEnum"
+        creationMethod:
+          example: created
+          $ref: "#/components/schemas/AccountSourceCreationMethodEnum"
+        turnkeyResourceId:
+          type: string
+          description: Turnkey resource ID (HD wallet ID or private key ID)
+          example: tk_abc123...
+        displayName:
+          type: string
+          description: User-defined display name
+          example: My Main Account
+      required:
+        - id
+        - userId
+        - originProjectId
+        - sourceType
+        - creationMethod
+        - turnkeyResourceId
+    GetAccountSourceResponseDto:
+      type: object
+      properties:
+        accountSource:
+          description: Account source
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+      required:
+        - accountSource
+    GetAccountSourceByAccountIdResponseDto:
+      type: object
+      properties:
+        accountSource:
+          description: Account source
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+      required:
+        - accountSource
+    GetMaxAccountIndexResponseDto:
+      type: object
+      properties:
+        maxAccountIndex:
+          type: number
+          description: Maximum account index for the account source. Next account will be
+            maxAccountIndex + 1.
+          example: 0
+      required:
+        - maxAccountIndex
+    ListAccountAddressesResponseDto:
+      type: object
+      properties:
+        accountAddresses:
+          description: List of account addresses
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountAddressResponseDto"
+      required:
+        - accountAddresses
+    GetAccountAddressWithAccountAndSourceResponseDto:
+      type: object
+      properties:
+        accountAddress:
+          description: Account address
+          allOf:
+            - $ref: "#/components/schemas/AccountAddressResponseDto"
+        account:
+          description: Account
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+        accountSource:
+          description: Account source
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+      required:
+        - accountAddress
+        - account
+        - accountSource
+    SignupRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Email of the user
+          example: test@test.com
+      required:
+        - email
+    UserResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User id
+          example: 123e4567-e89b-12d3-a456-426614174000
+        email:
+          type: string
+          description: User email
+          example: example@example.com
+        originProjectId:
+          type: string
+          description: Project ID that created this user
+          example: 123e4567-e89b-12d3-a456-426614174000
+        turnkeySubOrgId:
+          type: string
+          description: Turnkey sub-organization id
+          example: 123e4567-e89b-12d3-a456-426614174000
+        turnkeyRootUserId:
+          type: string
+          description: Turnkey root user id
+          example: 123e4567-e89b-12d3-a456-426614174000
+        deletionStatus:
+          type: string
+          description: Deletion approval status
+          example: none
+          enum:
+            - none
+            - approved
+            - in_progress
+      required:
+        - id
+        - email
+        - originProjectId
+        - turnkeySubOrgId
+        - turnkeyRootUserId
+        - deletionStatus
+    SignupResponseDto:
+      type: object
+      properties:
+        user:
+          description: Created Peak User
+          allOf:
+            - $ref: "#/components/schemas/UserResponseDto"
+        accountSource:
+          description: Created account source
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+        account:
+          description: Created default account
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+        accountAddresses:
+          description: Created account addresses (EVM, Bitcoin, Solana, Sui)
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountAddressResponseDto"
+      required:
+        - user
+        - accountSource
+        - account
+        - accountAddresses
+    InitOtpLoginRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Email of the user
+          example: test@test.com
+        language:
+          type: string
+          description: Language for the OTP email template
+          enum:
+            - en
+            - ja
+          default: en
+      required:
+        - email
+    InitOtpLoginResponseDto:
+      type: object
+      properties:
+        otpId:
+          type: string
+          description: OTP ID to be used in verify-otp
+          example: 9c7076e7-c8d4-4b7b-a484-e9ed28f3931d
+      required:
+        - otpId
+    CompleteOtpLoginRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          description: User email address
+          example: test@test.com
+        otpId:
+          type: string
+          description: OTP ID returned from init-otp-login
+          example: 9c7076e7-c8d4-4b7b-a484-e9ed28f3931d
+        otpCode:
+          type: string
+          description: OTP code sent to user email
+          example: "123456"
+        targetPublicKey:
+          type: string
+          description: Target public key for session creation
+          example: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...
+        signup:
+          type: boolean
+          description: Whether to create a new user if not exists. Defaults to true
+            (unified flow).
+          example: true
+          default: true
+      required:
+        - email
+        - otpId
+        - otpCode
+        - targetPublicKey
+    CompleteOtpLoginResponseDto:
+      type: object
+      properties:
+        user:
+          description: Peak User
+          allOf:
+            - $ref: "#/components/schemas/UserResponseDto"
+        sessionJwt:
+          type: string
+          description: Turnkey session JWT for authentication
+        isNewUser:
+          type: boolean
+          description: Whether this is a newly created user
+        accountSource:
+          description: Created account source (only present for new users)
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+        account:
+          description: Created default account (only present for new users)
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+        accountAddresses:
+          description: Created account addresses (EVM, Bitcoin, Solana, Sui) (only present
+            for new users)
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountAddressResponseDto"
+      required:
+        - user
+        - sessionJwt
+        - isNewUser
+    GoogleConfigResponseDto:
+      type: object
+      properties:
+        clientId:
+          type: string
+          description: Google OAuth Client ID
+          example: 123456789-abc.apps.googleusercontent.com
+        callbackUrl:
+          type: string
+          description: Google OAuth Callback URL
+          example: https://wallet.peak-dev.xyz/auth/google/callback
+      required:
+        - clientId
+        - callbackUrl
+    GoogleLoginRequestDto:
+      type: object
+      properties:
+        oidcToken:
+          type: string
+          description: Google ID Token (OIDC token) obtained from Google OAuth
+          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        targetPublicKey:
+          type: string
+          description: Target public key for session creation (from SDK IndexedDB)
+          example: 0394e549c71fa99dd5cf752fba623090be314949b74e4cdf7ca72031dd638e281a
+        signup:
+          type: boolean
+          description: Whether to create a new user if not exists. Defaults to true
+            (unified flow).
+          example: true
+          default: true
+      required:
+        - oidcToken
+        - targetPublicKey
+    GoogleLoginResponseDto:
+      type: object
+      properties:
+        user:
+          description: Peak User
+          allOf:
+            - $ref: "#/components/schemas/UserResponseDto"
+        sessionJwt:
+          type: string
+          description: Turnkey session JWT for authentication
+        isNewUser:
+          type: boolean
+          description: Whether this is a newly created user
+        accountSource:
+          description: Created account source (only present for new users)
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+        account:
+          description: Created default account (only present for new users)
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+        accountAddresses:
+          description: Created account addresses (EVM, Bitcoin, Solana, Sui) (only present
+            for new users)
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountAddressResponseDto"
+      required:
+        - user
+        - sessionJwt
+        - isNewUser
+    InitImportPrivateKeyRequestDto:
+      type: object
+      properties:
+        signedInitImportPrivateKeyRequest:
+          description: Signed init import private key request
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedInitImportPrivateKeyRequest
+    InitImportPrivateKeyResponseDto:
+      type: object
+      properties:
+        importBundle:
+          type: string
+          description: Import bundle containing a public key and signature to use for
+            importing client data.
+      required:
+        - importBundle
+    PrivateKeyImportExportSupportedChainTypeEnum:
+      type: string
+      description: Chain type for the imported private key
+      enum:
+        - evm
+        - bitcoin
+        - solana
+        - sui
+    CompleteImportPrivateKeyRequestDto:
+      type: object
+      properties:
+        signedCompleteImportPrivateKeyRequest:
+          description: Signed complete import private key request
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+        chainType:
+          example: evm
+          $ref: "#/components/schemas/PrivateKeyImportExportSupportedChainTypeEnum"
+      required:
+        - signedCompleteImportPrivateKeyRequest
+        - chainType
+    CompleteImportPrivateKeyResponseDto:
+      type: object
+      properties:
+        account:
+          description: Imported account
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+        accountAddress:
+          description: Account address for the imported chain
+          allOf:
+            - $ref: "#/components/schemas/AccountAddressResponseDto"
+        accountSource:
+          description: Account source information
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+      required:
+        - account
+        - accountAddress
+        - accountSource
+    ExportPrivateKeyRequestDto:
+      type: object
+      properties:
+        sourceType:
+          example: recovery-phrase
+          $ref: "#/components/schemas/AccountSourceTypeEnum"
+        signedExportPrivateKeyRequest:
+          description: Signed export request (EXPORT_PRIVATE_KEY for private-key,
+            EXPORT_WALLET_ACCOUNT for recovery-phrase)
+          example:
+            body: '{"type":"ACTIVITY_TYPE_EXPORT_WALLET_ACCOUNT","organizationId":"...","parameters":{"address":"0x...","targetPublicKey":"..."},"timestampMs":"..."}'
+            stamp:
+              stampHeaderName: X-Stamp
+              stampHeaderValue: ...
+            url: https://api.turnkey.com/...
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - sourceType
+        - signedExportPrivateKeyRequest
+    ExportPrivateKeyResponseDto:
+      type: object
+      properties:
+        exportBundle:
+          type: string
+          description: Encrypted private key export bundle
+      required:
+        - exportBundle
+    InitImportRecoveryPhraseRequestDto:
+      type: object
+      properties:
+        signedInitImportWalletRequest:
+          description: Signed init import wallet request
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedInitImportWalletRequest
+    InitImportRecoveryPhraseResponseDto:
+      type: object
+      properties:
+        importBundle:
+          type: string
+          description: Import bundle containing a public key and signature to use for
+            importing client data.
+      required:
+        - importBundle
+    CompleteImportRecoveryPhraseRequestDto:
+      type: object
+      properties:
+        signedCompleteImportWalletRequest:
+          description: Signed complete import wallet request
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedCompleteImportWalletRequest
+    CompleteImportRecoveryPhraseResponseDto:
+      type: object
+      properties:
+        account:
+          description: Imported account
+          allOf:
+            - $ref: "#/components/schemas/AccountResponseDto"
+        accountAddresses:
+          description: Account addresses (EVM, Bitcoin, Solana, Sui)
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountAddressResponseDto"
+        accountSource:
+          description: Account source information
+          allOf:
+            - $ref: "#/components/schemas/AccountSourceResponseDto"
+      required:
+        - account
+        - accountAddresses
+        - accountSource
+    ExportRecoveryPhraseRequestDto:
+      type: object
+      properties:
+        signedExportWalletRequest:
+          description: Signed export wallet request. The walletId in body.parameters is
+            used to identify the recovery phrase.
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedExportWalletRequest
+    ExportRecoveryPhraseResponseDto:
+      type: object
+      properties:
+        exportBundle:
+          type: string
+          description: Encrypted recovery phrase export bundle
+      required:
+        - exportBundle
+    GetMeResponseDto:
+      type: object
+      properties:
+        user:
+          description: Peak User
+          allOf:
+            - $ref: "#/components/schemas/UserResponseDto"
+      required:
+        - user
+    DeleteUserRequestDto:
+      type: object
+      properties:
+        signedDeleteSubOrganizationRequest:
+          description: Signed delete sub organization request
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedDeleteSubOrganizationRequest
+    DeleteUserResponseDto:
+      type: object
+      properties:
+        user:
+          description: Deleted Peak user
+          allOf:
+            - $ref: "#/components/schemas/UserResponseDto"
+      required:
+        - user
+    EvmSignTransactionRequestDto:
+      type: object
+      properties:
+        signedSignTransactionRequest:
+          description: Signed transaction request with Turnkey stamp (required for secure
+            signing)
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignTransactionRequest
+    EvmSignTransactionResponseDto:
+      type: object
+      properties:
+        signedTransaction:
+          type: string
+          description: The signed transaction data (ready for broadcasting)
+          example: 0x02f873118203e882520894742d35cc6634c0532925a3b8d6db...
+      required:
+        - signedTransaction
+    BitcoinSignTransactionRequestDto:
+      type: object
+      properties:
+        signedSignTransactionRequest:
+          description: Signed transaction request with Turnkey stamp (required for secure
+            signing)
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignTransactionRequest
+    BitcoinSignTransactionResponseDto:
+      type: object
+      properties:
+        signedTransaction:
+          type: string
+          description: The signed Bitcoin transaction (hex-encoded, ready for broadcasting)
+          example: 02000000000101abcd...
+      required:
+        - signedTransaction
+    SolanaSignTransactionRequestDto:
+      type: object
+      properties:
+        signedSignTransactionRequest:
+          description: Signed transaction request with Turnkey stamp (required for secure
+            signing)
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignTransactionRequest
+    SolanaSignTransactionResponseDto:
+      type: object
+      properties:
+        signedTransaction:
+          type: string
+          description: The signed Solana transaction (hex-encoded, ready for broadcasting)
+          example: 01ab23cd45...
+      required:
+        - signedTransaction
+    SuiSignTransactionRequestDto:
+      type: object
+      properties:
+        signedSignRawPayloadRequest:
+          description: Signed raw payload request with Turnkey stamp for signing Sui
+            transaction digest (SIGN_RAW_PAYLOAD_V2)
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignRawPayloadRequest
+    SuiSignTransactionResponseDto:
+      type: object
+      properties:
+        signature:
+          type: string
+          description: The Sui transaction signature (base64-encoded)
+          example: AQRvZ2...
+      required:
+        - signature
+    EvmSignMessageRequestDto:
+      type: object
+      properties:
+        signedSignRawPayloadRequest:
+          description: Signed Turnkey request for signing raw payloads
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignRawPayloadRequest
+    EvmSignMessageResponseDto:
+      type: object
+      properties:
+        signature:
+          type: string
+          description: Signature in 0x-prefixed hex format (r||s||v)
+          example: 0x5cf5f2f9b94a92d7e6da...
+      required:
+        - signature
+    BitcoinSignMessageRequestDto:
+      type: object
+      properties:
+        signedSignRawPayloadRequest:
+          description: Signed Turnkey request for signing raw payloads
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignRawPayloadRequest
+    BitcoinSignMessageResponseDto:
+      type: object
+      properties:
+        signature:
+          type: string
+          description: Signature in base64 format
+          example: IFzX8vm5SpLX5tqK...
+      required:
+        - signature
+    SolanaSignMessageRequestDto:
+      type: object
+      properties:
+        signedSignRawPayloadRequest:
+          description: Signed Turnkey request for signing raw payloads
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignRawPayloadRequest
+    SolanaSignMessageResponseDto:
+      type: object
+      properties:
+        signature:
+          type: string
+          description: Signature in base58 format
+          example: 5VERv8NMvzbJMEkV2R8oRiQPr8qNK...
+        publicKey:
+          type: string
+          description: Public key in base58 format
+          example: HN7cABqLq46Es1jh1DTUy9o9F...
+      required:
+        - signature
+    SuiSignMessageRequestDto:
+      type: object
+      properties:
+        signedSignRawPayloadRequest:
+          description: Signed Turnkey request for signing raw payloads
+          allOf:
+            - $ref: "#/components/schemas/SignedRequest"
+      required:
+        - signedSignRawPayloadRequest
+    SuiSignMessageResponseDto:
+      type: object
+      properties:
+        signature:
+          type: string
+          description: "Signature in base64 format (97 bytes: flag + signature + publicKey)"
+          example: AEZzWC8vm5SpLX5tqK...
+        publicKey:
+          type: string
+          description: Public key in base64 format
+          example: HN7cABqLq46Es1jh1DTUy9o9F...
+      required:
+        - signature

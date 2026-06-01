@@ -61,3 +61,8 @@ indent_size = 2
 
 [Makefile]
 indent_style = tab
+
+# Generated OpenAPI client — treat as generated so dotnet format / analyzers
+# skip it (the output does not match the repo's C# style rules).
+[packages/peak-public-api-client-csharp/src/**/*.cs]
+generated_code = true

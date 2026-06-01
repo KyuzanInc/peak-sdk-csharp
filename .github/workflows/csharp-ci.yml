@@ -72,7 +72,10 @@ jobs:
 
       - name: Format check
         if: matrix.os == 'ubuntu-latest'
-        run: dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore
+        # The generated OpenAPI client is marked generated_code=true in
+        # .editorconfig (so format already skips it); --exclude is a second,
+        # independent guard against the generated sources tripping the check.
+        run: dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore --exclude packages/peak-public-api-client-csharp/
 
       - name: Test (unit, no E2E)
         shell: bash
@@ -206,3 +209,39 @@ jobs:
           # Build too: restore alone leaves PeakClient unverified, so a
           # bad ProjectReference + missing constructor would still pass.
           dotnet build consumer.csproj --no-restore -c Release
+
+  openapi-client-drift:
+    name: openapi client drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup JRE (openapi-generator runs on Java)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regenerate the C# client from the pinned spec
+        run: ./scripts/generate-public-api-client.sh
+      - name: Fail if the committed client drifted from the spec
+        run: |
+          # Stage adds, deletes, AND modifications so the check sees the
+          # TOTAL state. Plain `git diff` only inspects tracked files, so a
+          # spec change that ADDS a new model/endpoint (a brand-new untracked
+          # .cs) would slip through; `git add -A` + `git diff --cached` makes
+          # additions and deletions first-class.
+          git add -A -- \
+            packages/peak-public-api-client-csharp/src \
+            packages/peak-public-api-client-csharp/.openapi-generator
+          if ! git diff --cached --quiet -- \
+              packages/peak-public-api-client-csharp/src \
+              packages/peak-public-api-client-csharp/.openapi-generator; then
+            echo "::error::Generated client is out of sync with the pinned spec. Run scripts/generate-public-api-client.sh and commit the result."
+            git --no-pager diff --cached --stat -- \
+              packages/peak-public-api-client-csharp/src \
+              packages/peak-public-api-client-csharp/.openapi-generator
+            exit 1
+          fi
+          echo "No drift."
