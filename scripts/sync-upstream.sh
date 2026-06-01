@@ -57,6 +57,10 @@ git checkout --quiet "$PIN"
 
 case "$NAME" in
   peak-server-openapi)
+    # Replace the snapshot wholesale (match the peak-sdk-unity branch) so a
+    # stale file from an older spec layout can't survive a resync. Only the
+    # spec + PIN.md belong here; both are rewritten below.
+    rm -rf "$DEST"
     mkdir -p "$DEST"
     cp "apps/peak-public-docs/docs/api-references/public-api.yaml" "$DEST/public-api.yaml"
     # Record the RESOLVED HEAD commit (reproducible) while tracking the ref

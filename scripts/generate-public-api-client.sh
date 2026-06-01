@@ -26,9 +26,13 @@ rm -rf "$PKG/src/KyuzanInc.Peak.PublicApiClient/Api" \
        "$PKG/src/KyuzanInc.Peak.PublicApiClient/Model" \
        "$PKG/.openapi-generator"
 
-# cd into the package so the wrapper reads its openapitools.json (pins 7.9.0).
+# cd into the package so the generator reads its openapitools.json (pins the
+# 7.9.0 core) and its package-lock.json. `npm ci` installs the generator
+# wrapper and its npm deps from the committed lockfile — no live npm
+# resolution — and the wrapper then fetches the version-pinned 7.9.0 jar.
 cd "$PKG"
-npx --yes @openapitools/openapi-generator-cli@2.22.0 generate \
+npm ci --silent
+./node_modules/.bin/openapi-generator-cli generate \
   -g csharp \
   -i "$SPEC" \
   -o "$PKG" \
