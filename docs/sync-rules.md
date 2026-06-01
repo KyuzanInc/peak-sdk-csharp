@@ -105,5 +105,5 @@ The script:
 
 The job needs a JRE + Node (the generator is Java, launched via `npx`). It
 does **not** fetch peak; comparing the snapshot against the live
-`peak-server` tag is a manual operator step via
+`peak-server` `main` HEAD is a manual operator step via
 `scripts/sync-upstream.sh peak-server-openapi main`.

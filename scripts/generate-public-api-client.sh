@@ -15,7 +15,7 @@ SPEC="$REPO_ROOT/upstream-snapshots/peak-server-openapi/public-api.yaml"
 
 if [ ! -f "$SPEC" ]; then
   echo "ERROR: spec not found at $SPEC" >&2
-  echo "Run: scripts/sync-upstream.sh peak-server-openapi <tag>" >&2
+  echo "Run: scripts/sync-upstream.sh peak-server-openapi main" >&2
   exit 1
 fi
 

@@ -4,9 +4,11 @@
 
 **Goal:** Stand up an internal C# OpenAPI client (`KyuzanInc.Peak.PublicApiClient`) that is generated from the pinned `peak-server` spec with the same engine peak uses, plus a drift-check CI job — so the C# client tracks the spec the same way peak's TypeScript client does.
 
-**Architecture:** peak owns the spec (`KyuzanInc/peak` → `apps/peak-public-docs/docs/api-references/public-api.yaml`, generated from NestJS swagger). We mirror that spec read-only into `upstream-snapshots/peak-server-openapi/` at a pinned tag, then run the SAME engine (`@openapitools/openapi-generator-cli`, core pinned to `7.9.0` via `openapitools.json`) with the `csharp` generator instead of `typescript-axios`. The generated client is committed and drift-checked in CI. It is **not** wired into `KyuzanInc.Peak.Sdk` in this plan (that consumer rewrite is a separate follow-up); here it only has to generate, build, and stay in sync.
+**Architecture:** peak owns the spec (`KyuzanInc/peak` → `apps/peak-public-docs/docs/api-references/public-api.yaml`, generated from NestJS swagger). We mirror that spec read-only into `upstream-snapshots/peak-server-openapi/`, tracking `main` HEAD (recorded as an exact commit in `PIN.md`), then run the SAME engine (`@openapitools/openapi-generator-cli`, core pinned to `7.9.0` via `openapitools.json`) with the `csharp` generator instead of `typescript-axios`. The generated client is committed and drift-checked in CI. It is **not** wired into `KyuzanInc.Peak.Sdk` in this plan (that consumer rewrite is a separate follow-up); here it only has to generate, build, and stay in sync.
 
 **Tech Stack:** .NET 8 SDK (TFMs `net8.0;netstandard2.1`), `@openapitools/openapi-generator-cli@2.22.0` (generator core `7.9.0`, run via `npx`, needs a JRE), RestSharp 112.0.0 / Polly 8.1.0 / Newtonsoft.Json 13.0.3 / System.ComponentModel.Annotations 5.0.0, Central Package Management, GitHub Actions.
+
+> **Superseded pin (read first):** Task 1 and a few early sections below were written when the spec was pinned to tag `v0.3.0`. That is historical — the shipped behaviour tracks `KyuzanInc/peak` `main` HEAD (recorded as an exact commit in `upstream-snapshots/peak-server-openapi/PIN.md`). Resync with `scripts/sync-upstream.sh peak-server-openapi main`, not a tag. See "Implementation amendments (post-landing) → 3".
 
 ---
 
