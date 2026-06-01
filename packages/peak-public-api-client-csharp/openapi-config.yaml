@@ -1,9 +1,9 @@
 # Generator config for the internal Peak Public API C# client.
 # Engine + core version are pinned by ./openapitools.json (7.9.0), matching
 # peak-server's generator. The restsharp library matches the runtime deps
-# pinned in Directory.Packages.props. JSON is Newtonsoft (the restsharp
-# library ignores useSystemTextJson in 7.9.0). hideGenerationTimestamp keeps
-# the output byte-stable so drift CI is meaningful.
+# scoped via VersionOverride in KyuzanInc.Peak.PublicApiClient.csproj. JSON is
+# Newtonsoft (the restsharp library ignores useSystemTextJson in 7.9.0).
+# hideGenerationTimestamp keeps the output byte-stable so drift CI is meaningful.
 generatorName: csharp
 library: restsharp
 additionalProperties:

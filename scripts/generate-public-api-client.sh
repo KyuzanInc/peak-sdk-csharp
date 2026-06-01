@@ -31,7 +31,10 @@ rm -rf "$PKG/src/KyuzanInc.Peak.PublicApiClient/Api" \
 # wrapper and its npm deps from the committed lockfile — no live npm
 # resolution — and the wrapper then fetches the version-pinned 7.9.0 jar.
 cd "$PKG"
-npm ci --silent
+# --ignore-scripts: do not run third-party package install/lifecycle scripts
+# (the wrapper + its transitive deps only need their files, not install-time
+# code execution). The generator binary still works without them.
+npm ci --silent --ignore-scripts
 ./node_modules/.bin/openapi-generator-cli generate \
   -g csharp \
   -i "$SPEC" \

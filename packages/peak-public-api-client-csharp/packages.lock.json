@@ -4,13 +4,13 @@
     ".NETStandard,Version=v2.1": {
       "Newtonsoft.Json": {
         "type": "Direct",
-        "requested": "[13.0.3, )",
+        "requested": "[13.0.3, 13.0.3]",
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "Polly": {
         "type": "Direct",
-        "requested": "[8.1.0, )",
+        "requested": "[8.1.0, 8.1.0]",
         "resolved": "8.1.0",
         "contentHash": "EeCJCjxX/Czm6sjnEWbeCBfogYHLcPNEL6yJT5nZzT0U78sizhTYhY2l5aXxTD+DWeVRLZtkUHqWp7ij+tvYCQ==",
         "dependencies": {
@@ -19,7 +19,7 @@
       },
       "RestSharp": {
         "type": "Direct",
-        "requested": "[112.0.0, )",
+        "requested": "[112.0.0, 112.0.0]",
         "resolved": "112.0.0",
         "contentHash": "vezxJ6DLk0eDx+rmXwVHQvJ3elZCJfnLd8neRrkA+IvTs9falf2CEAolsjI1YKkkHTOvG13xWTnHK7gU0zgaaw==",
         "dependencies": {
@@ -28,7 +28,7 @@
       },
       "System.ComponentModel.Annotations": {
         "type": "Direct",
-        "requested": "[5.0.0, )",
+        "requested": "[5.0.0, 5.0.0]",
         "resolved": "5.0.0",
         "contentHash": "dMkqfy2el8A8/I76n2Hi1oBFEbG1SfxD2l5nhwXV3XjlnOmwxJlQbYpJH4W51odnU9sARCSAgv7S3CyAFMkpYg=="
       },
@@ -106,13 +106,13 @@
     "net8.0": {
       "Newtonsoft.Json": {
         "type": "Direct",
-        "requested": "[13.0.3, )",
+        "requested": "[13.0.3, 13.0.3]",
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "Polly": {
         "type": "Direct",
-        "requested": "[8.1.0, )",
+        "requested": "[8.1.0, 8.1.0]",
         "resolved": "8.1.0",
         "contentHash": "EeCJCjxX/Czm6sjnEWbeCBfogYHLcPNEL6yJT5nZzT0U78sizhTYhY2l5aXxTD+DWeVRLZtkUHqWp7ij+tvYCQ==",
         "dependencies": {
@@ -121,13 +121,13 @@
       },
       "RestSharp": {
         "type": "Direct",
-        "requested": "[112.0.0, )",
+        "requested": "[112.0.0, 112.0.0]",
         "resolved": "112.0.0",
         "contentHash": "vezxJ6DLk0eDx+rmXwVHQvJ3elZCJfnLd8neRrkA+IvTs9falf2CEAolsjI1YKkkHTOvG13xWTnHK7gU0zgaaw=="
       },
       "System.ComponentModel.Annotations": {
         "type": "Direct",
-        "requested": "[5.0.0, )",
+        "requested": "[5.0.0, 5.0.0]",
         "resolved": "5.0.0",
         "contentHash": "dMkqfy2el8A8/I76n2Hi1oBFEbG1SfxD2l5nhwXV3XjlnOmwxJlQbYpJH4W51odnU9sARCSAgv7S3CyAFMkpYg=="
       },

@@ -41,10 +41,10 @@
     RestSharp 112.0.0 clears GHSA-4rr6-2v9v-wcpc.
   -->
   <ItemGroup>
-    <PackageReference Include="RestSharp" VersionOverride="112.0.0" />
-    <PackageReference Include="Polly" VersionOverride="8.1.0" />
-    <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.3" />
-    <PackageReference Include="System.ComponentModel.Annotations" VersionOverride="5.0.0" />
+    <PackageReference Include="RestSharp" VersionOverride="[112.0.0]" />
+    <PackageReference Include="Polly" VersionOverride="[8.1.0]" />
+    <PackageReference Include="Newtonsoft.Json" VersionOverride="[13.0.3]" />
+    <PackageReference Include="System.ComponentModel.Annotations" VersionOverride="[5.0.0]" />
   </ItemGroup>
 
 </Project>

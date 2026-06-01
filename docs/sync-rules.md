@@ -103,7 +103,8 @@ The script:
   `packages/peak-public-api-client-csharp/src/` differs from the
   regenerated output, naming the drift in the log.
 
-The job needs a JRE + Node (the generator is Java, launched via `npx`). It
-does **not** fetch peak; comparing the snapshot against the live
-`peak-server` `main` HEAD is a manual operator step via
+The job needs a JRE + Node (the generator is Java, launched from the
+project-local npm wrapper after `npm ci --ignore-scripts`). It does **not**
+fetch peak; comparing the snapshot against the live `peak-server` `main` HEAD
+is a manual operator step via
 `scripts/sync-upstream.sh peak-server-openapi main`.
