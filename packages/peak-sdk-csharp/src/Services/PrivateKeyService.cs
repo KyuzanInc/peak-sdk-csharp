@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using KyuzanInc.Peak.Sdk.Models;
 using KyuzanInc.Peak.Sdk.Utils;
+using KyuzanInc.Peak.Sdk.Mapping;
+using Gen = KyuzanInc.Peak.PublicApiClient.Model;
 
 namespace KyuzanInc.Peak.Sdk.Services
 {
@@ -63,7 +65,7 @@ namespace KyuzanInc.Peak.Sdk.Services
             };
             var signedInitImportRequest = turnkeyClient.StampInitImportPrivateKey(initBody);
 
-            var initResponse = await httpClient.PostAsync<InitImportPrivateKeyRequest, InitImportPrivateKeyResponse>(
+            var initResponse = await httpClient.PostAsync<InitImportPrivateKeyRequest, Gen.InitImportPrivateKeyResponseDto>(
                 "public-api/v1/private-keys/init-import",
                 new InitImportPrivateKeyRequest { SignedInitImportPrivateKeyRequest = signedInitImportRequest },
                 CreateAuthHeaders(),
@@ -127,7 +129,7 @@ namespace KyuzanInc.Peak.Sdk.Services
             };
             var signedCompleteRequest = turnkeyClient.StampImportPrivateKey(completeBody);
 
-            var completeResponse = await httpClient.PostAsync<CompleteImportPrivateKeyRequest, CompleteImportPrivateKeyResponse>(
+            var completeResponse = await httpClient.PostAsync<CompleteImportPrivateKeyRequest, Gen.CompleteImportPrivateKeyResponseDto>(
                 "public-api/v1/private-keys/complete-import",
                 new CompleteImportPrivateKeyRequest { ChainType = chainType, SignedCompleteImportPrivateKeyRequest = signedCompleteRequest },
                 CreateAuthHeaders(),
@@ -140,9 +142,9 @@ namespace KyuzanInc.Peak.Sdk.Services
 
             return new CompleteImportPrivateKeyResult
             {
-                Account = completeResponse.Account,
-                AccountAddress = completeResponse.AccountAddress,
-                AccountSource = completeResponse.AccountSource,
+                Account = completeResponse.Account?.ToPublic(),
+                AccountAddress = completeResponse.AccountAddress?.ToPublic(),
+                AccountSource = completeResponse.AccountSource?.ToPublic(),
             };
         }
 
@@ -204,7 +206,7 @@ namespace KyuzanInc.Peak.Sdk.Services
                 throw new PeakError(PeakErrorCode.InvalidResponse, $"Unsupported source type: '{sourceType}'");
             }
 
-            var exportResponse = await httpClient.PostAsync<ExportPrivateKeyRequest, ExportPrivateKeyResponse>(
+            var exportResponse = await httpClient.PostAsync<ExportPrivateKeyRequest, Gen.ExportPrivateKeyResponseDto>(
                 "public-api/v1/private-keys/export",
                 new ExportPrivateKeyRequest { SourceType = sourceType, SignedExportPrivateKeyRequest = signedExportRequest },
                 CreateAuthHeaders(),
