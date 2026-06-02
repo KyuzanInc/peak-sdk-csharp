@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\src\peak-sdk-csharp.csproj" />
+    <ProjectReference Include="..\..\peak-public-api-client-csharp\KyuzanInc.Peak.PublicApiClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,7 @@
     </PackageReference>
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="PublicApiGenerator" />
     <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

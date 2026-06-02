@@ -34,7 +34,32 @@
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <!-- Required at runtime by the embedded generated DTOs (IValidatableObject)
+         for netstandard2.1 consumers; the client's own reference is hidden by
+         PrivateAssets=all below. -->
+    <PackageReference Include="System.ComponentModel.Annotations" />
   </ItemGroup>
+
+  <!--
+    Internal generated DTO client (D13). PrivateAssets=all keeps it off the
+    consumer's package dependency graph; the DLL is embedded into the nupkg by
+    the target below so it loads at runtime (a ProjectReference to an
+    IsPackable=false project is otherwise omitted from the package). The client's
+    types are internal, so the lib/ DLL exposes no public API to reference.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\peak-public-api-client-csharp\KyuzanInc.Peak.PublicApiClient.csproj"
+                      PrivateAssets="all" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_IncludeGeneratedClientDll</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="_IncludeGeneratedClientDll">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)KyuzanInc.Peak.PublicApiClient.dll" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
