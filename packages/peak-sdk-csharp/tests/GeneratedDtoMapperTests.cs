@@ -178,5 +178,18 @@ namespace KyuzanInc.Peak.Sdk.Tests
             pub.Account!.Id.Should().Be("acc1");
             pub.AccountSource!.SourceType.Should().Be("private-key");
         }
+
+        [Fact]
+        public void AccountAddress_NumericChainType_MapsToNull_NotCoerced()
+        {
+            // A numeric enum token must NOT be coerced to the member with that
+            // ordinal (chainType 1 would otherwise read as ChainTypeEnum.Evm ->
+            // "evm"). It is unrecognized, so the public field is null.
+            const string json =
+                "{\"id\":\"a1\",\"accountId\":\"acc1\",\"address\":\"0xabc\",\"chainType\":1}";
+            var dto = PeakResponseJson.Deserialize<Gen.AccountAddressResponseDto>(json)!;
+
+            dto.ToPublic().ChainType.Should().BeNull();
+        }
     }
 }

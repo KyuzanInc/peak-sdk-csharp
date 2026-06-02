@@ -340,12 +340,23 @@ through untouched.
 with a `TolerantEnumContractResolver` for the generated-assembly branch only.
 The resolver overrides `CreateProperty` and, for enum (and `Nullable<enum>`)
 members, swaps the generated converter for a `TolerantStringEnumConverter` that
-returns the enum default (or `null` for a nullable enum) on an unknown string
-instead of throwing. This is the **only** reliable override because a member-level
-`[JsonConverter]` attribute wins over any converter in
-`JsonSerializerSettings.Converters`. The mappers (Section 6.3) already render an
-undefined enum as `null` on the public `string?` field, so an unknown value maps
-to `null` — restoring the prior passthrough (treating "unknown" like "absent").
+returns the enum default (or `null` for a nullable enum) for **any** unrecognized
+wire value instead of throwing. "Unrecognized" means an unknown string OR a
+non-string token: a numeric token is explicitly **not** coerced to the member
+with that ordinal (so `chainType: 1` does not silently become `"evm"`); it, like a
+bool or object, is consumed and treated as unknown. This is the **only** reliable
+override because a member-level `[JsonConverter]` attribute wins over any
+converter in `JsonSerializerSettings.Converters`. The mappers (Section 6.3) render
+an undefined enum as `null` on the public `string?` field, so an unknown value
+surfaces as `null` ("not recognized").
+
+This is a deliberate trade-off, **not** a full restoration of the prior
+`string?` passthrough: the old path preserved the raw unknown string, whereas a
+C# enum cannot hold an out-of-set value, so an unknown value is nulled rather than
+passed through. The behavior is strictly more lenient than the generated
+hard-fail (the whole response no longer fails on an additive server enum) and
+never produces a wrong known value; adopting a new server enum value requires
+resyncing the spec and regenerating.
 
 The tolerance is scoped strictly to enum members: required-field presence and
 numeric (`accountIndex`) validation still **fail closed** as `InvalidResponse`,
