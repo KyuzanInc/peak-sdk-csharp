@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: read
-  packages: read     # for restoring KyuzanInc.Turnkey.Sdk from GitHub Packages
+  packages: write    # restore KyuzanInc.Turnkey.Sdk AND publish KyuzanInc.Peak.* to GitHub Packages
   id-token: write    # for OIDC signed provenance (future)
 
 jobs:
@@ -65,6 +65,24 @@ jobs:
         with:
           name: nupkgs
           path: artifacts/**
+
+      - name: Publish to GitHub Packages
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Primary distribution channel: the org GitHub Packages NuGet feed
+          # (same place KyuzanInc.Turnkey.Sdk is published/consumed). The
+          # `github-kyuzan` source is declared in nuget.config; push with the
+          # workflow token (needs packages: write). Runs on both tag pushes and
+          # manual workflow_dispatch. GitHub Packages accepts .nupkg only (no
+          # symbol .snupkg), which the *.nupkg glob already excludes.
+          for pkg in ./artifacts/*.nupkg; do
+            echo "Pushing $(basename "$pkg") to GitHub Packages"
+            dotnet nuget push "$pkg" \
+              --source "https://nuget.pkg.github.com/KyuzanInc/index.json" \
+              --api-key "$GITHUB_TOKEN" --skip-duplicate
+          done
 
       - name: Publish to NuGet.org
         if: startsWith(github.ref, 'refs/tags/v')
