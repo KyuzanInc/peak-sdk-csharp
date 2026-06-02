@@ -428,12 +428,15 @@ D13 is enforced at two layers, so a leak needs both to fail:
 1. **The client assembly exposes no public types** (Section 6.1 internalization).
    A test asserts `typeof(InitOtpLoginResponseDto).Assembly.GetExportedTypes()`
    is empty, catching any future generated type the internalize step misses.
-2. **The SDK public-surface baseline.** This PR **adds** the missing baseline
-   test using `PublicApiGenerator` over the `KyuzanInc.Peak.Sdk` assembly, with
-   an approved snapshot committed under `packages/peak-sdk-csharp/tests/`. It
-   fails if any type under `KyuzanInc.Peak.PublicApiClient.*` reaches the public
-   surface. `PublicApiGenerator` is added as a test-only package via central
-   management.
+2. **The SDK public-surface check.** This PR **adds** a test using
+   `PublicApiGenerator` over the `KyuzanInc.Peak.Sdk` assembly that fails if the
+   generated namespace `KyuzanInc.Peak.PublicApiClient` appears anywhere on the
+   public surface, plus a presence sanity check for the intended surface
+   (`PeakClient`, the `Models` namespace, `IPeakHttpClient`). It is the invariant,
+   not a byte-for-byte committed snapshot: `PublicApiGenerator` output varies with
+   the .NET SDK / Roslyn patch (nullable + compiler attributes), so a pinned
+   snapshot is fragile across local vs CI runners. `PublicApiGenerator` is added
+   as a test-only package via central management.
 
 ### 6.6 Generated client, drift CI, and docs
 
