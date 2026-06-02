@@ -92,6 +92,15 @@ The script:
   wrappers in `packages/peak-sdk-csharp/src/Models/` if the public surface
   gained or lost fields.
 
+### Consumer wiring
+
+`KyuzanInc.Peak.Sdk` consumes the generated client's **response** DTOs: the
+transport deserializes them with Newtonsoft and `Mapping/GeneratedDtoMappers.cs`
+maps them to the public System.Text.Json DTOs. The generation script flips all
+generated types to `internal`; regenerate with `scripts/generate-public-api-client.sh`
+(the internalize step runs automatically and the drift job reproduces it).
+Requests and the public DTO surface are hand-written and unchanged.
+
 ## Drift CI
 
 `.github/workflows/csharp-ci.yml` runs an `openapi-client-drift` job that:
