@@ -324,6 +324,37 @@ transports ("deserialize a `KyuzanInc.Peak.PublicApiClient` type with Newtonsoft
 is documented on `IPeakHttpClient`. This is the one consumer-visible behavioral
 change and is recorded as R6.
 
+#### 6.2.1 Unknown enum values stay forward-compatible
+
+The generated DTOs decorate each enum (`chainType`, `bitcoinAddressType`,
+`sourceType`, `creationMethod`, `deletionStatus`) with a bare
+`[JsonConverter(typeof(StringEnumConverter))]`, which **hard-fails**
+deserialization on any unrecognized string. Because the spec is synced from the
+independently-evolving `KyuzanInc/peak` monorepo, an additive server enum (e.g. a
+future `chainType: "aptos"`) would otherwise reject an otherwise-valid response as
+`PeakErrorCode.InvalidResponse` — a regression from the pre-generated-client
+behavior, where these fields were plain `string?` and an unknown value flowed
+through untouched.
+
+`PeakResponseJson.Deserialize<T>` therefore passes a `JsonSerializerSettings`
+with a `TolerantEnumContractResolver` for the generated-assembly branch only.
+The resolver overrides `CreateProperty` and, for enum (and `Nullable<enum>`)
+members, swaps the generated converter for a `TolerantStringEnumConverter` that
+returns the enum default (or `null` for a nullable enum) on an unknown string
+instead of throwing. This is the **only** reliable override because a member-level
+`[JsonConverter]` attribute wins over any converter in
+`JsonSerializerSettings.Converters`. The mappers (Section 6.3) already render an
+undefined enum as `null` on the public `string?` field, so an unknown value maps
+to `null` — restoring the prior passthrough (treating "unknown" like "absent").
+
+The tolerance is scoped strictly to enum members: required-field presence and
+numeric (`accountIndex`) validation still **fail closed** as `InvalidResponse`,
+since their converters and `IsRequired` handling are untouched. Tests in
+`GeneratedDtoMapperTests` cover both directions (known values map through; unknown
+`chainType` / `bitcoinAddressType` / `sourceType` / `creationMethod` /
+`deletionStatus`, including one nested inside a full login response, deserialize
+without throwing and map to `null`).
+
 ### 6.3 Mappers (responses only)
 
 Mappers live in `packages/peak-sdk-csharp/src/Mapping/` as `internal` static
@@ -418,6 +449,10 @@ now internalizes the output (committed together, locked-mode restore in CI).
   enum string values such as `chainType: "evm"`.
 - **Mapping tests (new):** assert each `ToPublic` copies every field, including
   `List<T>` → `T[]` and nested DTOs, from a populated instance.
+- **Forward-compat enum tests (new):** Section 6.2.1 — unknown enum strings
+  (including one nested in a full login response) deserialize without throwing and
+  map to `null`, while non-integral / missing required fields still fail closed as
+  `InvalidResponse`.
 - **Public-surface baseline test (new):** Section 6.5, including the assertion
   that the generated client assembly exports zero public types.
 - **Packaging check:** `dotnet pack` the SDK and assert each packable TFM's

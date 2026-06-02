@@ -83,5 +83,84 @@ namespace KyuzanInc.Peak.Sdk.Tests
             pub.AccountAddresses.Should().ContainSingle();
             pub.AccountAddresses![0].ChainType.Should().Be("solana");
         }
+
+        // --- forward compatibility: unknown server enum values ---
+        //
+        // The peak-server spec is synced from an independently-evolving monorepo,
+        // so it can add enum values the client does not know yet. An unknown value
+        // must NOT hard-fail the whole response (the pre-generated-client behavior
+        // was string passthrough); it maps to null on the public string? field and
+        // every other field still flows through.
+
+        [Fact]
+        public void AccountAddress_UnknownChainType_DoesNotThrow_AndKeepsScalars()
+        {
+            // "aptos" is a plausible future chainType not in the pinned spec.
+            const string json =
+                "{\"id\":\"a1\",\"accountId\":\"acc1\",\"address\":\"0xabc\"," +
+                "\"chainType\":\"aptos\"}";
+
+            var dto = PeakResponseJson.Deserialize<Gen.AccountAddressResponseDto>(json)!;
+            var pub = dto.ToPublic();
+
+            pub.Id.Should().Be("a1");
+            pub.AccountId.Should().Be("acc1");
+            pub.Address.Should().Be("0xabc");
+            pub.ChainType.Should().BeNull();
+        }
+
+        [Fact]
+        public void AccountAddress_UnknownBitcoinAddressType_MapsToNull_AndKeepsKnownChainType()
+        {
+            const string json =
+                "{\"id\":\"a1\",\"accountId\":\"acc1\",\"address\":\"bc1future\"," +
+                "\"chainType\":\"bitcoin\",\"bitcoinAddressType\":\"p2f?\"}";
+
+            var dto = PeakResponseJson.Deserialize<Gen.AccountAddressResponseDto>(json)!;
+            var pub = dto.ToPublic();
+
+            pub.ChainType.Should().Be("bitcoin");
+            pub.BitcoinAddressType.Should().BeNull();
+        }
+
+        [Fact]
+        public void AccountSource_UnknownSourceTypeAndCreationMethod_MapToNull()
+        {
+            const string json =
+                "{\"id\":\"s1\",\"userId\":\"u1\",\"originProjectId\":\"proj1\"," +
+                "\"turnkeyResourceId\":\"tk1\",\"sourceType\":\"hardware-wallet\",\"creationMethod\":\"teleported\"}";
+
+            var dto = PeakResponseJson.Deserialize<Gen.AccountSourceResponseDto>(json)!;
+            var pub = dto.ToPublic();
+
+            pub.Id.Should().Be("s1");
+            pub.TurnkeyResourceId.Should().Be("tk1");
+            pub.SourceType.Should().BeNull();
+            pub.CreationMethod.Should().BeNull();
+        }
+
+        [Fact]
+        public void CompleteOtpLogin_UnknownNestedEnum_DoesNotRejectWholeResponse()
+        {
+            // The regression this guards: one unknown chainType nested in an
+            // otherwise-valid login response previously failed the entire call as
+            // InvalidResponse. Now the rest of the payload still maps.
+            const string json =
+                "{\"user\":{\"id\":\"u1\",\"email\":\"a@b.c\",\"originProjectId\":\"proj1\"," +
+                "\"turnkeySubOrgId\":\"sub1\",\"turnkeyRootUserId\":\"root1\",\"deletionStatus\":\"frozen\"}," +
+                "\"sessionJwt\":\"jwt\",\"isNewUser\":true," +
+                "\"accountAddresses\":[{\"id\":\"ad1\",\"accountId\":\"acc1\",\"address\":\"0xaddr\",\"chainType\":\"aptos\"}]}";
+
+            var dto = PeakResponseJson.Deserialize<Gen.CompleteOtpLoginResponseDto>(json)!;
+            var pub = dto.ToPublic();
+
+            pub.SessionJwt.Should().Be("jwt");
+            pub.IsNewUser.Should().BeTrue();
+            pub.User!.Email.Should().Be("a@b.c");
+            pub.User!.DeletionStatus.Should().BeNull();
+            pub.AccountAddresses.Should().ContainSingle();
+            pub.AccountAddresses![0].Address.Should().Be("0xaddr");
+            pub.AccountAddresses![0].ChainType.Should().BeNull();
+        }
     }
 }

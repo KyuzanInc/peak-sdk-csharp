@@ -14,11 +14,18 @@ namespace KyuzanInc.Peak.Sdk
         private static readonly Assembly GeneratedClientAssembly =
             typeof(KyuzanInc.Peak.PublicApiClient.Model.InitOtpLoginResponseDto).Assembly;
 
+        // Tolerate enum values the client does not know yet (forward compat): an
+        // additive server enum (e.g. a future chainType) maps to the enum default
+        // instead of hard-failing the whole response. See
+        // TolerantEnumContractResolver.
+        private static readonly Newtonsoft.Json.JsonSerializerSettings GeneratedClientSettings =
+            new() { ContractResolver = TolerantEnumContractResolver.Instance };
+
         internal static T? Deserialize<T>(string body) where T : class
         {
             if (typeof(T).Assembly == GeneratedClientAssembly)
             {
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(body);
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(body, GeneratedClientSettings);
             }
 
             var typeInfo = (JsonTypeInfo<T>?)PeakJsonContext.Default.GetTypeInfo(typeof(T))
