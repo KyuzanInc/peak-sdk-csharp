@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using KyuzanInc.Peak.Sdk.Models;
 using KyuzanInc.Peak.Sdk.Utils;
 using Microsoft.Extensions.Logging;
+using KyuzanInc.Peak.Sdk.Mapping;
+using Gen = KyuzanInc.Peak.PublicApiClient.Model;
 
 namespace KyuzanInc.Peak.Sdk.Services
 {
@@ -40,8 +42,9 @@ namespace KyuzanInc.Peak.Sdk.Services
         {
             logger.LogInformation("Starting init OTP login for: {Email}", email);
             var payload = new InitOtpLoginRequest { Email = email };
-            var response = await httpClient.PostAsync<InitOtpLoginRequest, InitOtpLoginResponse>(
+            var dto = await httpClient.PostAsync<InitOtpLoginRequest, Gen.InitOtpLoginResponseDto>(
                 "public-api/v1/auth/otp/init-login", payload, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = dto?.ToPublic();
             logger.LogInformation("Init OTP login successful - OTP ID: {OtpId}", response?.OtpId);
             return response;
         }
@@ -64,15 +67,16 @@ namespace KyuzanInc.Peak.Sdk.Services
                 Signup = signup,
             };
 
-            var response = await httpClient.PostAsync<CompleteOtpLoginRequest, CompleteOtpLoginResponse>(
+            var dto = await httpClient.PostAsync<CompleteOtpLoginRequest, Gen.CompleteOtpLoginResponseDto>(
                 "public-api/v1/auth/otp/complete-login", payload, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            if (response == null)
+            if (dto == null)
             {
                 throw new PeakError(PeakErrorCode.AuthenticationFailed,
                     "Complete OTP login response was empty");
             }
 
+            var response = dto.ToPublic();
             logger.LogInformation("Complete OTP login successful (isNewUser={IsNewUser})", response.IsNewUser);
 
             return new CompleteOtpLoginResult
