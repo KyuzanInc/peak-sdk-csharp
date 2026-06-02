@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// AccountAddressResponseDto
     /// </summary>
     [DataContract(Name = "AccountAddressResponseDto")]
-    public partial class AccountAddressResponseDto : IValidatableObject
+    internal partial class AccountAddressResponseDto : IValidatableObject
     {
 
         /// <summary>

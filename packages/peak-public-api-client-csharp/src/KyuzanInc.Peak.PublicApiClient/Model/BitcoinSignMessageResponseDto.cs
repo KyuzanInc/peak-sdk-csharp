@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// BitcoinSignMessageResponseDto
     /// </summary>
     [DataContract(Name = "BitcoinSignMessageResponseDto")]
-    public partial class BitcoinSignMessageResponseDto : IValidatableObject
+    internal partial class BitcoinSignMessageResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BitcoinSignMessageResponseDto" /> class.

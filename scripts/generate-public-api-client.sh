@@ -51,4 +51,10 @@ if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
   exit 1
 fi
 
+# Make every generated top-level type internal so the embedded client DLL
+# exposes no public API to SDK consumers (D13). Deterministic + portable
+# (perl, not GNU/BSD-specific `sed -i`), so the drift job reproduces it.
+find "$PKG/src" -name '*.cs' -print0 \
+  | xargs -0 perl -i -pe 's/^(\s*)public( (?:partial |sealed |abstract |static )*(?:class|interface|enum|struct|delegate|record)\b)/$1internal$2/'
+
 echo "Generated C# client into $PKG/src/KyuzanInc.Peak.PublicApiClient/ (generator $ACTUAL_VERSION)"

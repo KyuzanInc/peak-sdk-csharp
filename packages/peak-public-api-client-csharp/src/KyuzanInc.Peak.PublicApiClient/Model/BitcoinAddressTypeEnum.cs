@@ -30,7 +30,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// </summary>
     /// <value>Bitcoin address type (only for bitcoin chain)</value>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum BitcoinAddressTypeEnum
+    internal enum BitcoinAddressTypeEnum
     {
         /// <summary>
         /// Enum P2pkh for value: p2pkh

@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// InitImportPrivateKeyResponseDto
     /// </summary>
     [DataContract(Name = "InitImportPrivateKeyResponseDto")]
-    public partial class InitImportPrivateKeyResponseDto : IValidatableObject
+    internal partial class InitImportPrivateKeyResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="InitImportPrivateKeyResponseDto" /> class.

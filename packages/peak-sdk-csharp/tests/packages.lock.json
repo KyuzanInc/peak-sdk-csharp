@@ -36,6 +36,16 @@
           "Castle.Core": "5.1.1"
         }
       },
+      "PublicApiGenerator": {
+        "type": "Direct",
+        "requested": "[11.4.5, )",
+        "resolved": "11.4.5",
+        "contentHash": "S9hJcL48erakoKHqXx47IvzbBYH10Y7a8yS2QVkNgQttfX/dNL+WIiaqUsBg7tFjFlxBRiFhd4mLN6QXZ50F/A==",
+        "dependencies": {
+          "Mono.Cecil": "0.11.6",
+          "System.CodeDom": "6.0.0"
+        }
+      },
       "xunit": {
         "type": "Direct",
         "requested": "[2.9.2, )",
@@ -181,10 +191,33 @@
           "Newtonsoft.Json": "13.0.3"
         }
       },
-      "Newtonsoft.Json": {
+      "Mono.Cecil": {
         "type": "Transitive",
-        "resolved": "13.0.3",
-        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+        "resolved": "0.11.6",
+        "contentHash": "f33RkDtZO8VlGXCtmQIviOtxgnUdym9xx/b1p9h91CRGOsJFxCFOFK1FDbVt1OCf1aWwYejUFa2MOQyFWTFjbA=="
+      },
+      "Polly": {
+        "type": "Transitive",
+        "resolved": "8.1.0",
+        "contentHash": "EeCJCjxX/Czm6sjnEWbeCBfogYHLcPNEL6yJT5nZzT0U78sizhTYhY2l5aXxTD+DWeVRLZtkUHqWp7ij+tvYCQ==",
+        "dependencies": {
+          "Polly.Core": "8.1.0"
+        }
+      },
+      "Polly.Core": {
+        "type": "Transitive",
+        "resolved": "8.1.0",
+        "contentHash": "M9Mlim+I9QNP/Hu6SuWMTUFnjQPvYViGk1IAJyvdl85zNedmos8Yzx74/xPa+TEi3uof3H1xQLwAzWebhEvEYw=="
+      },
+      "RestSharp": {
+        "type": "Transitive",
+        "resolved": "112.0.0",
+        "contentHash": "vezxJ6DLk0eDx+rmXwVHQvJ3elZCJfnLd8neRrkA+IvTs9falf2CEAolsjI1YKkkHTOvG13xWTnHK7gU0zgaaw=="
+      },
+      "System.CodeDom": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "CPc6tWO1LAer3IzfZufDBRL+UZQcj5uS207NHALQzP84Vp/z6wF0Aa0YZImOQY8iStY0A2zI/e3ihKNPfUm8XA=="
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
@@ -262,12 +295,23 @@
           "xunit.extensibility.core": "[2.9.2]"
         }
       },
+      "kyuzaninc.peak.publicapiclient": {
+        "type": "Project",
+        "dependencies": {
+          "Newtonsoft.Json": "[13.0.3, 13.0.3]",
+          "Polly": "[8.1.0, 8.1.0]",
+          "RestSharp": "[112.0.0, 112.0.0]",
+          "System.ComponentModel.Annotations": "[5.0.0, 5.0.0]"
+        }
+      },
       "KyuzanInc.Peak.Sdk": {
         "type": "Project",
         "dependencies": {
           "KyuzanInc.Turnkey.Sdk": "[0.1.0-alpha.0, 0.1.0-alpha.0]",
           "Microsoft.Extensions.Http": "[8.0.1, )",
           "Microsoft.Extensions.Logging.Abstractions": "[8.0.2, )",
+          "Newtonsoft.Json": "[13.0.3, )",
+          "System.ComponentModel.Annotations": "[5.0.0, )",
           "System.Text.Json": "[10.0.8, )"
         }
       },
@@ -303,6 +347,18 @@
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
         }
+      },
+      "Newtonsoft.Json": {
+        "type": "CentralTransitive",
+        "requested": "[13.0.3, )",
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+      },
+      "System.ComponentModel.Annotations": {
+        "type": "CentralTransitive",
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "dMkqfy2el8A8/I76n2Hi1oBFEbG1SfxD2l5nhwXV3XjlnOmwxJlQbYpJH4W51odnU9sARCSAgv7S3CyAFMkpYg=="
       },
       "System.Security.Cryptography.ProtectedData": {
         "type": "CentralTransitive",

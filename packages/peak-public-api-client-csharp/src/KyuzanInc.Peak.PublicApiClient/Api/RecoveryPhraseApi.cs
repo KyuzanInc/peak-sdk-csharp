@@ -23,7 +23,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public interface IRecoveryPhraseApiSync : IApiAccessor
+    internal interface IRecoveryPhraseApiSync : IApiAccessor
     {
         #region Synchronous Operations
         /// <summary>
@@ -92,7 +92,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public interface IRecoveryPhraseApiAsync : IApiAccessor
+    internal interface IRecoveryPhraseApiAsync : IApiAccessor
     {
         #region Asynchronous Operations
         /// <summary>
@@ -176,7 +176,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public interface IRecoveryPhraseApi : IRecoveryPhraseApiSync, IRecoveryPhraseApiAsync
+    internal interface IRecoveryPhraseApi : IRecoveryPhraseApiSync, IRecoveryPhraseApiAsync
     {
 
     }
@@ -184,7 +184,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public partial class RecoveryPhraseApi : IRecoveryPhraseApi
+    internal partial class RecoveryPhraseApi : IRecoveryPhraseApi
     {
         private KyuzanInc.Peak.PublicApiClient.Client.ExceptionFactory _exceptionFactory = (name, response) => null;
 

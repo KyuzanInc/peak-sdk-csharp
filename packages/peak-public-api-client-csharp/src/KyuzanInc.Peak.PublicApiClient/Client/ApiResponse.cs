@@ -17,7 +17,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
     /// <summary>
     /// Provides a non-generic contract for the ApiResponse wrapper.
     /// </summary>
-    public interface IApiResponse
+    internal interface IApiResponse
     {
         /// <summary>
         /// The data type of <see cref="Content"/>
@@ -60,7 +60,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
     /// <summary>
     /// API Response
     /// </summary>
-    public class ApiResponse<T> : IApiResponse
+    internal class ApiResponse<T> : IApiResponse
     {
         #region Properties
 

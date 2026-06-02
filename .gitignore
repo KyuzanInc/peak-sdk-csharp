@@ -54,3 +54,14 @@ tmp/
 # Editor backup
 *.orig
 *.rej
+
+# Secrets / local env (never commit)
+.env
+.env.local
+
+# Stray tooling artifacts at repo root (codegen/tooling side effects)
+/openapitools.json
+/ns.dll
+
+# Approval-test received output (only the .approved.txt is committed)
+**/*.received.txt

@@ -18,7 +18,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
     ///
     /// This interface allows consumers to provide a custom API accessor client.
     /// </summary>
-    public interface ISynchronousClient
+    internal interface ISynchronousClient
     {
         /// <summary>
         /// Executes a blocking call to some <paramref name="path"/> using the GET http verb.

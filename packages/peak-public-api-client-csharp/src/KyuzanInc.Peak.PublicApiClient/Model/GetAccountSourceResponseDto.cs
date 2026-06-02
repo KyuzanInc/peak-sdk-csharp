@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// GetAccountSourceResponseDto
     /// </summary>
     [DataContract(Name = "GetAccountSourceResponseDto")]
-    public partial class GetAccountSourceResponseDto : IValidatableObject
+    internal partial class GetAccountSourceResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetAccountSourceResponseDto" /> class.

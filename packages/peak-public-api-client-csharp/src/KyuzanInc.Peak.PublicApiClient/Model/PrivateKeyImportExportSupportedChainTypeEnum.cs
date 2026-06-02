@@ -30,7 +30,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// </summary>
     /// <value>Chain type for the imported private key</value>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum PrivateKeyImportExportSupportedChainTypeEnum
+    internal enum PrivateKeyImportExportSupportedChainTypeEnum
     {
         /// <summary>
         /// Enum Evm for value: evm

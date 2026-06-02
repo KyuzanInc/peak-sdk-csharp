@@ -30,7 +30,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// </summary>
     /// <value>Chain type</value>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum ChainTypeEnum
+    internal enum ChainTypeEnum
     {
         /// <summary>
         /// Enum Evm for value: evm

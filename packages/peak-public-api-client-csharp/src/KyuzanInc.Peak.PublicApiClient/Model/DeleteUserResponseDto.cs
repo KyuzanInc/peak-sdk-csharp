@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// DeleteUserResponseDto
     /// </summary>
     [DataContract(Name = "DeleteUserResponseDto")]
-    public partial class DeleteUserResponseDto : IValidatableObject
+    internal partial class DeleteUserResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteUserResponseDto" /> class.

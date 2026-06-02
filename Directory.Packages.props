@@ -32,6 +32,14 @@
 
     <!-- DPAPI (Windows-only, used by net8.0-windows TFM of peak-sdk-csharp) -->
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <!-- Internal response-DTO deserialization in the SDK (the generated client's
+         models are Newtonsoft-shaped). The client csproj keeps its own
+         VersionOverride for RestSharp/Polly; Newtonsoft is shared here. -->
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- The embedded generated DTOs implement IValidatableObject from
+         System.ComponentModel.DataAnnotations; netstandard2.1 consumers need this
+         assembly to load them, and PrivateAssets hides the client's own copy. -->
+    <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Test">
@@ -42,6 +50,7 @@
     <PackageVersion Include="FluentAssertions" Version="6.12.2" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.3" />
+    <PackageVersion Include="PublicApiGenerator" Version="11.4.5" />
   </ItemGroup>
 
   <!--

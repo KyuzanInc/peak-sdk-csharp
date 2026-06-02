@@ -16,7 +16,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
     /// <summary>
     /// Configuration class to set the polly retry policies to be applied to the requests.
     /// </summary>
-    public static class RetryConfiguration
+    internal static class RetryConfiguration
     {
         /// <summary>
         /// Retry policy

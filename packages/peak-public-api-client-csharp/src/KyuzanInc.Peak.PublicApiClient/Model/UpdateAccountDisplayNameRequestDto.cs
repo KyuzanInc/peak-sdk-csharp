@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// UpdateAccountDisplayNameRequestDto
     /// </summary>
     [DataContract(Name = "UpdateAccountDisplayNameRequestDto")]
-    public partial class UpdateAccountDisplayNameRequestDto : IValidatableObject
+    internal partial class UpdateAccountDisplayNameRequestDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UpdateAccountDisplayNameRequestDto" /> class.

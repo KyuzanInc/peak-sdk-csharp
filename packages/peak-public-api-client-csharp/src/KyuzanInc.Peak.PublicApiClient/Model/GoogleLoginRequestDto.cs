@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// GoogleLoginRequestDto
     /// </summary>
     [DataContract(Name = "GoogleLoginRequestDto")]
-    public partial class GoogleLoginRequestDto : IValidatableObject
+    internal partial class GoogleLoginRequestDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GoogleLoginRequestDto" /> class.

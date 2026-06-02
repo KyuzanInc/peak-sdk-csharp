@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// CompleteImportPrivateKeyRequestDto
     /// </summary>
     [DataContract(Name = "CompleteImportPrivateKeyRequestDto")]
-    public partial class CompleteImportPrivateKeyRequestDto : IValidatableObject
+    internal partial class CompleteImportPrivateKeyRequestDto : IValidatableObject
     {
 
         /// <summary>

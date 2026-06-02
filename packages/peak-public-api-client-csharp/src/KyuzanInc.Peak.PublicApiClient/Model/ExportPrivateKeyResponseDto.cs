@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// ExportPrivateKeyResponseDto
     /// </summary>
     [DataContract(Name = "ExportPrivateKeyResponseDto")]
-    public partial class ExportPrivateKeyResponseDto : IValidatableObject
+    internal partial class ExportPrivateKeyResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ExportPrivateKeyResponseDto" /> class.

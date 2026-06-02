@@ -30,7 +30,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// </summary>
     /// <value>Account source type</value>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum AccountSourceTypeEnum
+    internal enum AccountSourceTypeEnum
     {
         /// <summary>
         /// Enum RecoveryPhrase for value: recovery-phrase

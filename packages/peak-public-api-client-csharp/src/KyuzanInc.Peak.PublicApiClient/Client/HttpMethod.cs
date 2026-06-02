@@ -13,7 +13,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
     /// <summary>
     /// Http methods supported by swagger
     /// </summary>
-    public enum HttpMethod
+    internal enum HttpMethod
     {
         /// <summary>HTTP GET request.</summary>
         Get,

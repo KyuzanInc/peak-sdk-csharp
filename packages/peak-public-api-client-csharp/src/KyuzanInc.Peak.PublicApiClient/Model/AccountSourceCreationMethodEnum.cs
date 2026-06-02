@@ -30,7 +30,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// </summary>
     /// <value>Creation method</value>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum AccountSourceCreationMethodEnum
+    internal enum AccountSourceCreationMethodEnum
     {
         /// <summary>
         /// Enum Imported for value: imported

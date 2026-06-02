@@ -19,8 +19,11 @@ namespace KyuzanInc.Peak.Sdk.Utils
 {
     /// <summary>
     /// Default <see cref="IPeakHttpClient"/> implementation backed by
-    /// <see cref="System.Net.Http.HttpClient"/>. Uses
-    /// <see cref="PeakJsonContext"/> for AOT / IL2CPP-safe (de)serialisation.
+    /// <see cref="System.Net.Http.HttpClient"/>. Request bodies are serialised
+    /// with <see cref="PeakJsonContext"/> (AOT / IL2CPP-safe source generation);
+    /// response bodies are deserialised via <c>PeakResponseJson</c>, which uses
+    /// Newtonsoft.Json for the internal generated DTOs (see
+    /// <see cref="IPeakHttpClient"/> remarks).
     /// </summary>
     public sealed class DefaultPeakHttpClient : IPeakHttpClient
     {
@@ -130,13 +133,7 @@ namespace KyuzanInc.Peak.Sdk.Utils
 
                 if (string.IsNullOrEmpty(body)) return null;
 
-                var typeInfo = (JsonTypeInfo<T>?)PeakJsonContext.Default.GetTypeInfo(typeof(T));
-                if (typeInfo is null)
-                {
-                    throw new PeakError(PeakErrorCode.InvalidArgument,
-                        $"Type {typeof(T).Name} is not registered in PeakJsonContext.");
-                }
-                return JsonSerializer.Deserialize(body!, typeInfo);
+                return PeakResponseJson.Deserialize<T>(body!);
             }
             catch (PeakError) { throw; }
             catch (HttpRequestException ex)
@@ -147,7 +144,10 @@ namespace KyuzanInc.Peak.Sdk.Utils
             {
                 throw new PeakError(PeakErrorCode.NetworkError, $"Request timed out: {ex.Message}", ex);
             }
-            catch (JsonException ex)
+            // Both serialisers surface a parse failure as a JsonException: the STJ
+            // path for SDK-own types and the Newtonsoft path for generated DTOs
+            // (via PeakResponseJson). Map either to InvalidResponse with the raw body.
+            catch (Exception ex) when (ex is JsonException or Newtonsoft.Json.JsonException)
             {
                 throw new PeakError(PeakErrorCode.InvalidResponse,
                     $"Failed to parse JSON response: {ex.Message}", ex,
