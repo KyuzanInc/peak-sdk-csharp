@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// Stamp
     /// </summary>
     [DataContract(Name = "Stamp")]
-    public partial class Stamp : IValidatableObject
+    internal partial class Stamp : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Stamp" /> class.

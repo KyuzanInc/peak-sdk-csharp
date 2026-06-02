@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <Compile Include="src/KyuzanInc.Peak.PublicApiClient/**/*.cs" />
+    <Compile Include="AssemblyAttributes.cs" />
   </ItemGroup>
 
   <!--

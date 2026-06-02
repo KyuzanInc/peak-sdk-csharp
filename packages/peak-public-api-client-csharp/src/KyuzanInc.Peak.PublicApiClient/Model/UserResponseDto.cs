@@ -29,14 +29,14 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// UserResponseDto
     /// </summary>
     [DataContract(Name = "UserResponseDto")]
-    public partial class UserResponseDto : IValidatableObject
+    internal partial class UserResponseDto : IValidatableObject
     {
         /// <summary>
         /// Deletion approval status
         /// </summary>
         /// <value>Deletion approval status</value>
         [JsonConverter(typeof(StringEnumConverter))]
-        public enum DeletionStatusEnum
+        internal enum DeletionStatusEnum
         {
             /// <summary>
             /// Enum None for value: none

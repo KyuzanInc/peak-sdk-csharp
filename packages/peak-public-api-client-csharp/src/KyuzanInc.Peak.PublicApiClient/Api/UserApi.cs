@@ -23,7 +23,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public interface IUserApiSync : IApiAccessor
+    internal interface IUserApiSync : IApiAccessor
     {
         #region Synchronous Operations
         /// <summary>
@@ -70,7 +70,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public interface IUserApiAsync : IApiAccessor
+    internal interface IUserApiAsync : IApiAccessor
     {
         #region Asynchronous Operations
         /// <summary>
@@ -127,7 +127,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public interface IUserApi : IUserApiSync, IUserApiAsync
+    internal interface IUserApi : IUserApiSync, IUserApiAsync
     {
 
     }
@@ -135,7 +135,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    public partial class UserApi : IUserApi
+    internal partial class UserApi : IUserApi
     {
         private KyuzanInc.Peak.PublicApiClient.Client.ExceptionFactory _exceptionFactory = (name, response) => null;
 

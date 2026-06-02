@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// SignedRequest
     /// </summary>
     [DataContract(Name = "SignedRequest")]
-    public partial class SignedRequest : IValidatableObject
+    internal partial class SignedRequest : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SignedRequest" /> class.

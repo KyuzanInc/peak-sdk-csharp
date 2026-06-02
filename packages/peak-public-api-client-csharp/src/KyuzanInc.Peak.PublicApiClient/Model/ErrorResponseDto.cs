@@ -29,14 +29,14 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// ErrorResponseDto
     /// </summary>
     [DataContract(Name = "ErrorResponseDto")]
-    public partial class ErrorResponseDto : IValidatableObject
+    internal partial class ErrorResponseDto : IValidatableObject
     {
         /// <summary>
         /// HTTP status code
         /// </summary>
         /// <value>HTTP status code</value>
         [JsonConverter(typeof(StringEnumConverter))]
-        public enum StatusCodeEnum
+        internal enum StatusCodeEnum
         {
             /// <summary>
             /// Enum _400 for value: 400

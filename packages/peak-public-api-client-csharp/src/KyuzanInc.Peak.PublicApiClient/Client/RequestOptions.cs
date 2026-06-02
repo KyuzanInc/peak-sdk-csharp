@@ -19,7 +19,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
     /// A container for generalized request inputs. This type allows consumers to extend the request functionality
     /// by abstracting away from the default (built-in) request framework (e.g. RestSharp).
     /// </summary>
-    public class RequestOptions
+    internal class RequestOptions
     {
         /// <summary>
         /// Parameters to be bound to path parts of the Request's URL

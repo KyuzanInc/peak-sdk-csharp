@@ -23,7 +23,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
     /// <summary>
     /// Utility functions providing some benefit to API client consumers.
     /// </summary>
-    public static class ClientUtils
+    internal static class ClientUtils
     {
         /// <summary>
         /// Sanitize filename by removing the path

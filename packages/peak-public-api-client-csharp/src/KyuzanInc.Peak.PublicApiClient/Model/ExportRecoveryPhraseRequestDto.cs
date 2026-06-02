@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// ExportRecoveryPhraseRequestDto
     /// </summary>
     [DataContract(Name = "ExportRecoveryPhraseRequestDto")]
-    public partial class ExportRecoveryPhraseRequestDto : IValidatableObject
+    internal partial class ExportRecoveryPhraseRequestDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ExportRecoveryPhraseRequestDto" /> class.

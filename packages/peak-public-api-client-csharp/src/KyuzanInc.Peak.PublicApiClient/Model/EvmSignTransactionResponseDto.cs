@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// EvmSignTransactionResponseDto
     /// </summary>
     [DataContract(Name = "EvmSignTransactionResponseDto")]
-    public partial class EvmSignTransactionResponseDto : IValidatableObject
+    internal partial class EvmSignTransactionResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="EvmSignTransactionResponseDto" /> class.

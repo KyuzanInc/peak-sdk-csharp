@@ -29,14 +29,14 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// InitOtpLoginRequestDto
     /// </summary>
     [DataContract(Name = "InitOtpLoginRequestDto")]
-    public partial class InitOtpLoginRequestDto : IValidatableObject
+    internal partial class InitOtpLoginRequestDto : IValidatableObject
     {
         /// <summary>
         /// Language for the OTP email template
         /// </summary>
         /// <value>Language for the OTP email template</value>
         [JsonConverter(typeof(StringEnumConverter))]
-        public enum LanguageEnum
+        internal enum LanguageEnum
         {
             /// <summary>
             /// Enum En for value: en

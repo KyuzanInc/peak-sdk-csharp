@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// CompleteOtpLoginResponseDto
     /// </summary>
     [DataContract(Name = "CompleteOtpLoginResponseDto")]
-    public partial class CompleteOtpLoginResponseDto : IValidatableObject
+    internal partial class CompleteOtpLoginResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="CompleteOtpLoginResponseDto" /> class.

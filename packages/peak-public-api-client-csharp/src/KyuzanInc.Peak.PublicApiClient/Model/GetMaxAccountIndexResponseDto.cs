@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// GetMaxAccountIndexResponseDto
     /// </summary>
     [DataContract(Name = "GetMaxAccountIndexResponseDto")]
-    public partial class GetMaxAccountIndexResponseDto : IValidatableObject
+    internal partial class GetMaxAccountIndexResponseDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetMaxAccountIndexResponseDto" /> class.

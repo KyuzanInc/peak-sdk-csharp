@@ -29,7 +29,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
     /// SolanaSignTransactionRequestDto
     /// </summary>
     [DataContract(Name = "SolanaSignTransactionRequestDto")]
-    public partial class SolanaSignTransactionRequestDto : IValidatableObject
+    internal partial class SolanaSignTransactionRequestDto : IValidatableObject
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SolanaSignTransactionRequestDto" /> class.
