@@ -130,13 +130,7 @@ namespace KyuzanInc.Peak.Sdk.Utils
 
                 if (string.IsNullOrEmpty(body)) return null;
 
-                var typeInfo = (JsonTypeInfo<T>?)PeakJsonContext.Default.GetTypeInfo(typeof(T));
-                if (typeInfo is null)
-                {
-                    throw new PeakError(PeakErrorCode.InvalidArgument,
-                        $"Type {typeof(T).Name} is not registered in PeakJsonContext.");
-                }
-                return JsonSerializer.Deserialize(body!, typeInfo);
+                return PeakResponseJson.Deserialize<T>(body!);
             }
             catch (PeakError) { throw; }
             catch (HttpRequestException ex)
@@ -148,6 +142,18 @@ namespace KyuzanInc.Peak.Sdk.Utils
                 throw new PeakError(PeakErrorCode.NetworkError, $"Request timed out: {ex.Message}", ex);
             }
             catch (JsonException ex)
+            {
+                throw new PeakError(PeakErrorCode.InvalidResponse,
+                    $"Failed to parse JSON response: {ex.Message}", ex,
+                    new ApiResponseContext
+                    {
+                        HttpStatusCode = response != null ? (int)response.StatusCode : (int?)null,
+                        Endpoint = req.RequestUri?.AbsolutePath,
+                        Method = req.Method.Method,
+                        RawResponseBody = body,
+                    });
+            }
+            catch (Newtonsoft.Json.JsonException ex)
             {
                 throw new PeakError(PeakErrorCode.InvalidResponse,
                     $"Failed to parse JSON response: {ex.Message}", ex,

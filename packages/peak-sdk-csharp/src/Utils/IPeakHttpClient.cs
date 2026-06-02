@@ -11,6 +11,14 @@ namespace KyuzanInc.Peak.Sdk.Utils
     /// can inject their own (e.g. wrapping <c>IHttpClientFactory</c>) for tests
     /// or platform-specific retry policies.
     /// </summary>
+    /// <remarks>
+    /// For endpoints whose response type comes from the internal
+    /// <c>KyuzanInc.Peak.PublicApiClient</c> assembly, a custom implementation
+    /// must deserialize the body with Newtonsoft.Json (for example
+    /// <c>JsonConvert.DeserializeObject(body, typeof(T))</c>) because those types
+    /// are Newtonsoft-shaped. The default <see cref="DefaultPeakHttpClient"/>
+    /// does this automatically.
+    /// </remarks>
     public interface IPeakHttpClient
     {
         Task<T?> GetAsync<T>(string endpoint, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where T : class;
