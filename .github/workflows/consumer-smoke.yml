@@ -1,0 +1,183 @@
+name: Consumer install smoke
+
+# Verifies that a fresh consumer project can install
+# KyuzanInc.Peak.Sdk@<version> from nuget.pkg.github.com/KyuzanInc and
+# exercise the public API surface (PeakClient.Initialize + InMemoryStorage)
+# end to end with `dotnet run`.
+#
+# This complements the PRE-publish `consumer-restore-check` in csharp-ci.yml
+# (which packs the SDK locally and restores/builds from ./local-feed on every
+# PR). This workflow consumes the PUBLISHED GitHub Packages version, so it
+# catches packaging issues that only surface after publish — a missing
+# embedded DLL, a wrong/absent dependency edge (Newtonsoft.Json,
+# System.ComponentModel.Annotations), or a broken restore from the real feed.
+#
+# Two trigger paths:
+#
+#   1. workflow_dispatch — manual run on demand. Supply the package version
+#      (or omit it to use the repo's csproj <Version>) and the TFM.
+#
+#   2. workflow_run — fires automatically whenever the "C# NuGet Publish"
+#      workflow completes successfully. That workflow runs on a `v*` tag push,
+#      and it packs the csproj <Version>; so the published version is read from
+#      that file at the published commit (workflow_run.head_sha) rather than by
+#      parsing the tag ref — `head_branch` is not reliably populated for
+#      tag-push-triggered runs. `workflow_run` always executes the workflow file
+#      on the default branch, so this trigger is inert on feature branches and
+#      only activates once merged to `main`.
+
+run-name: "Consumer smoke (${{ inputs.package_version || github.event.workflow_run.head_branch || 'published' }})"
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: "Version to install (e.g. 0.1.0-alpha.0); omit to use the repo's csproj <Version>"
+        required: false
+        default: ""
+      tfm:
+        description: "Target framework moniker"
+        required: true
+        default: "net8.0"
+  workflow_run:
+    workflows: ["C# NuGet Publish"]   # matches csharp-publish.yml's `name:` field
+    types: [completed]
+
+permissions:
+  contents: read
+  packages: read     # secrets.GITHUB_TOKEN restores KyuzanInc.Peak.* + KyuzanInc.Turnkey.* from GitHub Packages
+
+jobs:
+  consumer-install:
+    name: "Install + use ${{ inputs.package_version || 'published' }}"
+    # Manual dispatch always runs; auto-runs only after a SUCCESSFUL publish
+    # (there is no package to verify after a failed/cancelled publish).
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout doubles as the workspace anchor (setup-dotnet needs one) and the
+      # source of the published version: for auto-runs we read the csproj
+      # <Version> at the published commit (workflow_run.head_sha). For manual
+      # dispatch head_sha is empty, so this falls back to the triggering ref.
+      - name: Checkout (workspace anchor + version source)
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      # Resolve which version + TFM to install.
+      #   - workflow_dispatch with a version  -> use the input.
+      #   - otherwise (auto-run, or dispatch with an empty version) -> read the
+      #     csproj <Version> at the checked-out commit, which is exactly what the
+      #     publish workflow packed.
+      - name: Resolve install inputs
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_VER: ${{ inputs.package_version }}
+          DISPATCH_TFM: ${{ inputs.tfm }}
+        run: |
+          set -euo pipefail
+          CSPROJ="packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$DISPATCH_VER" ]]; then
+            VER="$DISPATCH_VER"
+          else
+            VER="$(grep -oE '<Version>[^<]+</Version>' "$CSPROJ" | head -1 | sed -E 's#</?Version>##g')"
+          fi
+          TFM="${DISPATCH_TFM:-net8.0}"
+          if [[ -z "$VER" ]]; then
+            echo "::error::Could not resolve a package version (csproj <Version> not found and no input given)."
+            exit 1
+          fi
+          echo "package_version=$VER" >> "$GITHUB_OUTPUT"
+          echo "tfm=$TFM"             >> "$GITHUB_OUTPUT"
+          echo "Resolved: package_version=$VER, tfm=$TFM (source=$EVENT_NAME)"
+
+      - name: Create fresh consumer project
+        env:
+          TFM: ${{ steps.resolve.outputs.tfm }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/consumer && cd /tmp/consumer
+          dotnet new console --framework "$TFM" --name PeakSdkConsumer --force
+
+      - name: Configure GitHub Packages source
+        env:
+          GH_ACTOR: ${{ github.actor }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd /tmp/consumer/PeakSdkConsumer
+          # Add the org GitHub Packages feed to a LOCAL NuGet.config alongside the
+          # default nuget.org. KyuzanInc.Peak.Sdk AND its transitive
+          # KyuzanInc.Turnkey.Sdk resolve from here; everything else
+          # (Newtonsoft.Json, System.ComponentModel.Annotations, ...) from
+          # nuget.org. The clear-text token is fine on an ephemeral runner — the
+          # job-scoped GITHUB_TOKEN is revoked at job end.
+          dotnet nuget add source \
+            "https://nuget.pkg.github.com/KyuzanInc/index.json" \
+            --name kyuzan-github \
+            --username "$GH_ACTOR" \
+            --password "$GH_TOKEN" \
+            --store-password-in-clear-text
+
+      - name: Install KyuzanInc.Peak.Sdk (from GitHub Packages)
+        env:
+          VERSION: ${{ steps.resolve.outputs.package_version }}
+        run: |
+          set -euo pipefail
+          cd /tmp/consumer/PeakSdkConsumer
+          dotnet add package KyuzanInc.Peak.Sdk --version "$VERSION"
+
+      - name: Write sample Program.cs (exercises public API)
+        run: |
+          set -euo pipefail
+          cat > /tmp/consumer/PeakSdkConsumer/Program.cs <<'PROGRAM'
+          using System;
+          using KyuzanInc.Peak.Sdk;
+          using KyuzanInc.Peak.Sdk.Storage;
+
+          internal static class Program
+          {
+              private static int Main()
+              {
+                  Console.WriteLine("=== KyuzanInc.Peak.Sdk consumer smoke ===");
+
+                  // 1. PeakClient.Initialize — the only entry point (the ctor is
+                  //    private). The (apiUrl, projectApiKey) overload keeps this
+                  //    LangVersion-agnostic (the options-bag overload needs C#
+                  //    9+/11+). Valid args, so it must construct without throwing;
+                  //    a throw here crashes the process and fails the smoke.
+                  _ = PeakClient.Initialize("https://example.invalid/", "key");
+                  Console.WriteLine("[1/2] PeakClient.Initialize ran");
+
+                  // 2. A public storage type round-trips.
+                  var storage = new InMemoryStorage();
+                  storage.Set("k", "v");
+                  if (storage.Get("k") != "v")
+                  {
+                      Console.Error.WriteLine("InMemoryStorage round-trip failed");
+                      return 2;
+                  }
+                  Console.WriteLine("[2/2] InMemoryStorage round-trip ok");
+
+                  Console.WriteLine();
+                  Console.WriteLine("Consumer install + use of KyuzanInc.Peak.Sdk verified end-to-end.");
+                  return 0;
+              }
+          }
+          PROGRAM
+
+      - name: Build + run consumer sample
+        run: |
+          set -euo pipefail
+          cd /tmp/consumer/PeakSdkConsumer
+          dotnet build -c Release
+          dotnet run -c Release --no-build
