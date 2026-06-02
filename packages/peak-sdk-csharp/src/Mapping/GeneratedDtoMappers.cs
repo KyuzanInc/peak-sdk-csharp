@@ -114,21 +114,9 @@ namespace KyuzanInc.Peak.Sdk.Mapping
             AccountSource = d.AccountSource?.ToPublic(),
         };
 
-        internal static InitImportPrivateKeyResponse ToPublic(this Gen.InitImportPrivateKeyResponseDto d) => new()
-        {
-            ImportBundle = d.ImportBundle,
-        };
-
-        internal static CompleteImportPrivateKeyResponse ToPublic(this Gen.CompleteImportPrivateKeyResponseDto d) => new()
-        {
-            Account = d.Account?.ToPublic(),
-            AccountAddress = d.AccountAddress?.ToPublic(),
-            AccountSource = d.AccountSource?.ToPublic(),
-        };
-
-        internal static ExportPrivateKeyResponse ToPublic(this Gen.ExportPrivateKeyResponseDto d) => new()
-        {
-            ExportBundle = d.ExportBundle,
-        };
+        // Note: the private-key endpoints (init-import, complete-import, export)
+        // map their generated responses field-by-field in the service (folding in
+        // extra result fields like OrganizationId, or reading a scalar bundle), so
+        // no generated->public wrapper mapper is needed for those responses.
     }
 }

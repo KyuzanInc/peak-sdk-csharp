@@ -55,5 +55,46 @@ namespace KyuzanInc.Peak.Sdk.Tests
             account!.Id.Should().Be("acc1");
             account.DisplayName.Should().Be("new name");
         }
+
+        [Fact]
+        public async Task ListAccountAddresses_MapsGeneratedDtos()
+        {
+            var http = Substitute.For<IPeakHttpClient>();
+            var dto = PeakResponseJson.Deserialize<Gen.ListAccountAddressesResponseDto>(
+                "{\"accountAddresses\":[{\"id\":\"ad1\",\"accountId\":\"acc1\",\"address\":\"0xabc\",\"chainType\":\"evm\"}]}")!;
+            http.GetAsync<Gen.ListAccountAddressesResponseDto>(
+                    Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
+                .Returns(dto);
+
+            var svc = new AccountService("https://api.peak.xyz", "k", "jwt", http);
+            var addresses = await svc.ListAccountAddressesAsync("acc1");
+
+            addresses.Should().ContainSingle();
+            addresses[0].Address.Should().Be("0xabc");
+            addresses[0].ChainType.Should().Be("evm");
+        }
+
+        [Fact]
+        public async Task ListAccounts_NullResponse_ReturnsEmptyArray()
+        {
+            // Unconfigured NSubstitute returns Task.FromResult(default) -> null DTO.
+            var http = Substitute.For<IPeakHttpClient>();
+            var svc = new AccountService("https://api.peak.xyz", "k", "jwt", http);
+
+            var accounts = await svc.ListAccountsAsync();
+
+            accounts.Should().NotBeNull().And.BeEmpty();
+        }
+
+        [Fact]
+        public async Task ListAccountAddresses_NullResponse_ReturnsEmptyArray()
+        {
+            var http = Substitute.For<IPeakHttpClient>();
+            var svc = new AccountService("https://api.peak.xyz", "k", "jwt", http);
+
+            var addresses = await svc.ListAccountAddressesAsync("acc1");
+
+            addresses.Should().NotBeNull().And.BeEmpty();
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +58,43 @@ namespace KyuzanInc.Peak.Sdk.Tests
                 new ReflectiveTransport("{\"otpId\":\"otp-xyz\"}"));
             var result = await svc.InitOtpLoginAsync("a@b.c");
             result!.OtpId.Should().Be("otp-xyz");
+        }
+
+        [Fact]
+        public async Task CompleteOtpLogin_MapsResultAndCarriesKeyPair()
+        {
+            var http = Substitute.For<IPeakHttpClient>();
+            var dto = PeakResponseJson.Deserialize<Gen.CompleteOtpLoginResponseDto>(
+                "{\"user\":{\"id\":\"u1\",\"email\":\"a@b.c\",\"originProjectId\":\"p1\"," +
+                "\"turnkeySubOrgId\":\"s1\",\"turnkeyRootUserId\":\"r1\",\"deletionStatus\":\"none\"}," +
+                "\"sessionJwt\":\"jwt-x\",\"isNewUser\":true}")!;
+            http.PostAsync<CompleteOtpLoginRequest, Gen.CompleteOtpLoginResponseDto>(
+                    "public-api/v1/auth/otp/complete-login",
+                    Arg.Any<CompleteOtpLoginRequest>(),
+                    Arg.Any<IReadOnlyDictionary<string, string>>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(dto);
+
+            // Default keyPairFactory generates a real P-256 key before the POST.
+            var svc = new AuthService("https://api.peak.xyz", "k", http);
+            var result = await svc.CompleteOtpLoginAsync("a@b.c", "otp1", "123456");
+
+            result.SessionJwt.Should().Be("jwt-x");
+            result.IsNewUser.Should().BeTrue();
+            result.User!.Email.Should().Be("a@b.c");
+            result.KeyPair!.PrivateKey.Should().NotBeNullOrEmpty();
+        }
+
+        [Fact]
+        public async Task CompleteOtpLogin_NullResponse_ThrowsAuthenticationFailed()
+        {
+            // Unconfigured PostAsync -> Task.FromResult(default) -> null DTO.
+            var http = Substitute.For<IPeakHttpClient>();
+            var svc = new AuthService("https://api.peak.xyz", "k", http);
+
+            Func<Task> act = () => svc.CompleteOtpLoginAsync("a@b.c", "otp1", "123456");
+
+            (await act.Should().ThrowAsync<PeakError>()).Which.Code.Should().Be(PeakErrorCode.AuthenticationFailed);
         }
     }
 }

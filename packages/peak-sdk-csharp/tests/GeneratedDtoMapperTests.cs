@@ -162,5 +162,21 @@ namespace KyuzanInc.Peak.Sdk.Tests
             pub.AccountAddresses![0].Address.Should().Be("0xaddr");
             pub.AccountAddresses![0].ChainType.Should().BeNull();
         }
+
+        [Fact]
+        public void GetAddressDetail_MapsAllThreeNestedEntities()
+        {
+            const string json =
+                "{\"accountAddress\":{\"id\":\"ad1\",\"accountId\":\"acc1\",\"address\":\"0xabc\",\"chainType\":\"evm\"}," +
+                "\"account\":{\"id\":\"acc1\",\"userId\":\"u1\",\"accountSourceId\":\"src1\",\"accountIndex\":0,\"originProjectId\":\"proj1\"}," +
+                "\"accountSource\":{\"id\":\"s1\",\"userId\":\"u1\",\"originProjectId\":\"proj1\",\"turnkeyResourceId\":\"tk1\",\"sourceType\":\"private-key\",\"creationMethod\":\"imported\"}}";
+            var dto = PeakResponseJson.Deserialize<Gen.GetAccountAddressWithAccountAndSourceResponseDto>(json)!;
+
+            var pub = dto.ToPublic();
+
+            pub.AccountAddress!.Address.Should().Be("0xabc");
+            pub.Account!.Id.Should().Be("acc1");
+            pub.AccountSource!.SourceType.Should().Be("private-key");
+        }
     }
 }
