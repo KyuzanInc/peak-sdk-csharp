@@ -19,7 +19,7 @@ This is a multi-package repo. Each package builds as its own NuGet artifact.
 | Package | TFM | Purpose |
 |---|---|---|
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` | The Peak SDK itself. Adds `PeakClient`, OTP login, account/private-key services, `IStorage`/`ISecureStorage` abstractions, Windows DPAPI secure storage. |
-| `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` | Auto-generated OpenAPI client. `internal` consumers only. Re-exposed by the SDK behind hand-designed DTOs. |
+| `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` | Auto-generated OpenAPI client. Build-time only: backs spec-drift CI and the DTO field-coverage contract test; **not** referenced by the SDK at runtime or shipped in its package. |
 | `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` | Unity-only platform adapter: PlayerPrefs storage (opt-in only, plaintext warning), iOS Keychain via P/Invoke, Android KeyStore via JNI. |
 
 The `peak-sdk-unity` repo will become a thin Unity adapter on top of
@@ -69,6 +69,14 @@ var login = await client.CompleteOtpLoginAsync("user@example.com", init.OtpId, "
 var authClient = client.Authenticate();
 var accounts = await authClient.ListAccountsAsync();
 ```
+
+> **Response validation.** The SDK returns server responses as nullable DTOs and
+> does not enforce field presence: a missing field deserializes to its default
+> (`null` / `0`), not an error. Before you display or transact on identity and
+> address fields — notably `AccountResponse.Id` and `AccountAddressResponse.Address`
+> — null/empty-check them. A silently empty/defaulted address is a fund-loss-shaped
+> failure if trusted blindly. (A future `[JsonRequired]` hardening pass is the
+> recommended fix if you want the SDK itself to fail closed — spec §6.3 / R6.)
 
 For maintainers, see [docs/development.md](docs/development.md) for the
 build/test workflow and [plans/plans-peak-sdk-csharp.md](plans/plans-peak-sdk-csharp.md)
