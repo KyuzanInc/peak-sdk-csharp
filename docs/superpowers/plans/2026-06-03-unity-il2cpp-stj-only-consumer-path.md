@@ -1351,7 +1351,8 @@ In `.github/workflows/csharp-ci.yml`, the `consumer-restore-check` job's last st
           cd /tmp/consumer
           # 1. No RestSharp/Polly/Newtonsoft anywhere in the consumer's transitive
           #    graph. (Do NOT ban System.ComponentModel.Annotations: it is a benign
-          #    transitive of System.Text.Json 8.0.5 on netstandard2.1.)
+          #    transitive of Microsoft.Extensions.Http -> Microsoft.Extensions.Options
+          #    on netstandard2.1, not a remnant of the old generated/Newtonsoft path.)
           graph="$(dotnet list consumer.csproj package --include-transitive)"
           for banned in RestSharp Polly Newtonsoft.Json; do
             if grep -qi "$banned" <<<"$graph"; then

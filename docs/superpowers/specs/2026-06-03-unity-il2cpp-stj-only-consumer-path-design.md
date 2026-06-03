@@ -263,8 +263,8 @@ response body ──► STJ (PeakJsonContext, source-gen) ──► public STJ D
 
 Note on the closure: `System.ComponentModel.Annotations` is no longer a
 **declared** nuspec dependency or a direct `PackageReference`, but it still
-appears as a **benign transitive** of `System.Text.Json 8.0.5` on the
-`netstandard2.1` TFM. That is fine — it is not the Newtonsoft/RestSharp problem,
+appears as a **benign transitive** of `Microsoft.Extensions.Http` →
+`Microsoft.Extensions.Options` on the `netstandard2.1` TFM. That is fine — it is not the Newtonsoft/RestSharp problem,
 and Section 6.9 asserts on the layer that actually matters (no declared
 Newtonsoft and no RestSharp/Polly/Newtonsoft anywhere in the graph). The request
 path (STJ serialize via `PeakJsonContext`), the exact `application/json`
@@ -551,8 +551,8 @@ Concretely:
 
 1. **Banned-package check — `RestSharp`, `Polly`, `Newtonsoft.Json` only**
    (do **not** ban `System.ComponentModel.Annotations`: it is a legitimate
-   transitive of `System.Text.Json 8.0.5` on netstandard2.1 and banning it would
-   false-positive on a correct STJ-only build):
+   transitive of `Microsoft.Extensions.Http` → `Microsoft.Extensions.Options` on
+   netstandard2.1 and banning it would false-positive on a correct STJ-only build):
 
    ```bash
    for banned in RestSharp Polly Newtonsoft.Json; do
@@ -842,7 +842,8 @@ the exact spots:
   `InternalsVisibleTo("KyuzanInc.Peak.Sdk")` friend grant.
 - **2026-06-03 r2** — revised after Codex + 4-lens (engineering/security/
   completeness/skeptic) review: corrected the §6.9 CI banned-list (dropped
-  `System.ComponentModel.Annotations`, a benign STJ transitive); fixed the
+  `System.ComponentModel.Annotations`, a benign transitive via
+  `Microsoft.Extensions.Http` → `Options`); fixed the
   §6.10 public-surface claim (invariant test, no `approved.txt`); added §6.3
   required-field-validation decision + R6; promoted the contract test to P0
   (§6.7); enumerated the §6.4 third lock file and §6.11 exact doc edits; framed
