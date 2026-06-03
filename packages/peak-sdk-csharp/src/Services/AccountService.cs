@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using KyuzanInc.Peak.Sdk.Models;
 using KyuzanInc.Peak.Sdk.Utils;
-using KyuzanInc.Peak.Sdk.Mapping;
-using Gen = KyuzanInc.Peak.PublicApiClient.Model;
 
 namespace KyuzanInc.Peak.Sdk.Services
 {
@@ -31,9 +29,9 @@ namespace KyuzanInc.Peak.Sdk.Services
 
         public async Task<AccountResponse[]> ListAccountsAsync(CancellationToken cancellationToken = default)
         {
-            var dto = await httpClient.GetAsync<Gen.ListAccountsResponseDto>(
+            var dto = await httpClient.GetAsync<ListAccountsResponse>(
                 "public-api/v1/accounts/list", CreateAuthHeaders(), cancellationToken).ConfigureAwait(false);
-            return dto?.ToPublic().Accounts ?? Array.Empty<AccountResponse>();
+            return dto?.Accounts ?? Array.Empty<AccountResponse>();
         }
 
         public async Task<AccountAddressResponse[]> ListAccountAddressesAsync(string accountId, CancellationToken cancellationToken = default)
@@ -42,11 +40,11 @@ namespace KyuzanInc.Peak.Sdk.Services
             {
                 throw new PeakError(PeakErrorCode.InvalidArgument, "Account ID is required");
             }
-            var dto = await httpClient.GetAsync<Gen.ListAccountAddressesResponseDto>(
+            var dto = await httpClient.GetAsync<ListAccountAddressesResponse>(
                 $"public-api/v1/accounts/list-addresses?accountId={Uri.EscapeDataString(accountId)}",
                 CreateAuthHeaders(),
                 cancellationToken).ConfigureAwait(false);
-            return dto?.ToPublic().AccountAddresses ?? Array.Empty<AccountAddressResponse>();
+            return dto?.AccountAddresses ?? Array.Empty<AccountAddressResponse>();
         }
 
         public async Task<AccountResponse?> UpdateAccountDisplayNameAsync(string accountId, string displayName, CancellationToken cancellationToken = default)
@@ -56,23 +54,22 @@ namespace KyuzanInc.Peak.Sdk.Services
                 throw new PeakError(PeakErrorCode.InvalidArgument, "Account ID is required");
             }
             var payload = new UpdateAccountDisplayNameRequest { AccountId = accountId, DisplayName = displayName };
-            var dto = await httpClient.PostAsync<UpdateAccountDisplayNameRequest, Gen.UpdateAccountDisplayNameResponseDto>(
+            var dto = await httpClient.PostAsync<UpdateAccountDisplayNameRequest, UpdateAccountDisplayNameEnvelope>(
                 "public-api/v1/accounts/update-display-name",
                 payload,
                 CreateAuthHeaders(),
                 cancellationToken).ConfigureAwait(false);
-            // The server wraps the account ({ "account": {...} }); map the nested DTO.
-            return dto?.Account?.ToPublic();
+            // The server wraps the account ({ "account": {...} }); return the nested DTO.
+            return dto?.Account;
         }
 
         internal async Task<GetAddressDetailResponse?> GetAddressDetailAsync(string address, CancellationToken cancellationToken = default)
         {
             var encoded = Uri.EscapeDataString(address);
-            var dto = await httpClient.GetAsync<Gen.GetAccountAddressWithAccountAndSourceResponseDto>(
+            return await httpClient.GetAsync<GetAddressDetailResponse>(
                 $"public-api/v1/accounts/get-address-detail?address={encoded}",
                 CreateAuthHeaders(),
                 cancellationToken).ConfigureAwait(false);
-            return dto?.ToPublic();
         }
     }
 }

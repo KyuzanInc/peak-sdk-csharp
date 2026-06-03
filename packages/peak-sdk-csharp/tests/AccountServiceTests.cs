@@ -7,25 +7,21 @@ using KyuzanInc.Peak.Sdk.Services;
 using KyuzanInc.Peak.Sdk.Utils;
 using NSubstitute;
 using Xunit;
-using Gen = KyuzanInc.Peak.PublicApiClient.Model;
 
 namespace KyuzanInc.Peak.Sdk.Tests
 {
     public class AccountServiceTests
     {
         [Fact]
-        public async Task ListAccounts_MapsGeneratedDtos()
+        public async Task ListAccounts_ReturnsPublicDtos()
         {
             var http = Substitute.For<IPeakHttpClient>();
-            // Generated AccountResponseDto requires id/userId/accountSourceId/
-            // accountIndex/originProjectId (Newtonsoft throws on a missing required
-            // field), so the nested fixture supplies all of them.
-            var dto = PeakResponseJson.Deserialize<Gen.ListAccountsResponseDto>(
-                "{\"accounts\":[{\"id\":\"acc1\",\"userId\":\"u1\",\"accountSourceId\":\"src1\"," +
-                "\"accountIndex\":2,\"originProjectId\":\"proj1\"}]}")!;
-            http.GetAsync<Gen.ListAccountsResponseDto>(
+            http.GetAsync<ListAccountsResponse>(
                     "public-api/v1/accounts/list", Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
-                .Returns(dto);
+                .Returns(new ListAccountsResponse
+                {
+                    Accounts = new[] { new AccountResponse { Id = "acc1", AccountIndex = 2 } },
+                });
 
             var svc = new AccountService("https://api.peak.xyz", "k", "jwt", http);
             var accounts = await svc.ListAccountsAsync();
@@ -36,18 +32,18 @@ namespace KyuzanInc.Peak.Sdk.Tests
         }
 
         [Fact]
-        public async Task UpdateDisplayName_MapsNestedAccount()
+        public async Task UpdateDisplayName_ReturnsNestedAccount()
         {
             var http = Substitute.For<IPeakHttpClient>();
-            var dto = PeakResponseJson.Deserialize<Gen.UpdateAccountDisplayNameResponseDto>(
-                "{\"account\":{\"id\":\"acc1\",\"userId\":\"u1\",\"accountSourceId\":\"src1\"," +
-                "\"accountIndex\":0,\"originProjectId\":\"proj1\",\"displayName\":\"new name\"}}")!;
-            http.PostAsync<UpdateAccountDisplayNameRequest, Gen.UpdateAccountDisplayNameResponseDto>(
+            http.PostAsync<UpdateAccountDisplayNameRequest, UpdateAccountDisplayNameEnvelope>(
                     "public-api/v1/accounts/update-display-name",
                     Arg.Any<UpdateAccountDisplayNameRequest>(),
                     Arg.Any<IReadOnlyDictionary<string, string>>(),
                     Arg.Any<CancellationToken>())
-                .Returns(dto);
+                .Returns(new UpdateAccountDisplayNameEnvelope
+                {
+                    Account = new AccountResponse { Id = "acc1", DisplayName = "new name" },
+                });
 
             var svc = new AccountService("https://api.peak.xyz", "k", "jwt", http);
             var account = await svc.UpdateAccountDisplayNameAsync("acc1", "new name");
@@ -57,14 +53,15 @@ namespace KyuzanInc.Peak.Sdk.Tests
         }
 
         [Fact]
-        public async Task ListAccountAddresses_MapsGeneratedDtos()
+        public async Task ListAccountAddresses_ReturnsPublicDtos()
         {
             var http = Substitute.For<IPeakHttpClient>();
-            var dto = PeakResponseJson.Deserialize<Gen.ListAccountAddressesResponseDto>(
-                "{\"accountAddresses\":[{\"id\":\"ad1\",\"accountId\":\"acc1\",\"address\":\"0xabc\",\"chainType\":\"evm\"}]}")!;
-            http.GetAsync<Gen.ListAccountAddressesResponseDto>(
+            http.GetAsync<ListAccountAddressesResponse>(
                     Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
-                .Returns(dto);
+                .Returns(new ListAccountAddressesResponse
+                {
+                    AccountAddresses = new[] { new AccountAddressResponse { Id = "ad1", Address = "0xabc", ChainType = "evm" } },
+                });
 
             var svc = new AccountService("https://api.peak.xyz", "k", "jwt", http);
             var addresses = await svc.ListAccountAddressesAsync("acc1");
