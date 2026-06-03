@@ -17,9 +17,9 @@ package; it is no longer built in this repo.
 |  - IStorage / ISecureStorage / DpapiSecureStorage        |
 |  - AuthService / AccountService / PrivateKeyService      |
 |  - PeakError + PeakErrorCode                             |
-|  - DTOs (hand-designed, no generator types leak)         |
+|  - DTOs hand-designed; generated types kept internal     |
 +----------------------------------------------------------+
-|  KyuzanInc.Peak.Sdk.Unity  (Unity-only adapter)          |
+|  KyuzanInc.Peak.Sdk.Unity  (deferred v0.2 adapter)       |
 |  - UnsafePlaintextPlayerPrefsStorage (opt-in)            |
 |  - KeychainSecureStorage / KeyStoreSecureStorage         |
 +----------------------------------------------------------+
@@ -82,7 +82,8 @@ its `<PackageReference>`). The hand-designed DTOs in
 template change does not break the public surface.
 
 Source spec: `upstream-snapshots/peak-server-openapi/public-api.yaml`,
-pinned to a `peak-server` tag (see
+tracking `KyuzanInc/peak` `main` HEAD, recorded as an exact commit in
+`upstream-snapshots/peak-server-openapi/PIN.md` (see
 [docs/sync-rules.md](sync-rules.md)).
 
 ## Test layout

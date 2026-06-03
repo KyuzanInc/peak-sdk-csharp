@@ -36,7 +36,7 @@ A consumer of this SDK is one of:
 | Tier | Member implementations | Default? | Persistent? |
 |---|---|---|---|
 | `IStorage` (key/value, in-process) | `InMemoryStorage` | Yes | No |
-| `ISecureStorage` (OS-protected) | `DpapiSecureStorage` (Windows, `peak-sdk-csharp` core), `KeychainSecureStorage` (iOS, `peak-sdk-csharp-unity`), `KeyStoreSecureStorage` (Android, `peak-sdk-csharp-unity`) | No, but available on every supported platform | Yes |
+| `ISecureStorage` (OS-protected) | `DpapiSecureStorage` (Windows `net8.0-windows`, `peak-sdk-csharp` core). _Deferred to the v0.2 Unity adapter:_ `KeychainSecureStorage` (iOS), `KeyStoreSecureStorage` (Android) | No; in v0.1.0 only on Windows (`net8.0-windows`) | Yes |
 | Unsafe plaintext | `UnsafePlaintextPlayerPrefsStorage` (Unity adapter only) | No | Yes |
 
 `ISecureStorage` extends `IStorage`. `ISecureStorage.IsAvailable`
@@ -69,11 +69,11 @@ before persisting any High or Critical asset.
 
 | Platform | `ISecureStorage` provider | `IsAvailable` | Notes |
 |---|---|---|---|
-| Windows .NET 8 / .NET Framework 4.7.2+ | `DpapiSecureStorage` (core) | `true` | DPAPI per-user scope |
+| Windows .NET 8 (`net8.0-windows` TFM) | `DpapiSecureStorage` (core) | `true` | DPAPI per-user scope; only the `net8.0-windows` build compiles it |
 | Linux .NET 8 | None (core) | `false` | v0.1.0 leaves this to consumers; v0.2+ may add `libsecret`-based provider |
 | macOS .NET 8 | None (core) | `false` | v0.2+ may add Keychain provider |
-| Unity iOS (IL2CPP) | `KeychainSecureStorage` (Unity adapter) | `true` | uses `Security.framework` via P/Invoke |
-| Unity Android (IL2CPP) | `KeyStoreSecureStorage` (Unity adapter) | `true` | uses `AndroidKeyStore` via JNI |
+| Unity iOS (IL2CPP) | `KeychainSecureStorage` (Unity adapter — deferred to v0.2) | `true` (planned) | `Security.framework` via P/Invoke; not in v0.1.0 |
+| Unity Android (IL2CPP) | `KeyStoreSecureStorage` (Unity adapter — deferred to v0.2) | `true` (planned) | `AndroidKeyStore` via JNI; not in v0.1.0 |
 | Unity standalone (Win/Mac/Linux) | Falls back to `DpapiSecureStorage` only on Windows; otherwise none | varies | Unity adapter respects the core matrix above |
 | Godot 4.x / console | None (core) | `false` | same as Linux / macOS .NET host |
 
