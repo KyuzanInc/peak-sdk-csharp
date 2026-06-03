@@ -108,15 +108,40 @@ dotnet test peak-sdk-csharp.sln --filter "Category=E2E"
 Without those variables, the E2E suite is silently skipped — not
 failed.
 
-## Local NuGet feed (consume packages from another project)
+## Consuming `KyuzanInc.Peak.Sdk` from another project
+
+`KyuzanInc.Peak.Sdk` publishes to GitHub Packages on every `v*` tag
+(it is the only published package — `KyuzanInc.Peak.PublicApiClient`
+is `internal` / `IsPackable=false`, and the Unity adapter is not in the
+solution). A downstream project that has the `github-kyuzan` source
+configured — the same one-time auth setup as above, which also serves
+the transitive `KyuzanInc.Turnkey.Sdk` — installs the published package
+straight from the feed (`--prerelease` is required while the only
+published version is the `0.1.0-alpha.0` prerelease — a bare
+`dotnet add package` resolves stable versions only):
+
+```
+dotnet add package KyuzanInc.Peak.Sdk --prerelease
+```
+
+The repo's own `nuget.config` maps `KyuzanInc.Peak.*` to `local-feed`
+(see below) for the local-pack workflow; a downstream consumer does not
+copy that mapping, so its `KyuzanInc.Peak.Sdk` resolves from
+`github-kyuzan` instead.
+
+### Local `.nupkg` feed (offline or unreleased versions)
+
+To consume a build that is not on GitHub Packages — offline, or a
+version between releases — pack to a local feed:
 
 ```
 dotnet pack peak-sdk-csharp.sln -c Release -o ./local-feed
 ```
 
 Point a downstream `nuget.config` at the absolute `./local-feed` path
-and `dotnet add package KyuzanInc.Peak.Sdk` from there. The downstream
-project also needs the GitHub Packages source configured, because
+and `dotnet add package KyuzanInc.Peak.Sdk --prerelease` from there. The
+downstream project still needs the GitHub Packages source configured,
+because
 `KyuzanInc.Peak.Sdk` pulls `KyuzanInc.Turnkey.Sdk` transitively. Unity
 consumers via NuGetForUnity follow the same pattern after the
 `.nupkg` is copied into the Unity project's Packages folder.
