@@ -5,10 +5,11 @@ community-maintained port of the Unity-only `peak-sdk-unity` package,
 generalised so that Godot, console apps, .NET MAUI, and any modern
 .NET host can use the same code path Unity does today.
 
-**Status: pre-release (v0.1.0-alpha).** Public NuGet publish is scheduled
-for a later milestone; until then every package is consumed via local
-`.nupkg` feeds or by a project reference. The Turnkey crypto dependency
-ships from GitHub Packages — consumers need GitHub Packages auth set up
+**Status: pre-release (v0.1.0-alpha).** The `KyuzanInc.Peak.Sdk` package
+publishes to GitHub Packages on a `v*` tag (`v0.1.0-alpha.0` is the
+current release); a public nuget.org publish is scheduled for a later
+milestone. Both `KyuzanInc.Peak.Sdk` and its Turnkey crypto dependency
+ship from GitHub Packages, so consumers need GitHub Packages auth set up
 locally (see [docs/development.md](docs/development.md)).
 
 ## Packages
@@ -39,7 +40,9 @@ SDK as a deliberate version bump (see
 
 ## What this repo is *not*
 
-- Not on `nuget.org` yet. Public publish is gated on a separate workstream.
+- Not on `nuget.org` yet — the released `KyuzanInc.Peak.Sdk` package ships
+  from GitHub Packages. The nuget.org publish is wired but gated on a
+  separate workstream.
 - Not the source of the Turnkey crypto port. Crypto code is in
   [`KyuzanInc/turnkey-sdk-csharp`](https://github.com/KyuzanInc/turnkey-sdk-csharp);
   see that repo for the audit status and review evidence.
@@ -49,7 +52,7 @@ SDK as a deliberate version bump (see
 
 ## Quick start
 
-For consumers (after the SDK is published and GitHub Packages auth is set up):
+For consumers (with GitHub Packages auth set up):
 
 ```csharp
 using KyuzanInc.Peak.Sdk;
