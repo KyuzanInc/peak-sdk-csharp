@@ -21,7 +21,8 @@ namespace KyuzanInc.Peak.Sdk.Tests
 
             // D13: the internal generated client (namespace
             // KyuzanInc.Peak.PublicApiClient.*) must never appear on the public
-            // surface. The mappers keep generated types internal to the SDK.
+            // surface. Since issue #18 the SDK does not reference the generated
+            // client at all (STJ-only response path), so this stays trivially true.
             api.Should().NotContain("PublicApiClient");
 
             // Sanity: the intended public surface is present (guards against an
