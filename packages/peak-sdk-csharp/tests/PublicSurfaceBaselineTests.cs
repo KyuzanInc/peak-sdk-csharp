@@ -30,6 +30,9 @@ namespace KyuzanInc.Peak.Sdk.Tests
             api.Should().Contain("namespace KyuzanInc.Peak.Sdk.Models");
             api.Should().Contain("class AccountResponse");
             api.Should().Contain("interface IPeakHttpClient");
+
+            // The internal update-display-name wrapper must NOT be public.
+            api.Should().NotContain("UpdateAccountDisplayNameEnvelope");
         }
     }
 }
