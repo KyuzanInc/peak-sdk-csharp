@@ -7,12 +7,12 @@ is what it is.
 
 | Host | Package | Class | `IsAvailable` | Persistence backend |
 |---|---|---|---|---|
-| Windows .NET 8 / Framework 4.7.2+ | `KyuzanInc.Peak.Sdk` (`net8.0-windows` TFM) | `DpapiSecureStorage` | `true` | Per-user DPAPI (`System.Security.Cryptography.ProtectedData`); blob path `%LOCALAPPDATA%\KyuzanInc\PeakSdk\<namespace>\` |
+| Windows .NET 8 (`net8.0-windows`) | `KyuzanInc.Peak.Sdk` (`net8.0-windows` TFM) | `DpapiSecureStorage` | `true` | Per-user DPAPI (`System.Security.Cryptography.ProtectedData`); blob path `%LOCALAPPDATA%\KyuzanInc\PeakSdk\<namespace>\` |
 | Linux .NET 8 | `KyuzanInc.Peak.Sdk` (no extra package) | `UnavailableSecureStorage` | `false` | None in v0.1.0. v0.2+ may add a `libsecret` adapter package. |
 | macOS .NET 8 | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | None in v0.1.0. v0.2+ may add a Keychain Services adapter. |
 | Godot 4.x / console | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | Same as host OS row above. |
-| Unity iOS | `KyuzanInc.Peak.Sdk.Unity` (PR 5 deliverable; deferred) | `KeychainSecureStorage` | `true` | iOS Security.framework via P/Invoke (Unity context) |
-| Unity Android | `KyuzanInc.Peak.Sdk.Unity` (deferred) | `KeyStoreSecureStorage` | `true` | AndroidKeyStore via JNI (`AndroidJavaObject`, Unity context) |
+| Unity iOS | `KyuzanInc.Peak.Sdk.Unity` (PR 5 deliverable; deferred) | `KeychainSecureStorage` | `true` (planned) | iOS Security.framework via P/Invoke (Unity context) |
+| Unity Android | `KyuzanInc.Peak.Sdk.Unity` (deferred) | `KeyStoreSecureStorage` | `true` (planned) | AndroidKeyStore via JNI (`AndroidJavaObject`, Unity context) |
 | Unity standalone Windows | `KyuzanInc.Peak.Sdk` | `DpapiSecureStorage` | `true` | DPAPI (same as core Windows row) |
 | Unity standalone Linux / macOS | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | Same as desktop row |
 | .NET MAUI iOS / Android | not in v0.1.0 | n/a | n/a | v0.2+ may add `KyuzanInc.Peak.Sdk.Maui` |
