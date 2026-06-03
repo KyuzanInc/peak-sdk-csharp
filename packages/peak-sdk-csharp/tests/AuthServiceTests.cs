@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -8,25 +9,21 @@ using KyuzanInc.Peak.Sdk.Services;
 using KyuzanInc.Peak.Sdk.Utils;
 using NSubstitute;
 using Xunit;
-using Gen = KyuzanInc.Peak.PublicApiClient.Model;
 
 namespace KyuzanInc.Peak.Sdk.Tests
 {
     public class AuthServiceTests
     {
         [Fact]
-        public async Task InitOtpLogin_MapsGeneratedDtoToPublic()
+        public async Task InitOtpLogin_ReturnsPublicDto()
         {
             var http = Substitute.For<IPeakHttpClient>();
-            // Build the generated DTO by deserializing JSON (the protected
-            // parameterless ctor), avoiding the required-arg ctor's null checks.
-            var dto = PeakResponseJson.Deserialize<Gen.InitOtpLoginResponseDto>("{\"otpId\":\"otp-123\"}")!;
-            http.PostAsync<InitOtpLoginRequest, Gen.InitOtpLoginResponseDto>(
+            http.PostAsync<InitOtpLoginRequest, InitOtpLoginResponse>(
                     "public-api/v1/auth/otp/init-login",
                     Arg.Any<InitOtpLoginRequest>(),
                     Arg.Any<IReadOnlyDictionary<string, string>>(),
                     Arg.Any<CancellationToken>())
-                .Returns(dto);
+                .Returns(new InitOtpLoginResponse { OtpId = "otp-123" });
 
             var svc = new AuthService("https://api.peak.xyz", "k", http);
             var result = await svc.InitOtpLoginAsync("a@b.c");
@@ -34,25 +31,30 @@ namespace KyuzanInc.Peak.Sdk.Tests
             result!.OtpId.Should().Be("otp-123");
         }
 
-        // R6: a custom transport that knows nothing about generated types and
-        // deserializes any response reflectively with Newtonsoft still works.
+        // A custom transport that knows nothing about the SDK's source-gen context
+        // and parses reflectively with System.Text.Json still works. Case-insensitive
+        // so the camelCase wire body maps onto the PascalCase DTO properties (the
+        // SDK's own PeakJsonContext applies a camelCase naming policy instead; plain
+        // reflective STJ is case-sensitive by default and would otherwise leave the
+        // properties null).
         private sealed class ReflectiveTransport : IPeakHttpClient
         {
+            private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true };
             private readonly string body;
             public ReflectiveTransport(string body) => this.body = body;
 
             public Task<T?> GetAsync<T>(string endpoint, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where T : class =>
-                Task.FromResult((T?)Newtonsoft.Json.JsonConvert.DeserializeObject(body, typeof(T)));
+                Task.FromResult(JsonSerializer.Deserialize<T>(body, Options));
 
             public Task<T?> PostAsync<TBody, T>(string endpoint, TBody payload, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where TBody : class where T : class =>
-                Task.FromResult((T?)Newtonsoft.Json.JsonConvert.DeserializeObject(body, typeof(T)));
+                Task.FromResult(JsonSerializer.Deserialize<T>(body, Options));
 
             public Task<T?> PostAsync<T>(string endpoint, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where T : class =>
-                Task.FromResult((T?)Newtonsoft.Json.JsonConvert.DeserializeObject(body, typeof(T)));
+                Task.FromResult(JsonSerializer.Deserialize<T>(body, Options));
         }
 
         [Fact]
-        public async Task CustomTransport_DeserializesGeneratedDto_Reflectively()
+        public async Task CustomTransport_DeserializesPublicDto_Reflectively()
         {
             var svc = new AuthService("https://api.peak.xyz", "k",
                 new ReflectiveTransport("{\"otpId\":\"otp-xyz\"}"));
@@ -64,16 +66,17 @@ namespace KyuzanInc.Peak.Sdk.Tests
         public async Task CompleteOtpLogin_MapsResultAndCarriesKeyPair()
         {
             var http = Substitute.For<IPeakHttpClient>();
-            var dto = PeakResponseJson.Deserialize<Gen.CompleteOtpLoginResponseDto>(
-                "{\"user\":{\"id\":\"u1\",\"email\":\"a@b.c\",\"originProjectId\":\"p1\"," +
-                "\"turnkeySubOrgId\":\"s1\",\"turnkeyRootUserId\":\"r1\",\"deletionStatus\":\"none\"}," +
-                "\"sessionJwt\":\"jwt-x\",\"isNewUser\":true}")!;
-            http.PostAsync<CompleteOtpLoginRequest, Gen.CompleteOtpLoginResponseDto>(
+            http.PostAsync<CompleteOtpLoginRequest, CompleteOtpLoginResponse>(
                     "public-api/v1/auth/otp/complete-login",
                     Arg.Any<CompleteOtpLoginRequest>(),
                     Arg.Any<IReadOnlyDictionary<string, string>>(),
                     Arg.Any<CancellationToken>())
-                .Returns(dto);
+                .Returns(new CompleteOtpLoginResponse
+                {
+                    User = new UserResponse { Id = "u1", Email = "a@b.c" },
+                    SessionJwt = "jwt-x",
+                    IsNewUser = true,
+                });
 
             // Default keyPairFactory generates a real P-256 key before the POST.
             var svc = new AuthService("https://api.peak.xyz", "k", http);
