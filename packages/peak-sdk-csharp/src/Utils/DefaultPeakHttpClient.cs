@@ -21,9 +21,9 @@ namespace KyuzanInc.Peak.Sdk.Utils
     /// Default <see cref="IPeakHttpClient"/> implementation backed by
     /// <see cref="System.Net.Http.HttpClient"/>. Request bodies are serialised
     /// with <see cref="PeakJsonContext"/> (AOT / IL2CPP-safe source generation);
-    /// response bodies are deserialised via <c>PeakResponseJson</c>, which uses
-    /// Newtonsoft.Json for the internal generated DTOs (see
-    /// <see cref="IPeakHttpClient"/> remarks).
+    /// response bodies are deserialised via <c>PeakResponseJson</c> using the same
+    /// source-generated context (no reflection fallback; throws if a type is not
+    /// registered).
     /// </summary>
     public sealed class DefaultPeakHttpClient : IPeakHttpClient
     {
@@ -144,10 +144,10 @@ namespace KyuzanInc.Peak.Sdk.Utils
             {
                 throw new PeakError(PeakErrorCode.NetworkError, $"Request timed out: {ex.Message}", ex);
             }
-            // Both serialisers surface a parse failure as a JsonException: the STJ
-            // path for SDK-own types and the Newtonsoft path for generated DTOs
-            // (via PeakResponseJson). Map either to InvalidResponse with the raw body.
-            catch (Exception ex) when (ex is JsonException or Newtonsoft.Json.JsonException)
+            // A parse failure surfaces as System.Text.Json.JsonException (the only
+            // serialiser on the response path). Map it to InvalidResponse with the
+            // raw body.
+            catch (JsonException ex)
             {
                 throw new PeakError(PeakErrorCode.InvalidResponse,
                     $"Failed to parse JSON response: {ex.Message}", ex,
