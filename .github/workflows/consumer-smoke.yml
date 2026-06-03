@@ -8,9 +8,10 @@ name: Consumer install smoke
 # This complements the PRE-publish `consumer-restore-check` in csharp-ci.yml
 # (which packs the SDK locally and restores/builds from ./local-feed on every
 # PR). This workflow consumes the PUBLISHED GitHub Packages version, so it
-# catches packaging issues that only surface after publish — a missing
-# embedded DLL, a wrong/absent dependency edge (Newtonsoft.Json,
-# System.ComponentModel.Annotations), or a broken restore from the real feed.
+# catches packaging issues that only surface after publish — a wrong/absent
+# dependency edge (e.g. System.Text.Json) or a broken restore from the real feed.
+# (The SDK is System.Text.Json-only: no embedded generated-client DLL, no
+# Newtonsoft.Json/RestSharp on the consumer path — see issue #18.)
 #
 # Two trigger paths:
 #
@@ -118,9 +119,9 @@ jobs:
           # Add the org GitHub Packages feed to a LOCAL NuGet.config alongside the
           # default nuget.org. KyuzanInc.Peak.Sdk AND its transitive
           # KyuzanInc.Turnkey.Sdk resolve from here; everything else
-          # (Newtonsoft.Json, System.ComponentModel.Annotations, ...) from
-          # nuget.org. The clear-text token is fine on an ephemeral runner — the
-          # job-scoped GITHUB_TOKEN is revoked at job end.
+          # (System.Text.Json, Microsoft.Extensions.*, ...) from nuget.org. The
+          # clear-text token is fine on an ephemeral runner — the job-scoped
+          # GITHUB_TOKEN is revoked at job end.
           dotnet nuget add source \
             "https://nuget.pkg.github.com/KyuzanInc/index.json" \
             --name kyuzan-github \
