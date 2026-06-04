@@ -32,6 +32,25 @@ namespace KyuzanInc.Peak.Sdk.Tests
             api.Should().Contain("class AccountResponse");
             api.Should().Contain("interface IPeakHttpClient");
 
+            // The public, Peak-owned import/export crypto wrapper (and its nested
+            // param/result types) must be on the surface so consumers — notably
+            // the Unity adapter — can do client-side crypto without referencing
+            // Turnkey.* directly.
+            api.Should().Contain("class PeakCrypto");
+            api.Should().Contain("class KeyPair");
+            api.Should().Contain("class EncryptPrivateKeyToBundleParams");
+            api.Should().Contain("class DecryptExportBundleParams");
+
+            // The thin wrapper must NOT re-expose Turnkey's test-only signer
+            // override on the Peak surface (the Peak param types omit it). This
+            // is the PeakCrypto-specific leakage guard: PeakCrypto maps onto its
+            // own Peak-owned KeyPair / *Params types, so it adds no new Turnkey
+            // type to the surface. (Some Turnkey.* types are referenced
+            // elsewhere on the existing surface — e.g. the AuthService
+            // keyPairFactory and the import/export request envelopes — which is
+            // a separate, pre-existing concern, not introduced here.)
+            api.Should().NotContain("DangerouslyOverrideSignerPublicKey");
+
             // The internal update-display-name wrapper must NOT be public.
             api.Should().NotContain("UpdateAccountDisplayNameEnvelope");
         }

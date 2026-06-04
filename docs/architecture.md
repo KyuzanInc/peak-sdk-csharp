@@ -16,6 +16,7 @@ package; it is no longer built in this repo.
 |  - PeakClient, AuthenticatedPeakClient                   |
 |  - IStorage / ISecureStorage / DpapiSecureStorage        |
 |  - AuthService / AccountService / PrivateKeyService      |
+|  - PeakCrypto (thin public wrapper over Turnkey crypto)  |
 |  - PeakError + PeakErrorCode                             |
 |  - DTOs hand-designed; generated types kept internal     |
 +----------------------------------------------------------+
@@ -44,6 +45,17 @@ for Peak SDK code is the `KyuzanInc.Peak.Sdk` ↔ `Turnkey.*` line — the
 API surface we consume from the Turnkey package. Wire-format
 expectations on that surface are pinned by
 `packages/peak-sdk-csharp/tests/TurnkeyWireFormatSmokeTests.cs`.
+
+`PeakCrypto` re-exposes the client-side import/export crypto slice of
+`Turnkey.Crypto` / `Turnkey.Encoding` (P-256 public-key derivation,
+target key-pair generation, import-bundle encryption, export-bundle
+decryption, hex encode/decode) on the Peak surface with Peak-owned
+param/result types. It is a thin delegation wrapper — no crypto logic of
+its own — so downstream consumers (notably the Unity adapter, which must
+not reference `Turnkey.*`) depend only on `KyuzanInc.Peak.Sdk`. The
+test-only `dangerouslyOverrideSignerPublicKey` knob is intentionally not
+part of the Peak surface. DLL-level internalization of Turnkey remains
+out of scope: it stays a normal transitive dependency.
 
 ## Target framework strategy
 
