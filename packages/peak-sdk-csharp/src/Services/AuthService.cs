@@ -16,9 +16,12 @@ namespace KyuzanInc.Peak.Sdk.Services
 {
     /// <summary>
     /// Service for the OTP login flow (init + complete). Used by
-    /// <see cref="PeakClient"/>.
+    /// <see cref="PeakClient"/>. Internal: its ctor's
+    /// <c>keyPairFactory</c> takes a <c>Func&lt;global::Turnkey.Crypto.KeyPair&gt;</c>,
+    /// which would leak a Turnkey type onto the public surface. Constructed only
+    /// by <see cref="PeakClient"/>; tests reach it via InternalsVisibleTo.
     /// </summary>
-    public sealed class AuthService
+    internal sealed class AuthService
     {
         private readonly IPeakHttpClient httpClient;
         private readonly Func<global::Turnkey.Crypto.KeyPair> keyPairFactory;

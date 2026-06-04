@@ -32,6 +32,46 @@ namespace KyuzanInc.Peak.Sdk.Tests
             api.Should().Contain("class AccountResponse");
             api.Should().Contain("interface IPeakHttpClient");
 
+            // The public, Peak-owned import/export crypto wrapper (and its nested
+            // param/result types) must be on the surface so consumers can do
+            // client-side crypto without referencing Turnkey.* directly.
+            api.Should().Contain("class PeakCrypto");
+            // "class KeyPair" alone is ambiguous: Models.KeyPair (the OTP-login key
+            // pair) also renders as "class KeyPair". Pin the PeakCrypto-nested one via
+            // its qualified reference (PublicApiGenerator fully-qualifies type refs, so
+            // GenerateP256KeyPair's return type renders as ...PeakCrypto.KeyPair).
+            api.Should().Contain("PeakCrypto.KeyPair");
+            api.Should().Contain("class EncryptPrivateKeyToBundleParams");
+            api.Should().Contain("class DecryptExportBundleParams");
+
+            // The thin wrapper must NOT re-expose Turnkey's test-only signer
+            // override on the Peak surface (the Peak param types omit it).
+            // PeakCrypto maps onto its own Peak-owned KeyPair / *Params types, so
+            // it adds no Turnkey type to the surface.
+            api.Should().NotContain("DangerouslyOverrideSignerPublicKey");
+
+            // No Turnkey TYPE may leak onto the public surface. These match the
+            // leaked type references that used to be present:
+            //   - Turnkey.Http.SignedRequest (import/export request envelopes)
+            //   - Turnkey.Crypto.KeyPair      (AuthService keyPairFactory ctor)
+            // They were closed by internalizing those request types and the
+            // Services layer. NOTE: these patterns do NOT match the legitimate
+            // string properties TurnkeySubOrgId / TurnkeyRootUserId /
+            // TurnkeyResourceId (those are "Turnkey" + identifier, not
+            // "Turnkey." + namespace), which stay public on the response DTOs.
+            api.Should().NotContain("Turnkey.Http");
+            api.Should().NotContain("Turnkey.Crypto");
+
+            // The internal Services layer must NOT be public.
+            api.Should().NotContain("class AuthService");
+            api.Should().NotContain("class AccountService");
+            api.Should().NotContain("class PrivateKeyService");
+
+            // The internal import/export request envelopes must NOT be public.
+            api.Should().NotContain("class InitImportPrivateKeyRequest");
+            api.Should().NotContain("class CompleteImportPrivateKeyRequest");
+            api.Should().NotContain("class ExportPrivateKeyRequest");
+
             // The internal update-display-name wrapper must NOT be public.
             api.Should().NotContain("UpdateAccountDisplayNameEnvelope");
         }

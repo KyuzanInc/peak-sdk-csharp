@@ -177,7 +177,7 @@ namespace KyuzanInc.Peak.Sdk
             return new AuthenticatedPeakClient(options, stored, httpClient, loggerFactory);
         }
 
-        // Make storage accessible to tests / Unity adapter without exposing it
+        // Make storage accessible to tests without exposing it
         // to consumers via the public surface.
         internal IStorage StorageForTests => storage;
     }

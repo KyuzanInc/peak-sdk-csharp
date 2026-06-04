@@ -122,18 +122,24 @@ namespace KyuzanInc.Peak.Sdk.Models
         public string? DisplayName { get; set; }
     }
 
-    public sealed class InitImportPrivateKeyRequest
+    // These three request envelopes wrap a global::Turnkey.Http.SignedRequest.
+    // They are internal so that Turnkey type does not leak onto the SDK's
+    // public surface (so no consumer is forced to reference Turnkey.*). They are
+    // only built by PrivateKeyService and serialized via PeakJsonContext;
+    // source-gen handles internal [JsonSerializable] types fine. Tests reach
+    // them through InternalsVisibleTo.
+    internal sealed class InitImportPrivateKeyRequest
     {
         public global::Turnkey.Http.SignedRequest? SignedInitImportPrivateKeyRequest { get; set; }
     }
 
-    public sealed class CompleteImportPrivateKeyRequest
+    internal sealed class CompleteImportPrivateKeyRequest
     {
         public string? ChainType { get; set; }
         public global::Turnkey.Http.SignedRequest? SignedCompleteImportPrivateKeyRequest { get; set; }
     }
 
-    public sealed class ExportPrivateKeyRequest
+    internal sealed class ExportPrivateKeyRequest
     {
         public string? SourceType { get; set; }
         public global::Turnkey.Http.SignedRequest? SignedExportPrivateKeyRequest { get; set; }

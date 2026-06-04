@@ -11,7 +11,11 @@ using KyuzanInc.Peak.Sdk.Utils;
 
 namespace KyuzanInc.Peak.Sdk.Services
 {
-    public sealed class PrivateKeyService
+    // Internal: part of the SDK's internal Services layer. Constructed only by
+    // AuthenticatedPeakClient; never appears in a public API member. Tests reach
+    // it via InternalsVisibleTo. Its public methods only use Peak Models types;
+    // the global::Turnkey.* usage is all in private members / local vars.
+    internal sealed class PrivateKeyService
     {
         private readonly IPeakHttpClient httpClient;
         private readonly string sessionJwt;
