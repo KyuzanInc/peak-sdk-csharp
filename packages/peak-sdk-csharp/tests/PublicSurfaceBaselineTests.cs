@@ -37,7 +37,11 @@ namespace KyuzanInc.Peak.Sdk.Tests
             // the Unity adapter — can do client-side crypto without referencing
             // Turnkey.* directly.
             api.Should().Contain("class PeakCrypto");
-            api.Should().Contain("class KeyPair");
+            // "class KeyPair" alone is ambiguous: Models.KeyPair (the OTP-login key
+            // pair) also renders as "class KeyPair". Pin the PeakCrypto-nested one via
+            // its qualified reference (PublicApiGenerator fully-qualifies type refs, so
+            // GenerateP256KeyPair's return type renders as ...PeakCrypto.KeyPair).
+            api.Should().Contain("PeakCrypto.KeyPair");
             api.Should().Contain("class EncryptPrivateKeyToBundleParams");
             api.Should().Contain("class DecryptExportBundleParams");
 

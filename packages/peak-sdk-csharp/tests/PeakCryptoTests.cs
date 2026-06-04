@@ -23,10 +23,18 @@
 //                          DangerouslyOverrideSignerPublicKey, so a fully
 //                          deterministic encrypt round-trip isn't reachable
 //                          through the Peak surface. Instead we prove (a) the
-//                          missing-args contract matches the Turnkey call, and
-//                          (b) each Peak field is forwarded by driving the
-//                          wrapper to the same signer-mismatch failure the
-//                          equivalent Turnkey params produce on the same input.
+//                          missing-args contract matches the Turnkey call,
+//                          (b) PrivateKey + ImportBundle are forwarded (both are
+//                          consumed before the enclave-signature check, so the
+//                          wrapper and an equivalent Turnkey params reach the same
+//                          signer-mismatch failure), and (c) KeyFormat is forwarded
+//                          (the "SOLANA" decode branch fails differently from the
+//                          hex default). OrganizationId / UserId are read only
+//                          after the signer check — unreachable here because the
+//                          Peak surface cannot override the signer — so neither is
+//                          pinned on the encrypt path. OrganizationId forwarding is
+//                          proven on the decrypt path; UserId has no decrypt-path
+//                          equivalent, so its mapping is not pinned by any test.
 
 using System;
 using FluentAssertions;
@@ -111,6 +119,34 @@ namespace KyuzanInc.Peak.Sdk.Tests
 
             back.Should().Equal(vector);
             hex.Should().Be("deadbeef0042");
+        }
+
+        [Fact]
+        public void Uint8ArrayFromHexString_LengthArg_IsForwarded()
+        {
+            // The optional length arg must be forwarded: a value shorter than length
+            // is left-padded with leading zero bytes. The bytes match the raw Turnkey
+            // call, and the count is the requested length (not the 2 bytes of "01ff")
+            // — a dropped length arg would change both.
+            byte[] viaPeak = PeakCrypto.Uint8ArrayFromHexString("01ff", length: 4);
+
+            viaPeak.Should().Equal(global::Turnkey.Encoding.Uint8ArrayFromHexString("01ff", 4));
+            viaPeak.Should().HaveCount(4);
+        }
+
+        [Theory]
+        [InlineData("abc")]  // odd length
+        [InlineData("zz")]   // non-hex characters
+        [InlineData("")]     // empty
+        public void Uint8ArrayFromHexString_InvalidInput_ThrowsLikeTurnkey(string invalid)
+        {
+            // Invalid hex surfaces the Turnkey ArgumentException family through the
+            // thin wrapper (note: ArgumentException, not ArgumentNullException).
+            Action viaPeak = () => PeakCrypto.Uint8ArrayFromHexString(invalid);
+            Action viaTurnkey = () => global::Turnkey.Encoding.Uint8ArrayFromHexString(invalid);
+
+            viaPeak.Should().Throw<ArgumentException>();
+            viaTurnkey.Should().Throw<ArgumentException>();
         }
 
         // ------------------------------------------------------------------
@@ -268,16 +304,22 @@ namespace KyuzanInc.Peak.Sdk.Tests
         }
 
         [Fact]
-        public void EncryptPrivateKeyToBundle_ForwardsAllFields_MatchingTurnkeyBehavior()
+        public void EncryptPrivateKeyToBundle_DelegatesToTurnkey_ForwardsPrivateKeyAndImportBundle()
         {
-            // Field-forwarding proof. We feed a structurally valid import bundle
-            // whose enclaveQuorumPublic is NOT the production signer (and
-            // PeakCrypto intentionally cannot override the signer). The inner
-            // Turnkey verifyEnclaveSignature throws the SAME signer-mismatch
-            // error regardless of which path built the params — proving the
-            // wrapper forwarded PrivateKey/ImportBundle/OrganizationId/UserId/
-            // KeyFormat into an equivalently-constructed Turnkey params object
-            // (a dropped/renamed field would change where/how it fails).
+            // Delegation + field-forwarding proof for the two fields Turnkey consumes
+            // BEFORE the enclave-signature check. We feed a structurally valid import
+            // bundle whose enclaveQuorumPublic is NOT the production signer (and
+            // PeakCrypto intentionally cannot override the signer). Turnkey parses
+            // ImportBundle and decodes PrivateKey before verifyEnclaveSignature throws
+            // the SAME signer-mismatch error regardless of which path built the params,
+            // so dropping/renaming PrivateKey or ImportBundle would change where/how it
+            // fails. (KeyFormat forwarding is proven by the "SOLANA" test below.
+            // OrganizationId and UserId are read only AFTER the signer check, which the
+            // Peak surface cannot pass, so neither is pinned on the encrypt path:
+            // OrganizationId forwarding is proven independently on the decrypt path,
+            // but UserId has no decrypt-path equivalent — DecryptExportBundleParams has
+            // no UserId field — so the UserId mapping is a visually-verified one-liner
+            // that no test currently pins.)
             const string privateKey =
                 "0000000000000000000000000000000000000000000000000000000000000001";
             const string organizationId = "org-xyz";
@@ -316,6 +358,54 @@ namespace KyuzanInc.Peak.Sdk.Tests
             viaPeak!.GetType().Should().Be(viaTurnkey!.GetType());
             viaPeak.Message.Should().Be(viaTurnkey.Message);
             viaPeak.Message.Should().Contain("does not match signer key from bundle");
+        }
+
+        [Fact]
+        public void EncryptPrivateKeyToBundle_ForwardsKeyFormat_MatchingTurnkeyBehavior()
+        {
+            // KeyFormat IS forwarded. Turnkey decodes the private key per KeyFormat
+            // BEFORE the enclave-signature check, and the "SOLANA" branch differs from
+            // the hex default. So flagging "SOLANA" on this (non-base58) key fails in
+            // the decode step — a different failure than the hex path's signer
+            // mismatch. If the wrapper had dropped KeyFormat (defaulting to hex), it
+            // would instead reach the same signer mismatch the test above asserts.
+            // We compare the failure to the raw Turnkey "SOLANA" call (byte-identical
+            // delegation) without hard-coding Turnkey's exact decode-error text.
+            const string privateKey =
+                "0000000000000000000000000000000000000000000000000000000000000001";
+            const string importBundle =
+                "{\"enclaveQuorumPublic\":\"04aaaa\",\"dataSignature\":\"00\",\"data\":\"00\"}";
+
+            Exception viaPeak = Record.Exception(() =>
+                PeakCrypto.EncryptPrivateKeyToBundle(new PeakCrypto.EncryptPrivateKeyToBundleParams
+                {
+                    PrivateKey = privateKey,
+                    ImportBundle = importBundle,
+                    OrganizationId = "org-xyz",
+                    UserId = "user-xyz",
+                    KeyFormat = "SOLANA",
+                }));
+
+            Exception viaTurnkey = Record.Exception(() =>
+                global::Turnkey.Crypto.EncryptPrivateKeyToBundle(
+                    new global::Turnkey.Crypto.EncryptPrivateKeyToBundleParams
+                    {
+                        PrivateKey = privateKey,
+                        ImportBundle = importBundle,
+                        OrganizationId = "org-xyz",
+                        UserId = "user-xyz",
+                        KeyFormat = "SOLANA",
+                    }));
+
+            // Faithful delegation: same failure type + message via Peak and Turnkey.
+            viaPeak.Should().NotBeNull();
+            viaTurnkey.Should().NotBeNull();
+            viaPeak!.GetType().Should().Be(viaTurnkey!.GetType());
+            viaPeak.Message.Should().Be(viaTurnkey.Message);
+
+            // KeyFormat="SOLANA" must NOT reach the hex path's signer mismatch —
+            // that would mean KeyFormat was ignored / silently defaulted to hex.
+            viaPeak.Message.Should().NotContain("does not match signer key from bundle");
         }
     }
 }

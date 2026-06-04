@@ -9,10 +9,11 @@ using KyuzanInc.Peak.Sdk.Utils;
 
 namespace KyuzanInc.Peak.Sdk.Services
 {
-    // Internal: part of the SDK's internal Services layer. Constructed only by
-    // AuthenticatedPeakClient; never appears in a public API member. Tests reach
-    // it via InternalsVisibleTo. (No Turnkey type in its signatures — this is a
-    // consistency move alongside AuthService / PrivateKeyService.)
+    // Internal: part of the SDK's internal Services layer. Constructed by
+    // AuthenticatedPeakClient and, as a fallback, by PrivateKeyService when no
+    // AccountService is injected; never appears in a public API member. Tests
+    // reach it via InternalsVisibleTo. (No Turnkey type in its signatures — this
+    // is a consistency move alongside AuthService / PrivateKeyService.)
     internal sealed class AccountService
     {
         private readonly IPeakHttpClient httpClient;

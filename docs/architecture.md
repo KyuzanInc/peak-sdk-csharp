@@ -15,7 +15,7 @@ package; it is no longer built in this repo.
 |  KyuzanInc.Peak.Sdk        (public surface, generic)     |
 |  - PeakClient, AuthenticatedPeakClient                   |
 |  - IStorage / ISecureStorage / DpapiSecureStorage        |
-|  - AuthService / AccountService / PrivateKeyService      |
+|  - Services layer (Auth/Account/PrivateKey, internal)    |
 |  - PeakCrypto (thin public wrapper over Turnkey crypto)  |
 |  - PeakError + PeakErrorCode                             |
 |  - DTOs hand-designed; generated types kept internal     |
