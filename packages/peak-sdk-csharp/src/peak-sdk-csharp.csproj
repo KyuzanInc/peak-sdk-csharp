@@ -22,7 +22,7 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 
     <PackageId>KyuzanInc.Peak.Sdk</PackageId>
-    <Version>0.1.0-alpha.0</Version>
+    <Version>0.1.0-alpha.1</Version>
     <Title>KyuzanInc.Peak.Sdk</Title>
     <Description>Peak embedded-wallet SDK for .NET. OTP login, account management, private key import/export. A generic-NET port of peak-sdk-unity by Kyuzan Inc.; semantic equivalent of the Unity public surface plus selected behaviour from peak-sdk-browser. Includes IStorage / ISecureStorage abstractions; secure storage backends live in KyuzanInc.Peak.Sdk.Unity (Unity) or KyuzanInc.Peak.Sdk (Windows DPAPI).</Description>
     <PackageTags>peak;wallet;turnkey;sdk;embedded-wallet;p256;otp</PackageTags>
