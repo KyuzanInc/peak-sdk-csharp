@@ -116,8 +116,8 @@ is `internal` / `IsPackable=false`, and the Unity adapter is not in the
 solution). A downstream project that has the `github-kyuzan` source
 configured — the same one-time auth setup as above, which also serves
 the transitive `KyuzanInc.Turnkey.Sdk` — installs the published package
-straight from the feed (`--prerelease` is required while the only
-published version is the `0.1.0-alpha.0` prerelease — a bare
+straight from the feed (`--prerelease` is required while the latest
+published version is the `0.1.0-alpha.1` prerelease — a bare
 `dotnet add package` resolves stable versions only):
 
 ```
