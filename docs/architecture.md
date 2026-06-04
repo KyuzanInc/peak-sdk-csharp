@@ -25,7 +25,7 @@ package; it is no longer built in this repo.
 +----------------------------------------------------------+
 |  KyuzanInc.Peak.PublicApiClient                          |
 |  - internal-only OpenAPI codegen                         |
-|  - referenced as <IsPrivateAssets="all">                 |
+|  - build-time only; not a runtime/package dependency     |
 +----------------------------------------------------------+
 |  KyuzanInc.Turnkey.Sdk   (third-party NuGet package)     |
 |  - Crypto (HPKE / ECDSA / HKDF / Bundle parse)           |
@@ -34,7 +34,7 @@ package; it is no longer built in this repo.
 |  - Encoding (hex / base58 / base58check)                 |
 +----------------------------------------------------------+
 |  BouncyCastle.Cryptography 2.5.0   (transitive backend)  |
-|  System.Text.Json 10.0.8           (source-gen context)  |
+|  System.Text.Json 8.0.5            (source-gen context)  |
 +----------------------------------------------------------+
 ```
 
@@ -76,10 +76,13 @@ material; `PeakError.LogContext` carries the redaction-aware payload.
 ## OpenAPI codegen
 
 `KyuzanInc.Peak.PublicApiClient` is an OpenAPI-generated client. It is
-deliberately not exposed to consumers (`<IsPrivateAssets="all"/>` on
-its `<PackageReference>`). The hand-designed DTOs in
-`KyuzanInc.Peak.Sdk` wrap the generated types so that a codegen
-template change does not break the public surface.
+**build-time only**: the SDK does not reference it at runtime and does
+not ship it in the `KyuzanInc.Peak.Sdk` package. It exists to detect
+spec drift (the `openapi-client-drift` CI job regenerates and diffs it)
+and to back the `GeneratedDtoContractTests` field-coverage check. The
+SDK's public DTOs are hand-written System.Text.Json types
+(`Models/Models.cs`) deserialized directly via `PeakJsonContext`; they
+do not wrap the generated types (reverted per issue #18).
 
 Source spec: `upstream-snapshots/peak-server-openapi/public-api.yaml`,
 tracking `KyuzanInc/peak` `main` HEAD, recorded as an exact commit in

@@ -20,26 +20,17 @@
     <!-- External Turnkey port (Crypto, ApiKeyStamper, Http, Encoding). Pinned exact. -->
     <PackageVersion Include="KyuzanInc.Turnkey.Sdk" Version="[0.1.0-alpha.0]" />
 
-    <!-- JSON: source generator for AOT / IL2CPP safety -->
-    <PackageVersion Include="System.Text.Json" Version="10.0.8" />
+    <!-- JSON: source generator for AOT / IL2CPP safety. Pinned 8.0.x to align
+         with KyuzanInc.Turnkey.Sdk (IL2CPP-proven) and minimize Unity restore risk. -->
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
 
     <!-- Logging abstraction (NullLogger<T>.Instance default) -->
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
 
-    <!-- HTTP resilience pattern (Polly v7-line for netstandard2.1 compat) -->
-    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="7.0.20" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
 
     <!-- DPAPI (Windows-only, used by net8.0-windows TFM of peak-sdk-csharp) -->
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <!-- Internal response-DTO deserialization in the SDK (the generated client's
-         models are Newtonsoft-shaped). The client csproj keeps its own
-         VersionOverride for RestSharp/Polly; Newtonsoft is shared here. -->
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <!-- The embedded generated DTOs implement IValidatableObject from
-         System.ComponentModel.DataAnnotations; netstandard2.1 consumers need this
-         assembly to load them, and PrivateAssets hides the client's own copy. -->
-    <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Test">

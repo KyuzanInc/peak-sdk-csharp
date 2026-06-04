@@ -27,6 +27,8 @@ namespace KyuzanInc.Peak.Sdk
     [JsonSerializable(typeof(ListAccountsResponse))]
     [JsonSerializable(typeof(ListAccountAddressesResponse))]
     [JsonSerializable(typeof(GetAddressDetailResponse))]
+    // Internal wrapper for the { "account": {...} } update-display-name response.
+    [JsonSerializable(typeof(UpdateAccountDisplayNameEnvelope))]
     [JsonSerializable(typeof(InitOtpLoginResponse))]
     [JsonSerializable(typeof(CompleteOtpLoginResponse))]
     [JsonSerializable(typeof(InitImportPrivateKeyResponse))]

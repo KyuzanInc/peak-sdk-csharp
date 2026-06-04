@@ -94,12 +94,17 @@ The script:
 
 ### Consumer wiring
 
-`KyuzanInc.Peak.Sdk` consumes the generated client's **response** DTOs: the
-transport deserializes them with Newtonsoft and `Mapping/GeneratedDtoMappers.cs`
-maps them to the public System.Text.Json DTOs. The generation script flips all
-generated types to `internal`; regenerate with `scripts/generate-public-api-client.sh`
-(the internalize step runs automatically and the drift job reproduces it).
-Requests and the public DTO surface are hand-written and unchanged.
+`KyuzanInc.Peak.Sdk` deserializes peak-server **responses** directly into its
+hand-written System.Text.Json DTOs (`Models/Models.cs`) via the source-generated
+`PeakJsonContext` — no Newtonsoft, no generated-DTO mapping on the runtime path
+(issue #18 / the 2026-06-03 STJ-only design). The generated client
+(`KyuzanInc.Peak.PublicApiClient`) is **build-time only**: it is not referenced by
+the SDK at runtime and is not shipped in the package; it exists to detect spec
+drift and to back the `GeneratedDtoContractTests` field-coverage check. The
+generation script still flips all generated types to `internal`; regenerate with
+`scripts/generate-public-api-client.sh` (the internalize step runs automatically
+and the drift job reproduces it). Requests and the public DTO surface are
+hand-written and unchanged.
 
 ## Drift CI
 

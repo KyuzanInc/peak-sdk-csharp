@@ -8,28 +8,26 @@ using KyuzanInc.Peak.Sdk.Services;
 using KyuzanInc.Peak.Sdk.Utils;
 using NSubstitute;
 using Xunit;
-using Gen = KyuzanInc.Peak.PublicApiClient.Model;
 
 namespace KyuzanInc.Peak.Sdk.Tests
 {
     public class PrivateKeyServiceTests
     {
         [Fact]
-        public async Task CompleteImport_MapsGeneratedAccountDtos()
+        public async Task CompleteImport_ReturnsPublicDtos()
         {
             var http = Substitute.For<IPeakHttpClient>();
-            // Build the generated DTO from JSON (parameterless ctor + setters),
-            // avoiding the required-arg ctors and their null checks.
-            var responseDto = PeakResponseJson.Deserialize<Gen.CompleteImportPrivateKeyResponseDto>(
-                "{\"account\":{\"id\":\"acc1\",\"userId\":\"u1\",\"accountSourceId\":\"src1\",\"accountIndex\":0,\"originProjectId\":\"proj1\"}," +
-                "\"accountAddress\":{\"id\":\"ad1\",\"accountId\":\"acc1\",\"address\":\"0xabc\",\"chainType\":\"evm\"}," +
-                "\"accountSource\":{\"id\":\"s1\",\"userId\":\"u1\",\"originProjectId\":\"proj1\",\"turnkeyResourceId\":\"tk1\",\"sourceType\":\"private-key\",\"creationMethod\":\"imported\"}}")!;
-            http.PostAsync<CompleteImportPrivateKeyRequest, Gen.CompleteImportPrivateKeyResponseDto>(
+            http.PostAsync<CompleteImportPrivateKeyRequest, CompleteImportPrivateKeyResponse>(
                     "public-api/v1/private-keys/complete-import",
                     Arg.Any<CompleteImportPrivateKeyRequest>(),
                     Arg.Any<IReadOnlyDictionary<string, string>>(),
                     Arg.Any<CancellationToken>())
-                .Returns(responseDto);
+                .Returns(new CompleteImportPrivateKeyResponse
+                {
+                    Account = new AccountResponse { Id = "acc1" },
+                    AccountAddress = new AccountAddressResponse { Address = "0xabc" },
+                    AccountSource = new AccountSourceResponse { SourceType = "private-key" },
+                });
 
             // CompleteImportPrivateKeyAsync decodes the session JWT (org/user) and
             // signs the request with a real P-256 key before the mocked HTTP call.
@@ -47,26 +45,26 @@ namespace KyuzanInc.Peak.Sdk.Tests
             result.AccountSource!.SourceType.Should().Be("private-key");
         }
 
-        private const string PrivateKeySourceDetailJson =
-            "{\"accountAddress\":{\"id\":\"ad1\",\"accountId\":\"acc1\",\"address\":\"0xabc\",\"chainType\":\"evm\"}," +
-            "\"account\":{\"id\":\"acc1\",\"userId\":\"u1\",\"accountSourceId\":\"src1\",\"accountIndex\":0,\"originProjectId\":\"proj1\"}," +
-            "\"accountSource\":{\"id\":\"s1\",\"userId\":\"u1\",\"originProjectId\":\"proj1\",\"turnkeyResourceId\":\"tk1\",\"sourceType\":\"private-key\",\"creationMethod\":\"imported\"}}";
+        private static GetAddressDetailResponse PrivateKeySourceDetail(string sourceType) => new()
+        {
+            AccountAddress = new AccountAddressResponse { Id = "ad1", Address = "0xabc", ChainType = "evm" },
+            Account = new AccountResponse { Id = "acc1" },
+            AccountSource = new AccountSourceResponse { Id = "s1", TurnkeyResourceId = "tk1", SourceType = sourceType },
+        };
 
         [Fact]
-        public async Task Export_PrivateKeySource_MapsBundleFromGeneratedDto()
+        public async Task Export_PrivateKeySource_MapsBundle()
         {
             var http = Substitute.For<IPeakHttpClient>();
-            var addressDetail = PeakResponseJson.Deserialize<Gen.GetAccountAddressWithAccountAndSourceResponseDto>(PrivateKeySourceDetailJson)!;
-            http.GetAsync<Gen.GetAccountAddressWithAccountAndSourceResponseDto>(
+            http.GetAsync<GetAddressDetailResponse>(
                     Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
-                .Returns(addressDetail);
-            var exportDto = PeakResponseJson.Deserialize<Gen.ExportPrivateKeyResponseDto>("{\"exportBundle\":\"bundle-x\"}")!;
-            http.PostAsync<ExportPrivateKeyRequest, Gen.ExportPrivateKeyResponseDto>(
+                .Returns(PrivateKeySourceDetail("private-key"));
+            http.PostAsync<ExportPrivateKeyRequest, ExportPrivateKeyResponse>(
                     "public-api/v1/private-keys/export",
                     Arg.Any<ExportPrivateKeyRequest>(),
                     Arg.Any<IReadOnlyDictionary<string, string>>(),
                     Arg.Any<CancellationToken>())
-                .Returns(exportDto);
+                .Returns(new ExportPrivateKeyResponse { ExportBundle = "bundle-x" });
 
             var keyPair = global::Turnkey.Crypto.GenerateP256KeyPair();
             var svc = new PrivateKeyService(
@@ -83,20 +81,16 @@ namespace KyuzanInc.Peak.Sdk.Tests
         [Fact]
         public async Task Export_UnsupportedSourceType_ThrowsInvalidResponse()
         {
-            // An unknown sourceType maps to null via the tolerant enum resolver, so
-            // the export flow hits the unsupported-source-type branch (no signing).
+            // An unknown sourceType now passes through as a RAW STRING (the tolerant
+            // enum resolver is gone), so it reaches the default arm of the
+            // source-type switch and still surfaces as PeakError InvalidResponse.
             var http = Substitute.For<IPeakHttpClient>();
-            var addressDetail = PeakResponseJson.Deserialize<Gen.GetAccountAddressWithAccountAndSourceResponseDto>(
-                "{\"accountAddress\":{\"id\":\"ad1\",\"accountId\":\"acc1\",\"address\":\"0xabc\",\"chainType\":\"evm\"}," +
-                "\"account\":{\"id\":\"acc1\",\"userId\":\"u1\",\"accountSourceId\":\"src1\",\"accountIndex\":0,\"originProjectId\":\"proj1\"}," +
-                "\"accountSource\":{\"id\":\"s1\",\"userId\":\"u1\",\"originProjectId\":\"proj1\",\"turnkeyResourceId\":\"tk1\",\"sourceType\":\"brand-new-source\",\"creationMethod\":\"imported\"}}")!;
-            http.GetAsync<Gen.GetAccountAddressWithAccountAndSourceResponseDto>(
+            http.GetAsync<GetAddressDetailResponse>(
                     Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, string>>(), Arg.Any<CancellationToken>())
-                .Returns(addressDetail);
+                .Returns(PrivateKeySourceDetail("brand-new-source"));
 
             // A real P-256 key: the service builds the Turnkey client before the
-            // source-type branch, so a dummy key would throw earlier. The unknown
-            // source type is what must surface as PeakError InvalidResponse.
+            // source-type branch, so a dummy key would throw earlier.
             var keyPair = global::Turnkey.Crypto.GenerateP256KeyPair();
             var svc = new PrivateKeyService(
                 "https://api.peak.xyz", "k",
