@@ -124,7 +124,7 @@ namespace KyuzanInc.Peak.Sdk.Models
 
     // These three request envelopes wrap a global::Turnkey.Http.SignedRequest.
     // They are internal so that Turnkey type does not leak onto the SDK's
-    // public surface (the Unity adapter must not reference Turnkey.*). They are
+    // public surface (so no consumer is forced to reference Turnkey.*). They are
     // only built by PrivateKeyService and serialized via PeakJsonContext;
     // source-gen handles internal [JsonSerializable] types fine. Tests reach
     // them through InternalsVisibleTo.

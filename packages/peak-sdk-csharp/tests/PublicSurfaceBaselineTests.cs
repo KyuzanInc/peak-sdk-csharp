@@ -33,9 +33,8 @@ namespace KyuzanInc.Peak.Sdk.Tests
             api.Should().Contain("interface IPeakHttpClient");
 
             // The public, Peak-owned import/export crypto wrapper (and its nested
-            // param/result types) must be on the surface so consumers — notably
-            // the Unity adapter — can do client-side crypto without referencing
-            // Turnkey.* directly.
+            // param/result types) must be on the surface so consumers can do
+            // client-side crypto without referencing Turnkey.* directly.
             api.Should().Contain("class PeakCrypto");
             // "class KeyPair" alone is ambiguous: Models.KeyPair (the OTP-login key
             // pair) also renders as "class KeyPair". Pin the PeakCrypto-nested one via

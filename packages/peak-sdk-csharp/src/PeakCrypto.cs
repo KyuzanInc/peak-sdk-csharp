@@ -2,14 +2,13 @@
 // the Turnkey port (global::Turnkey.Crypto / global::Turnkey.Encoding) exposes.
 //
 // Why this exists:
-//   peak-sdk-unity is migrating to delegate to KyuzanInc.Peak.Sdk, and the
-//   Unity adapter must NOT reference Turnkey.* directly. The wallet
-//   import/export flow needs the client-side crypto primitives (derive a
-//   P-256 public key, generate a target key pair, build an import bundle,
+//   The wallet import/export flow needs client-side crypto primitives (derive
+//   a P-256 public key, generate a target key pair, build an import bundle,
 //   decrypt an export bundle), which until now were only reachable by calling
-//   KyuzanInc.Turnkey.Sdk. PeakCrypto re-exposes exactly that slice on the
-//   Peak surface with Peak-owned param/result types, so consumers depend only
-//   on KyuzanInc.Peak.Sdk.
+//   KyuzanInc.Turnkey.Sdk directly — forcing every consumer to take a direct
+//   dependency on the Turnkey port. PeakCrypto re-exposes exactly that slice on
+//   the Peak surface with Peak-owned param/result types, so consumers depend
+//   only on KyuzanInc.Peak.Sdk and never reference Turnkey.* directly.
 //
 // Design:
 //   - THIN delegation. Every method forwards to global::Turnkey.* and maps the
@@ -21,7 +20,7 @@
 //     not part of the public Peak surface.
 //   - DLL-level internalization of Turnkey is out of scope; Turnkey remains a
 //     normal transitive dependency. This wrapper is purely an API-surface
-//     concern so the Unity adapter has a Turnkey-free import.
+//     concern so consumers get a Turnkey-free import.
 
 using System;
 using TurnkeyCrypto = global::Turnkey.Crypto;
@@ -33,8 +32,8 @@ namespace KyuzanInc.Peak.Sdk
     /// Public, Peak-owned facade over the client-side import/export crypto from
     /// <c>KyuzanInc.Turnkey.Sdk</c>. Thin delegation: every member forwards to
     /// <c>global::Turnkey.Crypto</c> / <c>global::Turnkey.Encoding</c> and maps the
-    /// Peak-owned parameter/result types onto the Turnkey ones so consumers (e.g.
-    /// the Unity adapter) never reference <c>Turnkey.*</c> directly.
+    /// Peak-owned parameter/result types onto the Turnkey ones so consumers never
+    /// reference <c>Turnkey.*</c> directly.
     /// </summary>
     public static class PeakCrypto
     {

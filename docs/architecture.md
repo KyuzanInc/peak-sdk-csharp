@@ -51,8 +51,8 @@ expectations on that surface are pinned by
 target key-pair generation, import-bundle encryption, export-bundle
 decryption, hex encode/decode) on the Peak surface with Peak-owned
 param/result types. It is a thin delegation wrapper — no crypto logic of
-its own — so downstream consumers (notably the Unity adapter, which must
-not reference `Turnkey.*`) depend only on `KyuzanInc.Peak.Sdk`. The
+its own — so downstream consumers depend only on `KyuzanInc.Peak.Sdk` and
+never reference `Turnkey.*` directly. The
 test-only `dangerouslyOverrideSignerPublicKey` knob is intentionally not
 part of the Peak surface. DLL-level internalization of Turnkey remains
 out of scope: it stays a normal transitive dependency.
