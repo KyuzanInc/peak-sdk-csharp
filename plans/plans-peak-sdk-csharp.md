@@ -52,7 +52,7 @@ commits.
 | W0e | ~~Slim the generated client to models-only (drop RestSharp/Polly)~~ | 🟢 Retired | Moot under issue #18: the generated client is no longer embedded or referenced at runtime, so its runtime deps never reach a consumer. | — | superseded by #18 |
 | W1  | PR 1: turnkey crypto / API key stamping | ⬜ Out of scope here — lives in `KyuzanInc/turnkey-sdk-csharp` (consumed as `KyuzanInc.Turnkey.Sdk 0.1.0-alpha.0`) | external repo `KyuzanInc/turnkey-sdk-csharp` v0.1.0-alpha.0 release | — | per `plans/plans-turnkey-import.md` |
 | W2  | PR 2: peak-sdk-csharp PeakClient + services + IStorage + PeakError + Codex orgId fix | ✅ Done | 22/22 tests pass | `afc3dc8` | — |
-| W3  | PR 3: Godot + console smoke examples + Unity reference example via local file feed | ⬜ Deferred to v0.1.0-alpha.1 | scope decision | — | — |
+| W3  | PR 3: Godot + console smoke examples + Unity reference example via local file feed | 🟡 Unity portion delivered (Console + Godot still deferred) | `examples/peak-sdk-unity-reference/` + IL2CPP smoke log; design `docs/superpowers/specs/2026-06-09-unity-reference-example-otp-login-design.md`. (W3 had been deferred to v0.1.0-alpha.1, which shipped with .2 without it — the Unity third lands here.) | #24 | — |
 | W4  | PR 4: remaining v0.1.0 API surface (Account × 3 + PrivateKey × 3 + internal × 1) | ✅ Done (folded into W2) | AccountService + PrivateKeyService landed in PR 2 | `afc3dc8` | — |
 | W4.5| PR 4.5: SecureStorage core (Windows DPAPI + UnavailableSecureStorage placeholder) | ✅ Done | `docs/security/secure-storage-platform-matrix.md` | `6847839` | Codex C4 |
 | W5  | PR 5 (deferred to separate repo): turn `peak-sdk-unity` into thin adapter | ⬜ Out of scope here | external repo work | — | per user directive |
@@ -403,8 +403,13 @@ Show the SDK working under three hosts:
    `.nupkg` from `dotnet pack`. Used to exercise the IL2CPP smoke path
    that the original plan delegated to `peak-sdk-unity-example`.
 
-The Unity sample is intentionally **minimal**: just the asmdef + a
-single MonoBehaviour that calls `PeakClient.Initialize`. iOS / Android
+The Unity sample runs the **full** OTP + wallet flow (init → OTP →
+authenticate → list accounts → import/export), not just
+`PeakClient.Initialize`: a bare init call would not exercise the HTTP +
+System.Text.Json source-gen + async-state-machine + BouncyCastle paths that
+IL2CPP AOT stripping actually breaks, which is the whole point of the smoke
+(design D2). The in-repo sample now realizes the C-E2 / OQ3 IL2CPP smoke that
+was previously delegated to the external `peak-sdk-unity` adapter. iOS / Android
 Player build smoke is human-driven (Komy + TJ) using XCode + Android
 Studio, with results captured in
 `docs/operations/il2cpp-smoke-<date>.md`.

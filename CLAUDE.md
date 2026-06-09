@@ -89,7 +89,12 @@ Wallet SDK security policy:
 
 Do not introduce dependencies on:
 
-- `UnityEngine` outside `packages/peak-sdk-csharp-unity/`
+- `UnityEngine` in any **shipped** SDK package (everything under `packages/`).
+  The Unity adapter `packages/peak-sdk-csharp-unity/` is the only package that
+  may. Consumer **samples** under `examples/**` (e.g.
+  `examples/peak-sdk-unity-reference/`) are NOT shipped packages and are not in
+  `peak-sdk-csharp.sln`; they may reference `UnityEngine`. The dependency arrow
+  stays example→SDK — no SDK package may reference an example.
 - A new logger abstraction (use `Microsoft.Extensions.Logging.Abstractions`
   and `NullLogger<T>.Instance` as default)
 

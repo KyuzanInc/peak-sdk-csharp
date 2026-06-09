@@ -82,6 +82,10 @@ For maintainers, see [docs/development.md](docs/development.md) for the
 build/test workflow and [plans/plans-peak-sdk-csharp.md](plans/plans-peak-sdk-csharp.md)
 for the active port plan.
 
+## Examples
+
+- [`examples/peak-sdk-unity-reference/`](examples/peak-sdk-unity-reference/README.md) — Unity 6000.0.x reference consumer + IL2CPP smoke (OTP login + wallet flow).
+
 ## Repository layout
 
 ```

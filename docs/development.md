@@ -146,6 +146,20 @@ because
 consumers via NuGetForUnity follow the same pattern after the
 `.nupkg` is copied into the Unity project's Packages folder.
 
+### Unity reference example
+
+`examples/peak-sdk-unity-reference/` is a minimal Unity 6000.0.x project that
+consumes `KyuzanInc.Peak.Sdk` from a project-local `.nupkg` feed and runs the OTP
+login + wallet flow as a human IL2CPP AOT smoke. Its `prepare-feed.sh` packs the
+SDK **and vendors the transitive `KyuzanInc.Turnkey.Sdk` `.nupkg`** into the
+example's `LocalFeed/`, so the Unity restore needs **no GitHub Packages auth** (a
+deliberate divergence from the "still need the GitHub Packages source" guidance
+above, which remains correct for a plain downstream consumer). A prior
+`dotnet restore` of the solution must have warmed the cache first. The exact Unity
+6000.0.x patch and the NuGetForUnity tag are confirmed by the smoke runner; see
+the example's `README.md`. IL2CPP results are logged in
+`docs/operations/il2cpp-smoke-<date>.md`.
+
 ## Bumping `KyuzanInc.Turnkey.Sdk`
 
 See [docs/sync-rules.md](sync-rules.md) for the full bump procedure.
