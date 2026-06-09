@@ -9,7 +9,7 @@
 ## Configuration
 - Scripting backend: IL2CPP
 - Api Compatibility Level: .NET Standard 2.1
-- Managed stripping level: ____ (Disabled/Minimal/Low/Medium/High — record what was tested)
+- Managed stripping level: ____ (committed default = **Low**; record what was tested. A **Disabled** build strips nothing, so a Disabled pass is NOT a valid smoke result — the level must be Low or higher to actually exercise AOT stripping.)
 - Target platform(s): Standalone (mac/win/linux) [; iOS / Android if toolchains available]
 - link.xml present: yes (Assets/link.xml — preserves BouncyCastle, Turnkey, Peak.Sdk, System.Text.Json)
 
