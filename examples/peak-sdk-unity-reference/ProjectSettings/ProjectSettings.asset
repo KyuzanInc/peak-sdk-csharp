@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 26
+  productName: PeakSdkUnityReference
+  companyName: Kyuzan Inc.
+  applicationIdentifier:
+    Standalone: com.kyuzan.peak.example
+  # --- Load-bearing for the IL2CPP smoke (spec D11/§5.5) ---
+  # apiCompatibilityLevel: 6 == .NET Standard 2.1 (so the netstandard2.1 SDK asset
+  # + System.Text.Json/Microsoft.Extensions.* resolve). scriptingBackend 1 == IL2CPP.
+  # managedStrippingLevel 0 == Disabled/Minimal start point (raise + re-test in the smoke).
+  apiCompatibilityLevelPerPlatform: {}
+  apiCompatibilityLevel: 6
+  scriptingBackend:
+    Standalone: 1
+  il2cppCompilerConfiguration: {}
+  managedStrippingLevel:
+    Standalone: 0
+  allowUnsafeCode: 0

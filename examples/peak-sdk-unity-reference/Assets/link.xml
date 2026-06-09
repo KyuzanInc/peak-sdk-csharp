@@ -1,0 +1,13 @@
+<!--
+  IL2CPP managed-stripping preservation. BouncyCastle has a documented history of
+  UnityLinker stripping failures; Turnkey/PeakCrypto depend on it. STJ uses
+  source-gen (AOT-safe) so it likely needs no preservation, kept here defensively.
+  Remove an entry ONLY if a Player build proves it unnecessary; record the result
+  in docs/operations/il2cpp-smoke-<date>.md.
+-->
+<linker>
+  <assembly fullname="BouncyCastle.Cryptography" preserve="all" />
+  <assembly fullname="KyuzanInc.Turnkey.Sdk" preserve="all" />
+  <assembly fullname="KyuzanInc.Peak.Sdk" preserve="all" />
+  <assembly fullname="System.Text.Json" preserve="all" />
+</linker>
