@@ -20,6 +20,10 @@ Ran Unity 6000.0.73f1 headless against the project. Confirmed:
   `../LocalFeed` (+ nuget.org) into `Assets/Packages/` — incl. `KyuzanInc.Peak.Sdk`,
   `KyuzanInc.Turnkey.Sdk`, `BouncyCastle.Cryptography`, `System.Text.Json`, the
   `Microsoft.Extensions.*` set, and `System.Numerics.Vectors`.
+- **No-GitHub-auth path proven:** re-ran the restore with the machine's *global*
+  NuGet config temporarily hidden (so no `github-kyuzan` source is injected). All 21
+  packages — incl. `KyuzanInc.Peak.Sdk` + `KyuzanInc.Turnkey.Sdk` — still restored,
+  from the local feed alone. This confirms the example needs no GitHub Packages auth.
 - **`PeakExampleDemo.cs` compiles clean** against the restored SDK (`Peak.Example.dll`
   built, **0 compile errors**). The `Peak.Example` asmdef picks up the restored DLLs
   via NuGetForUnity's default Auto-Reference (no `overrideReferences` needed).
