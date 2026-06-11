@@ -722,6 +722,28 @@ conformance compile (layer 3) + static review (layer 4) + the human smoke log
   rides on the human IL2CPP smoke, which is intrinsic to a no-Unity-CI repo.
 
 ## 14. Change log
+- **2026-06-11 r3 (as-built, validated in Unity 6000.0.73f1 via the Editor CLI)** —
+  ran the project headless (`Unity -batchmode`) and corrected two defects the
+  on-paper design missed: (1) **NuGet.config location.** NuGetForUnity reads
+  `Assets/NuGet.config` (and injects the machine's *global* NuGet config), NOT a
+  project-root `NuGet.config`. The r2 design/plan put the local-feed config at the
+  project root, so the "no GitHub Packages auth" path silently relied on a global
+  `github-kyuzan` source — broken for a fresh/no-auth checkout. Fixed: the
+  local-feed config lives at `Assets/NuGet.config` (`../LocalFeed`), the root
+  `NuGet.config` is removed, and a clean restore now pulls all 21 packages from the
+  local feed + nuget.org. (2) **ProjectSettings seed does not survive
+  normalization.** Unity rewrites a hand-authored `ProjectSettings.asset` on first
+  open and drops the per-platform `scriptingBackend`/`managedStrippingLevel` maps
+  (resetting Standalone to Mono). Fixed: set IL2CPP + Low stripping via the
+  `PlayerSettings` API and committed Unity's normalized full `ProjectSettings/` set
+  (apiCompatibilityLevel stayed `.NET Standard 2.1`). Also: pinned
+  `ProjectVersion.txt` to **6000.0.73f1**, confirmed NuGetForUnity **v4.4.0**
+  resolves, committed `Packages/packages-lock.json`, and recorded the Editor-compile
+  PASS (0 errors, `Peak.Example.dll` built) in the smoke log. The IL2CPP Player
+  build + runtime flow remain human (smoke log = PARTIAL). NFU auto-restore needs a
+  clean compile first (its `[InitializeOnLoad]` never fires while the example script
+  fails on the not-yet-restored SDK), so the CLI flow restores with the script
+  briefly moved aside, then compiles.
 - **2026-06-09 r2** — folded one multi-aspect round (4 lens agents + Codex; r1 was
   NOT-READY). Fixed **4 BLOCKERs**: (B1) added `Assets/packages.config` enumerating
   the full closure since NFU is not transitive (D8); (B2) commit the full standard
