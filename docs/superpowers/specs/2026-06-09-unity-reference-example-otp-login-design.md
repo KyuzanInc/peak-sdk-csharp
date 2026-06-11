@@ -722,6 +722,20 @@ conformance compile (layer 3) + static review (layer 4) + the human smoke log
   rides on the human IL2CPP smoke, which is intrinsic to a no-Unity-CI repo.
 
 ## 14. Change log
+- **2026-06-11 r4 (decision reversal — internal-testing default switched to GitHub
+  Packages)** — per the maintainer, internal verification consumes
+  `KyuzanInc.Peak.Sdk` + `KyuzanInc.Turnkey.Sdk` directly from **GitHub Packages**
+  (`github-kyuzan`), not a local `.nupkg` feed. This **supersedes the no-auth
+  local-feed design** (D1/D3/D4, `prepare-feed.sh`, the `../LocalFeed` source, and
+  the r3 no-auth proof): `prepare-feed.sh` is deleted, `Assets/NuGet.config`
+  declares the `github-kyuzan` source (its `read:packages` credential injected from
+  the machine-global `~/.nuget` config per `docs/development.md`), and the
+  `/LocalFeed/` gitignore line is removed. Rationale: `KyuzanInc.Peak.Sdk` will be
+  published (eventually to nuget.org), at which point the `github-kyuzan` source can
+  be dropped and restore needs no auth at all; until then GitHub Packages is simpler
+  than maintaining the local-feed plumbing. Re-verified in Unity 6000.0.73f1 via the
+  Editor CLI: restore pulls all 21 packages from `github-kyuzan` + nuget.org and
+  `Peak.Example.dll` compiles with 0 errors.
 - **2026-06-11 r3 (as-built, validated in Unity 6000.0.73f1 via the Editor CLI)** —
   ran the project headless (`Unity -batchmode`) and corrected two defects the
   on-paper design missed: (1) **NuGet.config location.** NuGetForUnity reads

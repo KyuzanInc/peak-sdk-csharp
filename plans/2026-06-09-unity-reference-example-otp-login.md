@@ -10,6 +10,8 @@
 
 **Design source (normative):** `docs/superpowers/specs/2026-06-09-unity-reference-example-otp-login-design.md` (r2, review-cleared). Read it first; this plan implements its decisions D1–D13.
 
+> **Superseded in part (2026-06-11, spec r4):** the local `.nupkg` feed + `prepare-feed.sh` in Task 2 (and the Goal/Architecture above) were **removed**. Internal testing now consumes `KyuzanInc.Peak.Sdk` + `KyuzanInc.Turnkey.Sdk` from **GitHub Packages** (`github-kyuzan`) declared in `Assets/NuGet.config` (credential from the global `~/.nuget` config). Task 2's local-feed plumbing is historical — see spec §14 r4 + the example `README.md` for the current setup. Also: `ProjectVersion.txt` is pinned to **6000.0.73f1** and the project was validated to open + restore + compile (0 errors) via the Editor CLI (see the smoke log); NuGetForUnity reads `Assets/NuGet.config` (not a project-root `NuGet.config`), and its auto-restore needs a clean compile first (move `Assets/Scripts` aside, restore, move back).
+
 **Key constraints (from the spec, do not violate):**
 - `chainType` for `CompleteImportPrivateKeyAsync` is exactly `"evm"` or `"solana"` — **never `"ETHEREUM"`** (D6). Use the shared `ChainTypeEvm` constant.
 - The `projectApiKey` is **never** a `[SerializeField]` (it would serialize into the committed scene). Runtime entry only; committed scene is key-free (D9).

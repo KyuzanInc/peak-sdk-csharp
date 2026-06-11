@@ -1,8 +1,8 @@
 # peak-sdk-unity-reference
 
-A minimal Unity 6000.0.x project that consumes **KyuzanInc.Peak.Sdk** from a local
-`.nupkg` feed and demonstrates the full OTP login + wallet import/export flow
-through an IMGUI UI. Its purpose is an **IL2CPP AOT smoke**: prove that
+A minimal Unity 6000.0.x project that consumes **KyuzanInc.Peak.Sdk** from GitHub
+Packages and demonstrates the full OTP login + wallet import/export flow through
+an IMGUI UI. Its purpose is an **IL2CPP AOT smoke**: prove that
 `HttpClient` + System.Text.Json source-gen + `async/await` + BouncyCastle survive
 IL2CPP stripping in a real Player build.
 
@@ -10,29 +10,18 @@ IL2CPP stripping in a real Player build.
 > private keys only. The API key is entered at runtime and is never stored in the
 > scene. Never paste a production key or a real wallet's private key.
 
-## 1. Prepare the local feed (no GitHub Packages auth needed)
+## 1. Configure GitHub Packages auth (one-time)
 
-From the repo root, warm the NuGet cache once (this is the only step that needs
-GitHub Packages auth — set it up per `docs/development.md`):
+During internal testing, `KyuzanInc.Peak.Sdk` and its transitive
+`KyuzanInc.Turnkey.Sdk` are pulled from **GitHub Packages** (the `github-kyuzan`
+source declared in `Assets/NuGet.config`). Configure a `read:packages` credential
+for that source **once** in your machine-global `~/.nuget` config, per
+[`docs/development.md`](../../docs/development.md) — NuGetForUnity injects that
+global credential at restore time. Everything else comes from nuget.org.
 
-```bash
-dotnet restore peak-sdk-csharp.sln --locked-mode
-```
-
-Then build the example's local feed:
-
-```bash
-examples/peak-sdk-unity-reference/prepare-feed.sh
-```
-
-This packs `KyuzanInc.Peak.Sdk` and copies the transitive `KyuzanInc.Turnkey.Sdk`
-`.nupkg` into `LocalFeed/`, so the Unity restore itself needs no auth.
-
-**Alternative (you already have GitHub Packages auth):** instead of the vendored
-Turnkey nupkg, add the `github-kyuzan` source to `Assets/NuGet.config` (the file
-NuGetForUnity actually reads — a project-root `NuGet.config` is ignored) and let
-NuGetForUnity pull Turnkey from GitHub Packages (mirrors the repo's
-`consumer-restore-check` CI job).
+> When `KyuzanInc.Peak.Sdk` is published to nuget.org, this step (and the
+> `github-kyuzan` source in `Assets/NuGet.config`) can be dropped — restore will
+> work straight from nuget.org with no auth.
 
 ## 2. Open in Unity
 
@@ -59,6 +48,5 @@ flow on it. Record the result (and any `link.xml` / stripping-level finding) in
 
 - `Assets/Scripts/PeakExampleDemo.cs` — the MonoBehaviour (IMGUI + `async void`).
 - `Assets/packages.config` — the full NuGet dependency closure (NuGetForUnity is not transitive).
-- `Assets/NuGet.config` — package sources incl. the `../LocalFeed` local feed. **NuGetForUnity reads this file, not a project-root `NuGet.config`.**
+- `Assets/NuGet.config` — package sources (nuget.org + `github-kyuzan`). **NuGetForUnity reads this file, not a project-root `NuGet.config`,** and injects the GitHub Packages credential from your global `~/.nuget` config.
 - `Assets/link.xml` — IL2CPP preservation for BouncyCastle + Turnkey.
-- `prepare-feed.sh` — packs the SDK + vendors the Turnkey nupkg into `LocalFeed/`.

@@ -13,9 +13,6 @@
 /Assets/Packages/
 /Assets/Packages.meta
 
-# Local NuGet feed produced by prepare-feed.sh (binaries, not committed)
-/LocalFeed/
-
 # Unity-generated solution/project files
 *.csproj
 *.sln
