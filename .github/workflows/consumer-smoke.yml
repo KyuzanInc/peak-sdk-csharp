@@ -63,7 +63,7 @@ jobs:
       # <Version> at the published commit (workflow_run.head_sha). For manual
       # dispatch head_sha is empty, so this falls back to the triggering ref.
       - name: Checkout (workspace anchor + version source)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
