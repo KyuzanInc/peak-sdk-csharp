@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -31,6 +33,55 @@ namespace KyuzanInc.Peak.Sdk.Tests
 
         private static DefaultPeakHttpClient ClientReturning(HttpStatusCode status, string body) =>
             new DefaultPeakHttpClient("https://api.peak.xyz", "test-key", new HttpClient(new StubHandler(status, body)));
+
+        // Captures the outgoing HttpRequestMessage so tests can assert on the
+        // headers the SDK actually puts on the wire (e.g. User-Agent).
+        private sealed class CapturingHandler : HttpMessageHandler
+        {
+            public HttpRequestMessage? LastRequest { get; private set; }
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                LastRequest = request;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"otpId\":\"otp-1\"}"),
+                });
+            }
+        }
+
+        [Fact]
+        public async Task SendAsync_AlwaysSendsNonEmptyUserAgent()
+        {
+            // Peak's edge (nginx) 403s requests with an empty/absent User-Agent;
+            // the SDK must always send one. Regression test for the alpha.3 fix.
+            var handler = new CapturingHandler();
+            var client = new DefaultPeakHttpClient("https://api.peak.xyz", "test-key", new HttpClient(handler));
+
+            await client.GetAsync<InitOtpLoginResponse>("public-api/v1/auth/otp/init-login");
+
+            handler.LastRequest.Should().NotBeNull();
+            handler.LastRequest!.Headers.UserAgent.Should().NotBeEmpty();
+            var ua = handler.LastRequest.Headers.UserAgent.ToString();
+            ua.Should().NotBeNullOrWhiteSpace();
+            ua.Should().StartWith("KyuzanInc.Peak.Sdk/");
+        }
+
+        [Fact]
+        public async Task SendAsync_CallerSuppliedUserAgent_IsNotOverridden()
+        {
+            // A caller-provided User-Agent (via the headers argument) wins; the SDK
+            // only fills in its default when none is present.
+            var handler = new CapturingHandler();
+            var client = new DefaultPeakHttpClient("https://api.peak.xyz", "test-key", new HttpClient(handler));
+            var headers = new Dictionary<string, string> { ["User-Agent"] = "my-app/9.9" };
+
+            await client.GetAsync<InitOtpLoginResponse>("public-api/v1/auth/otp/init-login", headers);
+
+            handler.LastRequest.Should().NotBeNull();
+            var uaValues = handler.LastRequest!.Headers.GetValues("User-Agent").ToList();
+            uaValues.Should().ContainSingle().Which.Should().Be("my-app/9.9");
+        }
 
         [Fact]
         public async Task GetAsync_PublicDto_DeserializesSuccessBody()

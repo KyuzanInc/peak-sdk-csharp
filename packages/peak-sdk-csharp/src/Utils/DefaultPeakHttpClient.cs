@@ -8,6 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -28,6 +30,44 @@ namespace KyuzanInc.Peak.Sdk.Utils
     public sealed class DefaultPeakHttpClient : IPeakHttpClient
     {
         private static readonly HttpClient SharedClient = new HttpClient();
+
+        /// <summary>
+        /// User-Agent sent on every outgoing request (e.g.
+        /// <c>KyuzanInc.Peak.Sdk/0.1.0-alpha.3</c>). Peak's edge (nginx) returns
+        /// 403 Forbidden for requests with an empty/absent User-Agent, so the SDK
+        /// must always send one. Derived from the assembly's informational version
+        /// (the full semver, including any pre-release suffix), falling back to the
+        /// numeric assembly version. Set per-request in <see cref="ApplyHeaders"/>
+        /// and only when the request has no User-Agent yet, so it works regardless
+        /// of an injected <see cref="HttpClient"/> and never mutates a caller-owned
+        /// client's shared <c>DefaultRequestHeaders</c>.
+        /// </summary>
+        private static readonly ProductInfoHeaderValue UserAgent = BuildUserAgent();
+
+        private static ProductInfoHeaderValue BuildUserAgent()
+        {
+            var asm = typeof(DefaultPeakHttpClient).Assembly;
+            // AssemblyInformationalVersion carries the full NuGet <Version>
+            // (e.g. "0.1.0-alpha.3"); AssemblyName.Version drops the pre-release
+            // suffix (e.g. "0.1.0.0"). Prefer the informational version, but strip
+            // any "+<sha>" SourceLink build metadata which is not a valid
+            // product-version token.
+            var informational = asm
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                ?.InformationalVersion;
+            string version;
+            if (!string.IsNullOrWhiteSpace(informational))
+            {
+                var plus = informational!.IndexOf('+');
+                version = plus >= 0 ? informational.Substring(0, plus) : informational;
+            }
+            else
+            {
+                version = asm.GetName().Version?.ToString() ?? "0.0.0";
+            }
+
+            return new ProductInfoHeaderValue("KyuzanInc.Peak.Sdk", version);
+        }
 
         private readonly string baseUrl;
         private readonly string projectApiKey;
@@ -105,6 +145,17 @@ namespace KyuzanInc.Peak.Sdk.Utils
                 {
                     req.Headers.TryAddWithoutValidation(kv.Key, kv.Value);
                 }
+            }
+
+            // Peak's edge (nginx) returns 403 Forbidden when User-Agent is empty
+            // or absent. Set it per-request (never on the shared/injected client's
+            // DefaultRequestHeaders) and only when the caller has not already
+            // supplied one — either via the `headers` argument above (which goes
+            // through TryAddWithoutValidation, so check Contains rather than the
+            // strongly-typed UserAgent collection) or on an injected client.
+            if (!req.Headers.Contains("User-Agent"))
+            {
+                req.Headers.UserAgent.Add(UserAgent);
             }
         }
 
