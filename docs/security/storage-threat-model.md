@@ -120,7 +120,7 @@ exposed (delete, never migrate).
 
 | Threat | Default mitigation | Residual risk |
 |---|---|---|
-| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`; PlayerPrefs path requires explicit opt-in described above | Consumers who flip both opt-ins accept the risk explicitly |
+| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`; the PlayerPrefs path is the opt-in interim encrypted tier, which stores ciphertext only | Consumers who opt in accept the interim tier's residual risk (see its section above); a plaintext tier would additionally require the double opt-in guards (not implemented) |
 | Malware on the same OS user reads app-data | OS-level secure store (DPAPI / Keychain / KeyStore) limits exposure to running as same user with biometrics | Consumer must wire `ISecureStorage`; not automatic |
 | iCloud / Google Drive auto-backup snapshots app data | Default storage persists nothing. The interim encrypted tier keeps its key seed out of backups (no-backup directory on Android, do-not-back-up flag on iOS); the ciphertext in the preferences store is useless without the seed, and consumers MUST additionally exclude that store via platform backup rules (documented by the adapter packages) | A backup taken while the seed fell back to a backed-up location (no-backup dir unavailable) may contain seed + ciphertext; device binding, where present, is then the remaining barrier |
 | OS-level keystore migration loses the key | OS-defined; for DPAPI the key is per-user and survives OS reinstall as long as `SID + password` are preserved | Consumers can re-trigger OTP login at any time |
