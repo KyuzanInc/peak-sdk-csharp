@@ -20,7 +20,7 @@ This is a multi-package repo. Each package builds as its own NuGet artifact.
 |---|---|---|
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` | The Peak SDK itself. Adds `PeakClient`, OTP login, account/private-key services, `IStorage`/`ISecureStorage` abstractions, Windows DPAPI secure storage. |
 | `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` | Auto-generated OpenAPI client. Build-time only: backs spec-drift CI and the DTO field-coverage contract test; **not** referenced by the SDK at runtime or shipped in its package. |
-| `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` | Unity-only platform adapter: PlayerPrefs storage (opt-in only, plaintext warning), iOS Keychain via P/Invoke, Android KeyStore via JNI. |
+| `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` | **Planned — not shipped yet.** Unity platform adapter with OS secure storage (iOS Keychain / Android KeyStore). Until it ships, adapter packages provide an interim, opt-in encrypted PlayerPrefs storage on top of the core `IStorage` abstraction; see [docs/security/storage-threat-model.md](docs/security/storage-threat-model.md). |
 
 The `peak-sdk-unity` repo will become a thin Unity adapter on top of
 `KyuzanInc.Peak.Sdk.Unity` in a later release; the source code lives at
