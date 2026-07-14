@@ -36,14 +36,38 @@ A consumer of this SDK is one of:
 | Tier | Member implementations | Default? | Persistent? |
 |---|---|---|---|
 | `IStorage` (key/value, in-process) | `InMemoryStorage` | Yes | No |
-| `ISecureStorage` (OS-protected) | `DpapiSecureStorage` (Windows `net8.0-windows`, `peak-sdk-csharp` core). _Deferred to the v0.2 Unity adapter:_ `KeychainSecureStorage` (iOS), `KeyStoreSecureStorage` (Android) | No; in v0.1.0 only on Windows (`net8.0-windows`) | Yes |
-| Unsafe plaintext | `UnsafePlaintextPlayerPrefsStorage` (Unity adapter only) | No | Yes |
+| `ISecureStorage` (OS-protected) | `DpapiSecureStorage` (Windows `net8.0-windows`, `peak-sdk-csharp` core). _Deferred to the v0.2 adapter package:_ `KeychainSecureStorage` (iOS), `KeyStoreSecureStorage` (Android) | No; in v0.1.0 only on Windows (`net8.0-windows`) | Yes |
+| Encrypted PlayerPrefs (interim) | `EncryptedPlayerPrefsStorage` — shipped by adapter packages for Unity-like runtimes, on top of the core `IStorage` abstraction; not part of this core package | No (explicit opt-in) | Yes |
+| Unsafe plaintext | `UnsafePlaintextPlayerPrefsStorage` — **planned only, not implemented in any shipped package**; the opt-in guards below bind any future implementation | No | Yes |
 
 `ISecureStorage` extends `IStorage`. `ISecureStorage.IsAvailable`
 returns `false` when no platform-secure backend is wired (e.g. on a
 generic Godot / console host on Linux or macOS, where the core SDK
 ships no built-in implementation). Consumers MUST check `IsAvailable`
 before persisting any High or Critical asset.
+
+**Time-boxed exception (interim encrypted tier).** Until the adapter
+packages gain OS-keystore-backed `ISecureStorage` providers, the
+"Encrypted PlayerPrefs (interim)" tier is the accepted opt-in path for
+persisting High / Critical assets on runtimes with no `ISecureStorage`
+backend. It is NOT an `ISecureStorage`: its data-encryption key is
+derived on-device in software (random seed file + device identifier,
+HKDF-SHA256), not sealed in hardware. The exception expires when the
+keystore providers ship; the interim tier then re-keys onto them.
+
+### Interim tier: encrypted PlayerPrefs — residual risk
+
+Values are AES-256-GCM encrypted before they reach PlayerPrefs, which
+defeats the exposures that motivated this tier: OS backups of the
+preferences store, forensic reads of the stored blob alone, and any
+reader that obtains the ciphertext without the device. It does NOT
+defeat an attacker with full file-system access on the same device
+(rooted / jailbroken): the seed file and the device identifier are
+both readable there, so the DEK can be reconstructed. Adapter
+packages MUST document this limit, keep the seed out of OS backups
+(no-backup location or flag; consumers exclude the preferences store
+via backup rules), and treat plaintext residue from older versions as
+exposed (delete, never migrate).
 
 ## v0.1.0 release blockers
 
@@ -52,8 +76,11 @@ before persisting any High or Critical asset.
   `InMemoryStorage` and forgets credentials on process exit. We accept
   the UX hit; resume-after-restart is the consumer's deliberate
   choice.
-- `UnsafePlaintextPlayerPrefsStorage` requires **both** of these to
-  even be constructable:
+- `UnsafePlaintextPlayerPrefsStorage` is planned only — it is NOT
+  implemented in any shipped package, and shipping a plaintext tier is
+  currently not intended (the interim encrypted tier covers the
+  persistence need). If it is ever implemented, it requires **both**
+  of these to even be constructable:
   1. A compile-time symbol `PEAK_UNSAFE_STORAGE_OPT_IN` set on the
      **consumer's** csproj.
   2. A constructor argument `bool acknowledgePlaintext = true`. The
@@ -93,8 +120,8 @@ before persisting any High or Critical asset.
 
 | Threat | Default mitigation | Residual risk |
 |---|---|---|
-| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`; PlayerPrefs path requires explicit opt-in described above | Consumers who flip both opt-ins accept the risk explicitly |
+| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`; the PlayerPrefs path is the opt-in interim encrypted tier, which stores ciphertext only | Consumers who opt in accept the interim tier's residual risk (see its section above); a plaintext tier would additionally require the double opt-in guards (not implemented) |
 | Malware on the same OS user reads app-data | OS-level secure store (DPAPI / Keychain / KeyStore) limits exposure to running as same user with biometrics | Consumer must wire `ISecureStorage`; not automatic |
-| iCloud / Google Drive auto-backup snapshots app data | Unity adapters set the appropriate "do not back up" flags on persisted blobs (`NSURLIsExcludedFromBackupKey` on iOS) | Verified by Unity smoke checklist |
+| iCloud / Google Drive auto-backup snapshots app data | Default storage persists nothing. The interim encrypted tier keeps its key seed out of backups (no-backup directory on Android, do-not-back-up flag on iOS); the ciphertext in the preferences store is useless without the seed, and consumers MUST additionally exclude that store via platform backup rules (documented by the adapter packages) | A backup taken while the seed fell back to a backed-up location (no-backup dir unavailable) may contain seed + ciphertext; device binding, where present, is then the remaining barrier |
 | OS-level keystore migration loses the key | OS-defined; for DPAPI the key is per-user and survives OS reinstall as long as `SID + password` are preserved | Consumers can re-trigger OTP login at any time |
 | Cold-boot attack on RAM | None at this layer | Out of scope |
