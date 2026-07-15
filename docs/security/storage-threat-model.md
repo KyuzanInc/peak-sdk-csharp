@@ -76,6 +76,11 @@ biometrics, or a device passcode. This avoids an SDK-triggered prompt; it does
 not protect against a compromised application process or a rooted / jailbroken
 device.
 
+Biometric- or passcode-gated storage is explicitly out of scope for v0.8.0. If
+it is added later, it must be a separate, explicit opt-in provider; it must not
+change the default `InMemoryStorage` behavior or silently add authentication UI
+to the v0.8.0 mobile providers described above.
+
 In the planned release, transient Keychain, Keystore, lock-state, and I/O
 failures will preserve existing key material and ciphertext for retry; writes
 will fail rather than succeeding without encryption. Permanent key loss or a

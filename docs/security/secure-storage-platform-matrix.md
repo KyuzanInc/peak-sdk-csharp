@@ -31,6 +31,11 @@ behavior, not a currently available package guarantee.
 | Android player | A non-exportable AES-256-GCM KEK in Android Keystore wraps a random 32-byte DEK; the wrapped record is atomically stored as `noBackupFilesDir/peak.sdk.dek.wrapped.v1` | `setUserAuthenticationRequired(false)`; no `BiometricPrompt`, and StrongBox is not required. | The wrapped DEK is outside backup. Consumers must also exclude PlayerPrefs/SharedPreferences ciphertext using the Unity package's documented backup rules. |
 | Editor / desktop player | Software-derived `InterimDeviceBoundKeyProvider` | None | Development-only fallback; it is not an OS-protected production backend for High or Critical assets. |
 
+Biometric- or passcode-gated storage is not part of v0.8.0. Any future version
+must expose it through a separate, explicit opt-in provider rather than adding
+authentication UI to these providers or changing the default
+`InMemoryStorage` behavior.
+
 The planned UPM release will not ship C# `KeychainSecureStorage` or
 `KeyStoreSecureStorage` classes and will provide no `ISecureStorage`
 implementation with `IsAvailable == true`.
