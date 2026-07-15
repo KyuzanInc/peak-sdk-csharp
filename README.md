@@ -6,7 +6,7 @@ generalised so that Godot, console apps, .NET MAUI, and any modern
 .NET host can use the same code path Unity does today.
 
 **Status: pre-release (v0.1.0-alpha).** The `KyuzanInc.Peak.Sdk` package
-publishes to GitHub Packages on a `v*` tag (`v0.1.0-alpha.1` is the
+publishes to GitHub Packages on a `v*` tag (`v0.1.0-alpha.3` is the
 current release); a public nuget.org publish is scheduled for a later
 milestone. Both `KyuzanInc.Peak.Sdk` and its Turnkey crypto dependency
 ship from GitHub Packages, so consumers need GitHub Packages auth set up
@@ -105,7 +105,7 @@ for the active port plan.
 
 ```
 peak-sdk-csharp/
-├── peak-sdk-csharp.sln              Root solution (all packages + tests)
+├── peak-sdk-csharp.sln              Root solution (one package + internal projects/tests)
 ├── Directory.Build.props            Shared MSBuild props (LangVersion, Nullable, etc.)
 ├── Directory.Packages.props         Central package management (CPM) pins
 ├── nuget.config                     packageSourceMapping for nuget.org + GitHub Packages + local feed

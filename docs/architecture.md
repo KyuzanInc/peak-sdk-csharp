@@ -1,7 +1,8 @@
 # Architecture
 
-`peak-sdk-csharp` is a multi-package .NET solution that ports the
-Unity-only `peak-sdk-unity` SDK to generic NuGet packages. The Turnkey
+`peak-sdk-csharp` is a multi-project .NET solution that ports the
+Unity-only `peak-sdk-unity` SDK into one published generic NuGet package;
+the generated public-API client project is internal and non-packable. The Turnkey
 crypto / API key stamping layer is consumed from the external
 [`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
 package; it is no longer built in this repo.

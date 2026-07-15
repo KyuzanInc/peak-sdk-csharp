@@ -109,8 +109,9 @@ an accepted OS-protected production backend for High or Critical assets.
   of these to even be constructable:
   1. A compile-time symbol `PEAK_UNSAFE_STORAGE_OPT_IN` set on the
      **consumer's** csproj.
-  2. A constructor argument `bool acknowledgePlaintext = true`. The
-     parameter has no default; the constructor throws on `false`. The
+  2. A required constructor argument `bool acknowledgePlaintext`; the consumer
+     must pass `acknowledgePlaintext: true`. The parameter has no default and
+     the constructor throws on `false`. The
      existence of this argument is a release blocker — code review
      for v0.1.0 cut MUST verify the parameter is still required.
 - `DpapiSecureStorage` is the only `ISecureStorage` in the core
