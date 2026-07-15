@@ -16,12 +16,14 @@ is what it is.
 | Unity standalone (`netstandard2.1`) | `KyuzanInc.Peak.Sdk` | No built-in Unity `ISecureStorage`; `UnavailableSecureStorage` is the explicit placeholder | `false` | `DpapiSecureStorage` is compiled only for the `net8.0-windows` TFM, not Unity's `netstandard2.1` build. |
 | .NET MAUI iOS / Android | not in v0.1.0 | n/a | n/a | v0.2+ may add `KyuzanInc.Peak.Sdk.Maui` |
 
-## Separate Unity UPM storage in v0.8.0
+## Planned separate Unity UPM storage in upcoming v0.8.0
 
 [`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
-is a separate UPM package. Its `EncryptedPlayerPrefsStorage` implements this
-repo's `IStorage` contract and remains explicit opt-in; the default Unity
-storage is still `InMemoryStorage`.
+is a separate UPM package. Its upcoming v0.8.0 release is planned to make
+`EncryptedPlayerPrefsStorage` implement this repo's `IStorage` contract as an
+explicit opt-in; the default Unity storage will remain `InMemoryStorage`.
+Until that release is published, the rows below describe release-candidate
+behavior, not a currently available package guarantee.
 
 | Unity runtime | DEK protection used by `EncryptedPlayerPrefsStorage` | Authentication UI | Backup boundary |
 |---|---|---|---|
@@ -29,14 +31,15 @@ storage is still `InMemoryStorage`.
 | Android player | A non-exportable AES-256-GCM KEK in Android Keystore wraps a random 32-byte DEK; the wrapped record is atomically stored as `noBackupFilesDir/peak.sdk.dek.wrapped.v1` | `setUserAuthenticationRequired(false)`; no `BiometricPrompt`, and StrongBox is not required. | The wrapped DEK is outside backup. Consumers must also exclude PlayerPrefs/SharedPreferences ciphertext using the Unity package's documented backup rules. |
 | Editor / desktop player | Software-derived `InterimDeviceBoundKeyProvider` | None | Development-only fallback; it is not an OS-protected production backend for High or Critical assets. |
 
-The UPM package does not ship C# `KeychainSecureStorage` or
-`KeyStoreSecureStorage` classes and provides no `ISecureStorage`
+The planned UPM release will not ship C# `KeychainSecureStorage` or
+`KeyStoreSecureStorage` classes and will provide no `ISecureStorage`
 implementation with `IsAvailable == true`.
 
 ## Consumer behaviour when `IsAvailable` is `false`
 
-Unity iOS/Android consumers that deliberately need persistence can use the
-UPM v0.8.0 opt-in above. For other hosts without an available secure backend:
+Once v0.8.0 is released, Unity iOS/Android consumers that deliberately need
+persistence will be able to use the UPM opt-in above. For current releases and
+other hosts without an available secure backend:
 
 1. **Recommended**: persist nothing. Re-authenticate via OTP on each
    process start. Default `InMemoryStorage` already does this.

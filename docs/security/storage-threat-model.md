@@ -37,7 +37,7 @@ A consumer of this SDK is one of:
 |---|---|---|---|
 | `IStorage` (key/value, in-process) | `InMemoryStorage` | Yes | No |
 | `ISecureStorage` (OS-protected) | `DpapiSecureStorage` (Windows `net8.0-windows`, `peak-sdk-csharp` core) | No; in v0.1.0 only on Windows (`net8.0-windows`) | Yes |
-| Unity UPM encrypted PlayerPrefs | `EncryptedPlayerPrefsStorage` in the separate `com.kyuzan.peak-sdk-unity` v0.8.0 package; implements the core `IStorage` abstraction | No (explicit opt-in) | Yes |
+| Planned Unity UPM encrypted PlayerPrefs | `EncryptedPlayerPrefsStorage` in the upcoming separate `com.kyuzan.peak-sdk-unity` v0.8.0 release; planned to implement the core `IStorage` abstraction | No (explicit opt-in) | Yes |
 | Unsafe plaintext | `UnsafePlaintextPlayerPrefsStorage` — **planned only, not implemented in any shipped package**; the opt-in guards below bind any future implementation | No | Yes |
 
 `ISecureStorage` extends `IStorage`. `ISecureStorage.IsAvailable`
@@ -46,19 +46,21 @@ generic Godot / console host on Linux or macOS, where the core SDK
 ships no built-in implementation). Consumers MUST check `IsAvailable`
 before persisting any High or Critical asset.
 
-### Separate Unity UPM boundary
+### Planned separate Unity UPM v0.8.0 boundary
 
 [`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
-v0.8.0 ships `EncryptedPlayerPrefsStorage` as an explicitly selected
-`IStorage`. It is not a C# `ISecureStorage` implementation and provides no
-`ISecureStorage` with `IsAvailable == true`. No `KyuzanInc.Peak.Sdk.Unity`,
-`KeychainSecureStorage`, or `KeyStoreSecureStorage` artifact is shipped by
-this repository.
+has an upcoming v0.8.0 release that is planned to ship
+`EncryptedPlayerPrefsStorage` as an explicitly selected `IStorage`. It will not
+be a C# `ISecureStorage` implementation and will provide no `ISecureStorage`
+with `IsAvailable == true`. No `KyuzanInc.Peak.Sdk.Unity`,
+`KeychainSecureStorage`, or `KeyStoreSecureStorage` artifact is shipped by this
+repository. Until v0.8.0 is released, this section describes release-candidate
+behavior rather than a currently available package guarantee.
 
-The Unity default is unchanged: without explicit storage injection,
-`InMemoryStorage` persists nothing. With encrypted persistence selected,
-values retain the `peak.enc.v1` AES-256-GCM envelope while mobile players now
-use OS-protected DEK providers:
+The Unity default is planned to remain unchanged: without explicit storage
+injection, `InMemoryStorage` persists nothing. With encrypted persistence
+selected in v0.8.0, values will retain the `peak.enc.v1` AES-256-GCM envelope
+while mobile players use OS-protected DEK providers:
 
 - **iOS:** a 32-byte DEK is stored in Keychain as non-synchronizable,
   `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`. The provider sets no
@@ -69,28 +71,29 @@ use OS-protected DEK providers:
   `noBackupFilesDir/peak.sdk.dek.wrapped.v1`. User authentication is disabled,
   the SDK does not use `BiometricPrompt`, and StrongBox is not required.
 
-The SDK therefore does not request Face ID, Touch ID, Android biometrics, or a
-device passcode for this storage path. This avoids an SDK-triggered prompt; it
-does not protect against a compromised application process or a rooted /
-jailbroken device.
+The planned storage path will therefore not request Face ID, Touch ID, Android
+biometrics, or a device passcode. This avoids an SDK-triggered prompt; it does
+not protect against a compromised application process or a rooted / jailbroken
+device.
 
-Transient Keychain, Keystore, lock-state, and I/O failures preserve existing
-key material and ciphertext for retry; writes fail rather than succeeding
-without encryption. Permanent key loss or a permanently corrupt wrapped DEK
-causes the provider to create a fresh key. Existing PlayerPrefs ciphertext
-then fails GCM authentication, is deleted, and requires a new login.
+In the planned release, transient Keychain, Keystore, lock-state, and I/O
+failures will preserve existing key material and ciphertext for retry; writes
+will fail rather than succeeding without encryption. Permanent key loss or a
+permanently corrupt wrapped DEK will cause the provider to create a fresh key.
+Existing PlayerPrefs ciphertext will then fail GCM authentication, be deleted,
+and require a new login.
 
-The v0.7.0 software seed is deliberately not used to migrate credentials.
-Only after the v0.8.0 native key has been created and durably read back does
-the Unity adapter attempt to delete `peak.sdk.dek.seed`; cleanup failures are
-retried. The old ciphertext is undecryptable under the new key and is removed,
-so upgraded users log in once before persistence resumes with the same
-`peak.enc.v1` envelope.
+The v0.7.0 software seed will deliberately not be used to migrate credentials.
+Only after the v0.8.0 native key has been created and durably read back will
+the Unity adapter attempt to delete `peak.sdk.dek.seed`; cleanup failures will
+be retried. The old ciphertext will be undecryptable under the new key and
+removed, so upgraded users will log in once before persistence resumes with
+the same `peak.enc.v1` envelope.
 
-**Editor / desktop caveat.** The Unity package retains
+**Editor / desktop caveat.** The v0.8.0 Unity package will retain
 `InterimDeviceBoundKeyProvider` there for development and test compatibility.
-It derives a DEK in software from a seed and device identifier and is not an
-accepted OS-protected production backend for High or Critical assets.
+It derives a DEK in software from a seed and device identifier and will not be
+an accepted OS-protected production backend for High or Critical assets.
 
 ## v0.1.0 release blockers
 
@@ -122,8 +125,8 @@ accepted OS-protected production backend for High or Critical assets.
 | Windows .NET 8 (`net8.0-windows` TFM) | `DpapiSecureStorage` (core) | `true` | DPAPI per-user scope; only the `net8.0-windows` build compiles it |
 | Linux .NET 8 | None (core) | `false` | v0.1.0 leaves this to consumers; v0.2+ may add `libsecret`-based provider |
 | macOS .NET 8 | None (core) | `false` | v0.2+ may add Keychain provider |
-| Unity iOS / Android (IL2CPP, core C# matrix) | None | `false` | The separate Unity UPM v0.8.0 opt-in is an OS-backed `IStorage`, not a C# `ISecureStorage`; see above. |
-| Unity standalone (Win/Mac/Linux, `netstandard2.1`) | None | `false` | The separate Unity UPM package uses its software-derived interim provider for development only. |
+| Unity iOS / Android (IL2CPP, core C# matrix) | None | `false` | The upcoming Unity UPM v0.8.0 opt-in is planned as encrypted PlayerPrefs `IStorage` with an OS-protected DEK, not a C# `ISecureStorage`; see above. |
+| Unity standalone (Win/Mac/Linux, `netstandard2.1`) | None | `false` | The upcoming Unity UPM v0.8.0 release will use its software-derived interim provider for development only. |
 | Godot 4.x / console | None (core) | `false` | same as Linux / macOS .NET host |
 
 ## Non-goals
@@ -142,8 +145,8 @@ accepted OS-protected production backend for High or Critical assets.
 
 | Threat | Default mitigation | Residual risk |
 |---|---|---|
-| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`. The Unity UPM mobile opt-in writes only `peak.enc.v1` ciphertext to PlayerPrefs and protects its DEK with Keychain / Android Keystore. | OS protection does not defend a compromised process or rooted / jailbroken device. The Editor/desktop software fallback is development-only. |
-| Malware on the same OS user reads app-data | DPAPI or the Unity UPM mobile Keychain / Keystore path prevents raw key export from ordinary file reads without requiring biometrics. | A process that can invoke the SDK while unlocked, or has root/jailbreak privileges, remains out of scope. |
-| iCloud / Google Drive auto-backup snapshots app data | Default storage persists nothing. On iOS the Keychain DEK is non-synchronizable and device-only. On Android the KEK stays in Keystore and the wrapped DEK stays in `noBackupFilesDir`; consumers additionally exclude SharedPreferences ciphertext using the Unity package's backup rules. | Ciphertext may still appear in a backup, but the mobile DEK material must not travel with it. |
-| OS-level key loss or wrapped-DEK corruption | DPAPI behavior is OS-defined. The Unity UPM mobile provider creates a fresh key only after permanent loss/corruption; the old ciphertext is then purged. | The user must authenticate again; transient failures preserve the existing ciphertext for retry. |
+| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`. The upcoming Unity UPM v0.8.0 mobile opt-in is planned to write only `peak.enc.v1` ciphertext to PlayerPrefs and protect its DEK with Keychain / Android Keystore. | OS protection does not defend a compromised process or rooted / jailbroken device. The Editor/desktop software fallback is development-only. |
+| Malware on the same OS user reads app-data | DPAPI or the planned Unity UPM mobile Keychain / Keystore path prevents raw key export from ordinary file reads without requiring biometrics. | A process that can invoke the SDK while unlocked, or has root/jailbreak privileges, remains out of scope. |
+| iCloud / Google Drive auto-backup snapshots app data | Default storage persists nothing. The upcoming Unity path is planned to use a non-synchronizable, device-only iOS Keychain DEK; on Android the KEK will stay in Keystore and the wrapped DEK in `noBackupFilesDir`, while consumers additionally exclude SharedPreferences ciphertext using the Unity package's backup rules. | Ciphertext may still appear in a backup, but the mobile DEK material must not travel with it. |
+| OS-level key loss or wrapped-DEK corruption | DPAPI behavior is OS-defined. The planned Unity UPM mobile provider will create a fresh key only after permanent loss/corruption; the old ciphertext will then be purged. | The user must authenticate again; transient failures will preserve the existing ciphertext for retry. |
 | Cold-boot attack on RAM | None at this layer | Out of scope |

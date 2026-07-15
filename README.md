@@ -14,27 +14,32 @@ locally (see [docs/development.md](docs/development.md)).
 
 ## Packages
 
-This is a multi-package repo. Each package builds as its own NuGet artifact.
+This is a multi-project repo. Only `KyuzanInc.Peak.Sdk` is packable and
+published; the generated client project is internal build-time tooling.
 
 | Package | TFM | Purpose |
 |---|---|---|
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` | The Peak SDK itself. Adds `PeakClient`, OTP login, account/private-key services, `IStorage`/`ISecureStorage` abstractions, Windows DPAPI secure storage. |
 | `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` | Auto-generated OpenAPI client. Build-time only: backs spec-drift CI and the DTO field-coverage contract test; **not** referenced by the SDK at runtime or shipped in its package. |
 
-Those are the only artifacts this repository currently ships. In particular,
-there is no shipped `KyuzanInc.Peak.Sdk.Unity` package and no C#
-`KeychainSecureStorage` or `KeyStoreSecureStorage` `ISecureStorage` class.
+`KyuzanInc.Peak.Sdk` is the only NuGet artifact this repository currently
+publishes. `KyuzanInc.Peak.PublicApiClient` is an internal, non-packable
+build-time project. In particular, there is no shipped
+`KyuzanInc.Peak.Sdk.Unity` package and no C# `KeychainSecureStorage` or
+`KeyStoreSecureStorage` `ISecureStorage` class.
 
 Unity consumers use the separate
 [`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
-UPM package, which consumes `KyuzanInc.Peak.Sdk`. In v0.8.0 its explicitly
-opted-in `EncryptedPlayerPrefsStorage` implements the core `IStorage` contract
-and obtains its data-encryption key from iOS Keychain or Android Keystore on
-mobile players. It does not request Face ID, Touch ID, Android biometrics, or a
-device passcode. The default remains volatile `InMemoryStorage`; Unity Editor
-and desktop players retain the software-derived interim provider for
-development only. See the [storage threat model](docs/security/storage-threat-model.md)
-and the Unity package's
+UPM package, which consumes `KyuzanInc.Peak.Sdk`. Its upcoming v0.8.0 release
+is planned to keep `EncryptedPlayerPrefsStorage` as an explicit opt-in that
+implements the core `IStorage` contract while obtaining its data-encryption key
+from iOS Keychain or Android Keystore on mobile players. The planned storage
+path does not request Face ID, Touch ID, Android biometrics, or a device
+passcode. The default will remain volatile `InMemoryStorage`; Unity Editor and
+desktop players will retain the software-derived interim provider for
+development only. Until v0.8.0 is released, treat this as release-candidate
+behavior rather than an available package guarantee. See the
+[storage threat model](docs/security/storage-threat-model.md) and the Unity package's
 [session-management documentation](https://github.com/KyuzanInc/peak-sdk-unity/blob/main/README.md#session-management).
 
 The copy under `upstream-snapshots/peak-sdk-unity/` is a read-only port

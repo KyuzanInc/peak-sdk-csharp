@@ -12,7 +12,7 @@ package; it is no longer built in this repo.
 +----------------------------------------------------------+
 |  Application code (consumer's project)                   |
 +----------------------------------------------------------+
-|  com.kyuzan.peak-sdk-unity v0.8  (separate UPM repo)     |
+|  com.kyuzan.peak-sdk-unity v0.8  (upcoming UPM release)  |
 |  - EncryptedPlayerPrefsStorage -> core IStorage          |
 |  - iOS Keychain / Android Keystore mobile DEK providers  |
 |  - software interim provider in Editor / desktop only    |
@@ -68,8 +68,10 @@ out of scope: it stays a normal transitive dependency.
 This repository currently contains no `KyuzanInc.Peak.Sdk.Unity` project or
 NuGet artifact. That name remains a roadmap item only. The separate
 [`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity) UPM
-package consumes the `netstandard2.1` build of `KyuzanInc.Peak.Sdk`; its v0.8.0
-`EncryptedPlayerPrefsStorage` implements `IStorage`, not `ISecureStorage`.
+package consumes the `netstandard2.1` build of `KyuzanInc.Peak.Sdk`. Its
+upcoming v0.8.0 release is planned to provide an
+`EncryptedPlayerPrefsStorage` that implements `IStorage`, not
+`ISecureStorage`.
 
 `netstandard2.1` is the lowest common denominator that supports
 Unity 2021.2 LTS and modern .NET. `net8.0` is enabled so consumers on

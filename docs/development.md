@@ -184,12 +184,13 @@ merge per [docs/sync-rules.md](sync-rules.md).
   available `ISecureStorage`.
 - macOS / Linux: build and test green on .NET 8; no built-in
   secure storage in v0.1.0.
-- Unity mobile: the separate
+- Unity mobile: the upcoming v0.8.0 release of the separate
   [`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
-  UPM package v0.8.0 offers opt-in `EncryptedPlayerPrefsStorage` with iOS
-  Keychain / Android Keystore DEK protection. It implements `IStorage`, not a
-  C# `ISecureStorage`; this repo does not ship `KeychainSecureStorage` or
-  `KeyStoreSecureStorage`. The storage path requests no biometrics or passcode.
-- Unity Editor / standalone: that UPM package retains its software-derived
-  interim provider for development; do not treat it as an OS-protected
-  production backend.
+  UPM package is planned to offer opt-in `EncryptedPlayerPrefsStorage` with
+  iOS Keychain / Android Keystore DEK protection. It will implement `IStorage`,
+  not a C# `ISecureStorage`; this repo does not ship `KeychainSecureStorage` or
+  `KeyStoreSecureStorage`. The planned storage path requests no biometrics or
+  passcode. Do not treat it as available until v0.8.0 is released.
+- Unity Editor / standalone: that v0.8.0 release will retain its
+  software-derived interim provider for development; do not treat it as an
+  OS-protected production backend.

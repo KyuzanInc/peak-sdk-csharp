@@ -76,9 +76,10 @@ Wallet SDK security policy:
 
 - `InMemoryStorage` is the only default. Anything persistent must be
   explicit opt-in.
-- `UnsafePlaintextPlayerPrefsStorage` (in the Unity adapter) requires a
-  compile symbol (`PEAK_UNSAFE_STORAGE_OPT_IN`) **and** an explicit
-  per-instance `acknowledgePlaintext: true` argument.
+- `UnsafePlaintextPlayerPrefsStorage` is planned only and is not shipped. If it
+  is ever added, it must require a compile symbol
+  (`PEAK_UNSAFE_STORAGE_OPT_IN`) **and** an explicit per-instance
+  `acknowledgePlaintext: true` argument.
 - `DpapiSecureStorage` is Windows-only. Other platforms have no built-in
   secure storage in v0.1.0; `ISecureStorage.IsAvailable` returns `false`.
   Consumers MUST handle that case. The threat model
