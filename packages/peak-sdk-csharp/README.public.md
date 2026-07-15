@@ -17,11 +17,28 @@ This is not the canonical TypeScript SDK. Browser-specific flows
 scope and tracked separately.
 
 Persistent storage is opt-in: the default `IStorage` implementation
-is `InMemoryStorage` (memory only, lost on process exit). Wire your
-own `IStorage` (DPAPI for Windows, Keychain for iOS, KeyStore for
-Android, or your own crypto-on-disk implementation) for persistence.
+is `InMemoryStorage` (memory only, lost on process exit). This NuGet
+package's only built-in available `ISecureStorage` is
+`DpapiSecureStorage` in its `net8.0-windows` build. Other target
+frameworks provide `UnavailableSecureStorage` with
+`IsAvailable == false`; consumers can inject their own `IStorage` or
+`ISecureStorage` implementation when needed.
+
+There is no C# `KyuzanInc.Peak.Sdk.Unity` artifact and no
+`KeychainSecureStorage` or `KeyStoreSecureStorage` class. For Unity,
+the separate
+[`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
+UPM package has an upcoming v0.8.0 release planned to offer opt-in
+`EncryptedPlayerPrefsStorage`. It will implement `IStorage`, not
+`ISecureStorage`: PlayerPrefs will store a `peak.enc.v1` encrypted value,
+while iOS Keychain or Android Keystore will protect the data-encryption
+key. The planned storage path will not request Face ID, Touch ID,
+Android biometrics, or a device passcode. Its default will remain
+volatile `InMemoryStorage`. Until v0.8.0 is released, do not treat this
+release-candidate behavior as an available package guarantee.
+
 See [`docs/security/storage-threat-model.md`](https://github.com/KyuzanInc/peak-sdk-csharp/blob/main/docs/security/storage-threat-model.md)
-in the repo.
+for the complete platform and residual-risk boundaries.
 
 ## Consumer setup: GitHub Packages auth required
 

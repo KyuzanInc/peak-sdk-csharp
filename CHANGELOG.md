@@ -3,6 +3,17 @@
 All notable changes to `KyuzanInc.Peak.Sdk` are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/) (pre-1.0 alpha).
 
+## [Unreleased]
+
+### Documentation
+
+- Clarified that the upcoming `com.kyuzan.peak-sdk-unity` v0.8.0 mobile
+  encrypted-storage path is a separate, explicit-opt-in `IStorage` with an
+  OS-protected data-encryption key, not a C# `ISecureStorage` implementation.
+  The release-candidate behavior does not request biometric authentication or
+  a device passcode and is not documented as currently available before the
+  Unity package release.
+
 ## [0.1.0-alpha.3]
 
 ### Fixed

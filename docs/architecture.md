@@ -1,7 +1,8 @@
 # Architecture
 
-`peak-sdk-csharp` is a multi-package .NET solution that ports the
-Unity-only `peak-sdk-unity` SDK to generic NuGet packages. The Turnkey
+`peak-sdk-csharp` is a multi-project .NET solution that ports the
+Unity-only `peak-sdk-unity` SDK into one published generic NuGet package;
+the generated public-API client project is internal and non-packable. The Turnkey
 crypto / API key stamping layer is consumed from the external
 [`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
 package; it is no longer built in this repo.
@@ -12,6 +13,11 @@ package; it is no longer built in this repo.
 +----------------------------------------------------------+
 |  Application code (consumer's project)                   |
 +----------------------------------------------------------+
+|  com.kyuzan.peak-sdk-unity v0.8  (upcoming UPM release)  |
+|  - EncryptedPlayerPrefsStorage -> core IStorage          |
+|  - iOS Keychain / Android Keystore mobile DEK providers  |
+|  - software interim provider in Editor / desktop only    |
++----------------------------------------------------------+
 |  KyuzanInc.Peak.Sdk        (public surface, generic)     |
 |  - PeakClient, AuthenticatedPeakClient                   |
 |  - IStorage / ISecureStorage / DpapiSecureStorage        |
@@ -19,10 +25,6 @@ package; it is no longer built in this repo.
 |  - PeakCrypto (thin public wrapper over Turnkey crypto)  |
 |  - PeakError + PeakErrorCode                             |
 |  - DTOs hand-designed; generated types kept internal     |
-+----------------------------------------------------------+
-|  KyuzanInc.Peak.Sdk.Unity  (deferred v0.2 adapter)       |
-|  - UnsafePlaintextPlayerPrefsStorage (opt-in)            |
-|  - KeychainSecureStorage / KeyStoreSecureStorage         |
 +----------------------------------------------------------+
 |  KyuzanInc.Peak.PublicApiClient                          |
 |  - internal-only OpenAPI codegen                         |
@@ -63,7 +65,14 @@ out of scope: it stays a normal transitive dependency.
 |---|---|
 | `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` |
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` (last one only conditionally compiles `DpapiSecureStorage`) |
-| `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` (Unity 2021.2+ compatible) |
+
+This repository currently contains no `KyuzanInc.Peak.Sdk.Unity` project or
+NuGet artifact. That name remains a roadmap item only. The separate
+[`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity) UPM
+package consumes the `netstandard2.1` build of `KyuzanInc.Peak.Sdk`. Its
+upcoming v0.8.0 release is planned to provide an
+`EncryptedPlayerPrefsStorage` that implements `IStorage`, not
+`ISecureStorage`.
 
 `netstandard2.1` is the lowest common denominator that supports
 Unity 2021.2 LTS and modern .NET. `net8.0` is enabled so consumers on

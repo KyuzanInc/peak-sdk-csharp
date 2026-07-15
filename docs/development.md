@@ -117,7 +117,7 @@ solution). A downstream project that has the `github-kyuzan` source
 configured — the same one-time auth setup as above, which also serves
 the transitive `KyuzanInc.Turnkey.Sdk` — installs the published package
 straight from the feed (`--prerelease` is required while the latest
-published version is the `0.1.0-alpha.1` prerelease — a bare
+published version is the `0.1.0-alpha.3` prerelease — a bare
 `dotnet add package` resolves stable versions only):
 
 ```
@@ -179,9 +179,18 @@ merge per [docs/sync-rules.md](sync-rules.md).
 
 ## Cross-platform notes
 
-- Windows: DPAPI is the default `ISecureStorage`. Other platforms
-  return `ISecureStorage.IsAvailable == false`.
+- Windows `net8.0-windows`: DPAPI is the only built-in `ISecureStorage`.
+  Storage still defaults to `InMemoryStorage`; other TFMs expose no built-in
+  available `ISecureStorage`.
 - macOS / Linux: build and test green on .NET 8; no built-in
   secure storage in v0.1.0.
-- Unity standalone: respects the host OS rule above; mobile gets the
-  Unity adapter implementations.
+- Unity mobile: the upcoming v0.8.0 release of the separate
+  [`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
+  UPM package is planned to offer opt-in `EncryptedPlayerPrefsStorage` with
+  iOS Keychain / Android Keystore DEK protection. It will implement `IStorage`,
+  not a C# `ISecureStorage`; this repo does not ship `KeychainSecureStorage` or
+  `KeyStoreSecureStorage`. The planned storage path requests no biometrics or
+  passcode. Do not treat it as available until v0.8.0 is released.
+- Unity Editor / standalone: that v0.8.0 release will retain its
+  software-derived interim provider for development; do not treat it as an
+  OS-protected production backend.
