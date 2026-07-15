@@ -36,8 +36,8 @@ A consumer of this SDK is one of:
 | Tier | Member implementations | Default? | Persistent? |
 |---|---|---|---|
 | `IStorage` (key/value, in-process) | `InMemoryStorage` | Yes | No |
-| `ISecureStorage` (OS-protected) | `DpapiSecureStorage` (Windows `net8.0-windows`, `peak-sdk-csharp` core). _Deferred to the v0.2 adapter package:_ `KeychainSecureStorage` (iOS), `KeyStoreSecureStorage` (Android) | No; in v0.1.0 only on Windows (`net8.0-windows`) | Yes |
-| Encrypted PlayerPrefs (interim) | `EncryptedPlayerPrefsStorage` — shipped by adapter packages for Unity-like runtimes, on top of the core `IStorage` abstraction; not part of this core package | No (explicit opt-in) | Yes |
+| `ISecureStorage` (OS-protected) | `DpapiSecureStorage` (Windows `net8.0-windows`, `peak-sdk-csharp` core) | No; in v0.1.0 only on Windows (`net8.0-windows`) | Yes |
+| Unity UPM encrypted PlayerPrefs | `EncryptedPlayerPrefsStorage` in the separate `com.kyuzan.peak-sdk-unity` v0.8.0 package; implements the core `IStorage` abstraction | No (explicit opt-in) | Yes |
 | Unsafe plaintext | `UnsafePlaintextPlayerPrefsStorage` — **planned only, not implemented in any shipped package**; the opt-in guards below bind any future implementation | No | Yes |
 
 `ISecureStorage` extends `IStorage`. `ISecureStorage.IsAvailable`
@@ -46,28 +46,51 @@ generic Godot / console host on Linux or macOS, where the core SDK
 ships no built-in implementation). Consumers MUST check `IsAvailable`
 before persisting any High or Critical asset.
 
-**Time-boxed exception (interim encrypted tier).** Until the adapter
-packages gain OS-keystore-backed `ISecureStorage` providers, the
-"Encrypted PlayerPrefs (interim)" tier is the accepted opt-in path for
-persisting High / Critical assets on runtimes with no `ISecureStorage`
-backend. It is NOT an `ISecureStorage`: its data-encryption key is
-derived on-device in software (random seed file + device identifier,
-HKDF-SHA256), not sealed in hardware. The exception expires when the
-keystore providers ship; the interim tier then re-keys onto them.
+### Separate Unity UPM boundary
 
-### Interim tier: encrypted PlayerPrefs — residual risk
+[`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
+v0.8.0 ships `EncryptedPlayerPrefsStorage` as an explicitly selected
+`IStorage`. It is not a C# `ISecureStorage` implementation and provides no
+`ISecureStorage` with `IsAvailable == true`. No `KyuzanInc.Peak.Sdk.Unity`,
+`KeychainSecureStorage`, or `KeyStoreSecureStorage` artifact is shipped by
+this repository.
 
-Values are AES-256-GCM encrypted before they reach PlayerPrefs, which
-defeats the exposures that motivated this tier: OS backups of the
-preferences store, forensic reads of the stored blob alone, and any
-reader that obtains the ciphertext without the device. It does NOT
-defeat an attacker with full file-system access on the same device
-(rooted / jailbroken): the seed file and the device identifier are
-both readable there, so the DEK can be reconstructed. Adapter
-packages MUST document this limit, keep the seed out of OS backups
-(no-backup location or flag; consumers exclude the preferences store
-via backup rules), and treat plaintext residue from older versions as
-exposed (delete, never migrate).
+The Unity default is unchanged: without explicit storage injection,
+`InMemoryStorage` persists nothing. With encrypted persistence selected,
+values retain the `peak.enc.v1` AES-256-GCM envelope while mobile players now
+use OS-protected DEK providers:
+
+- **iOS:** a 32-byte DEK is stored in Keychain as non-synchronizable,
+  `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`. The provider sets no
+  access-control, user-presence, or biometry policy and refuses authentication
+  UI. A locked-device access is transient and can be retried after unlock.
+- **Android:** a non-exportable AES-256-GCM Android Keystore KEK wraps a random
+  32-byte DEK. The wrapped record is written atomically to
+  `noBackupFilesDir/peak.sdk.dek.wrapped.v1`. User authentication is disabled,
+  the SDK does not use `BiometricPrompt`, and StrongBox is not required.
+
+The SDK therefore does not request Face ID, Touch ID, Android biometrics, or a
+device passcode for this storage path. This avoids an SDK-triggered prompt; it
+does not protect against a compromised application process or a rooted /
+jailbroken device.
+
+Transient Keychain, Keystore, lock-state, and I/O failures preserve existing
+key material and ciphertext for retry; writes fail rather than succeeding
+without encryption. Permanent key loss or a permanently corrupt wrapped DEK
+causes the provider to create a fresh key. Existing PlayerPrefs ciphertext
+then fails GCM authentication, is deleted, and requires a new login.
+
+The v0.7.0 software seed is deliberately not used to migrate credentials.
+Only after the v0.8.0 native key has been created and durably read back does
+the Unity adapter attempt to delete `peak.sdk.dek.seed`; cleanup failures are
+retried. The old ciphertext is undecryptable under the new key and is removed,
+so upgraded users log in once before persistence resumes with the same
+`peak.enc.v1` envelope.
+
+**Editor / desktop caveat.** The Unity package retains
+`InterimDeviceBoundKeyProvider` there for development and test compatibility.
+It derives a DEK in software from a seed and device identifier and is not an
+accepted OS-protected production backend for High or Critical assets.
 
 ## v0.1.0 release blockers
 
@@ -78,7 +101,7 @@ exposed (delete, never migrate).
   choice.
 - `UnsafePlaintextPlayerPrefsStorage` is planned only — it is NOT
   implemented in any shipped package, and shipping a plaintext tier is
-  currently not intended (the interim encrypted tier covers the
+  currently not intended (the Unity UPM mobile encrypted tier covers that
   persistence need). If it is ever implemented, it requires **both**
   of these to even be constructable:
   1. A compile-time symbol `PEAK_UNSAFE_STORAGE_OPT_IN` set on the
@@ -99,9 +122,8 @@ exposed (delete, never migrate).
 | Windows .NET 8 (`net8.0-windows` TFM) | `DpapiSecureStorage` (core) | `true` | DPAPI per-user scope; only the `net8.0-windows` build compiles it |
 | Linux .NET 8 | None (core) | `false` | v0.1.0 leaves this to consumers; v0.2+ may add `libsecret`-based provider |
 | macOS .NET 8 | None (core) | `false` | v0.2+ may add Keychain provider |
-| Unity iOS (IL2CPP) | `KeychainSecureStorage` (Unity adapter — deferred to v0.2) | `true` (planned) | `Security.framework` via P/Invoke; not in v0.1.0 |
-| Unity Android (IL2CPP) | `KeyStoreSecureStorage` (Unity adapter — deferred to v0.2) | `true` (planned) | `AndroidKeyStore` via JNI; not in v0.1.0 |
-| Unity standalone (Win/Mac/Linux) | Falls back to `DpapiSecureStorage` only on Windows; otherwise none | varies | Unity adapter respects the core matrix above |
+| Unity iOS / Android (IL2CPP, core C# matrix) | None | `false` | The separate Unity UPM v0.8.0 opt-in is an OS-backed `IStorage`, not a C# `ISecureStorage`; see above. |
+| Unity standalone (Win/Mac/Linux, `netstandard2.1`) | None | `false` | The separate Unity UPM package uses its software-derived interim provider for development only. |
 | Godot 4.x / console | None (core) | `false` | same as Linux / macOS .NET host |
 
 ## Non-goals
@@ -120,8 +142,8 @@ exposed (delete, never migrate).
 
 | Threat | Default mitigation | Residual risk |
 |---|---|---|
-| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`; the PlayerPrefs path is the opt-in interim encrypted tier, which stores ciphertext only | Consumers who opt in accept the interim tier's residual risk (see its section above); a plaintext tier would additionally require the double opt-in guards (not implemented) |
-| Malware on the same OS user reads app-data | OS-level secure store (DPAPI / Keychain / KeyStore) limits exposure to running as same user with biometrics | Consumer must wire `ISecureStorage`; not automatic |
-| iCloud / Google Drive auto-backup snapshots app data | Default storage persists nothing. The interim encrypted tier keeps its key seed out of backups (no-backup directory on Android, do-not-back-up flag on iOS); the ciphertext in the preferences store is useless without the seed, and consumers MUST additionally exclude that store via platform backup rules (documented by the adapter packages) | A backup taken while the seed fell back to a backed-up location (no-backup dir unavailable) may contain seed + ciphertext; device binding, where present, is then the remaining barrier |
-| OS-level keystore migration loses the key | OS-defined; for DPAPI the key is per-user and survives OS reinstall as long as `SID + password` are preserved | Consumers can re-trigger OTP login at any time |
+| Disk forensics on a stolen machine reads PlayerPrefs | Default storage is `InMemoryStorage`. The Unity UPM mobile opt-in writes only `peak.enc.v1` ciphertext to PlayerPrefs and protects its DEK with Keychain / Android Keystore. | OS protection does not defend a compromised process or rooted / jailbroken device. The Editor/desktop software fallback is development-only. |
+| Malware on the same OS user reads app-data | DPAPI or the Unity UPM mobile Keychain / Keystore path prevents raw key export from ordinary file reads without requiring biometrics. | A process that can invoke the SDK while unlocked, or has root/jailbreak privileges, remains out of scope. |
+| iCloud / Google Drive auto-backup snapshots app data | Default storage persists nothing. On iOS the Keychain DEK is non-synchronizable and device-only. On Android the KEK stays in Keystore and the wrapped DEK stays in `noBackupFilesDir`; consumers additionally exclude SharedPreferences ciphertext using the Unity package's backup rules. | Ciphertext may still appear in a backup, but the mobile DEK material must not travel with it. |
+| OS-level key loss or wrapped-DEK corruption | DPAPI behavior is OS-defined. The Unity UPM mobile provider creates a fresh key only after permanent loss/corruption; the old ciphertext is then purged. | The user must authenticate again; transient failures preserve the existing ciphertext for retry. |
 | Cold-boot attack on RAM | None at this layer | Out of scope |

@@ -1,7 +1,8 @@
 # Secure storage platform matrix
 
-Authoritative table of which `ISecureStorage` implementation activates on
-which .NET host. The threat model
+Authoritative table of which `ISecureStorage` implementation this C# NuGet
+repository ships for each .NET host. The separate Unity UPM `IStorage` adapter
+is documented below and does not change this table. The threat model
 ([storage-threat-model.md](storage-threat-model.md)) governs why each row
 is what it is.
 
@@ -11,22 +12,39 @@ is what it is.
 | Linux .NET 8 | `KyuzanInc.Peak.Sdk` (no extra package) | `UnavailableSecureStorage` | `false` | None in v0.1.0. v0.2+ may add a `libsecret` adapter package. |
 | macOS .NET 8 | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | None in v0.1.0. v0.2+ may add a Keychain Services adapter. |
 | Godot 4.x / console | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | Same as host OS row above. |
-| Unity iOS | `KyuzanInc.Peak.Sdk.Unity` (PR 5 deliverable; deferred) | `KeychainSecureStorage` | `true` (planned) | iOS Security.framework via P/Invoke (Unity context) |
-| Unity Android | `KyuzanInc.Peak.Sdk.Unity` (deferred) | `KeyStoreSecureStorage` | `true` (planned) | AndroidKeyStore via JNI (`AndroidJavaObject`, Unity context) |
-| Unity standalone Windows | `KyuzanInc.Peak.Sdk` | `DpapiSecureStorage` | `true` | DPAPI (same as core Windows row) |
-| Unity standalone Linux / macOS | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | Same as desktop row |
+| Unity iOS / Android (`netstandard2.1`) | `KyuzanInc.Peak.Sdk` | No built-in mobile `ISecureStorage`; `UnavailableSecureStorage` is the explicit placeholder | `false` | Use the separate Unity UPM opt-in described below. It implements `IStorage`, not `ISecureStorage`. |
+| Unity standalone (`netstandard2.1`) | `KyuzanInc.Peak.Sdk` | No built-in Unity `ISecureStorage`; `UnavailableSecureStorage` is the explicit placeholder | `false` | `DpapiSecureStorage` is compiled only for the `net8.0-windows` TFM, not Unity's `netstandard2.1` build. |
 | .NET MAUI iOS / Android | not in v0.1.0 | n/a | n/a | v0.2+ may add `KyuzanInc.Peak.Sdk.Maui` |
 
+## Separate Unity UPM storage in v0.8.0
+
+[`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
+is a separate UPM package. Its `EncryptedPlayerPrefsStorage` implements this
+repo's `IStorage` contract and remains explicit opt-in; the default Unity
+storage is still `InMemoryStorage`.
+
+| Unity runtime | DEK protection used by `EncryptedPlayerPrefsStorage` | Authentication UI | Backup boundary |
+|---|---|---|---|
+| iOS player | A 32-byte DEK in iOS Keychain, non-synchronizable and `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` | The SDK configures no access-control, user-presence, or biometry policy. A locked-device access fails transiently without showing authentication UI. | The Keychain DEK is device-only and does not synchronize; PlayerPrefs contains ciphertext only. |
+| Android player | A non-exportable AES-256-GCM KEK in Android Keystore wraps a random 32-byte DEK; the wrapped record is atomically stored as `noBackupFilesDir/peak.sdk.dek.wrapped.v1` | `setUserAuthenticationRequired(false)`; no `BiometricPrompt`, and StrongBox is not required. | The wrapped DEK is outside backup. Consumers must also exclude PlayerPrefs/SharedPreferences ciphertext using the Unity package's documented backup rules. |
+| Editor / desktop player | Software-derived `InterimDeviceBoundKeyProvider` | None | Development-only fallback; it is not an OS-protected production backend for High or Critical assets. |
+
+The UPM package does not ship C# `KeychainSecureStorage` or
+`KeyStoreSecureStorage` classes and provides no `ISecureStorage`
+implementation with `IsAvailable == true`.
+
 ## Consumer behaviour when `IsAvailable` is `false`
+
+Unity iOS/Android consumers that deliberately need persistence can use the
+UPM v0.8.0 opt-in above. For other hosts without an available secure backend:
 
 1. **Recommended**: persist nothing. Re-authenticate via OTP on each
    process start. Default `InMemoryStorage` already does this.
 2. **Acceptable for trusted environments only**: wire your own
    plaintext-on-disk `IStorage`, accepting the threat-model trade-off
    in writing.
-3. **Not recommended**: `UnsafePlaintextPlayerPrefsStorage` (Unity
-   adapter, deferred). Requires compile symbol + explicit ack flag and
-   is intended for migration / parity with the old Unity SDK only.
+3. **Not recommended**: plaintext persistence. The planned
+   `UnsafePlaintextPlayerPrefsStorage` has not shipped in any package.
 
 ## Why we deliberately ship the unavailable placeholder
 
@@ -42,5 +60,8 @@ no-op store.
   hosts), `KyuzanInc.Peak.Sdk.Mac` with Keychain Services, and a unified
   `.NET MAUI` adapter (`KyuzanInc.Peak.Sdk.Maui`).
 - v0.2: ship the Unity adapter (`KyuzanInc.Peak.Sdk.Unity`) per the
-  original plan D20 (currently deferred — see plans/plans-peak-sdk-csharp.md).
+  original plan D20 (currently deferred — see
+  [plans/plans-peak-sdk-csharp.md](../../plans/plans-peak-sdk-csharp.md)).
+  This prospective NuGet artifact is distinct from the already separate
+  `com.kyuzan.peak-sdk-unity` UPM package.
 - v1.0: TPM-backed key wrapping investigation.

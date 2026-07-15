@@ -20,11 +20,25 @@ This is a multi-package repo. Each package builds as its own NuGet artifact.
 |---|---|---|
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` | The Peak SDK itself. Adds `PeakClient`, OTP login, account/private-key services, `IStorage`/`ISecureStorage` abstractions, Windows DPAPI secure storage. |
 | `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` | Auto-generated OpenAPI client. Build-time only: backs spec-drift CI and the DTO field-coverage contract test; **not** referenced by the SDK at runtime or shipped in its package. |
-| `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` | **Planned — not shipped yet.** Unity platform adapter with OS secure storage (iOS Keychain / Android KeyStore). Until it ships, adapter packages provide an interim, opt-in encrypted PlayerPrefs storage on top of the core `IStorage` abstraction; see [docs/security/storage-threat-model.md](docs/security/storage-threat-model.md). |
 
-The `peak-sdk-unity` repo will become a thin Unity adapter on top of
-`KyuzanInc.Peak.Sdk.Unity` in a later release; the source code lives at
-`upstream-snapshots/peak-sdk-unity/` for now (read-only, port reference).
+Those are the only artifacts this repository currently ships. In particular,
+there is no shipped `KyuzanInc.Peak.Sdk.Unity` package and no C#
+`KeychainSecureStorage` or `KeyStoreSecureStorage` `ISecureStorage` class.
+
+Unity consumers use the separate
+[`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity)
+UPM package, which consumes `KyuzanInc.Peak.Sdk`. In v0.8.0 its explicitly
+opted-in `EncryptedPlayerPrefsStorage` implements the core `IStorage` contract
+and obtains its data-encryption key from iOS Keychain or Android Keystore on
+mobile players. It does not request Face ID, Touch ID, Android biometrics, or a
+device passcode. The default remains volatile `InMemoryStorage`; Unity Editor
+and desktop players retain the software-derived interim provider for
+development only. See the [storage threat model](docs/security/storage-threat-model.md)
+and the Unity package's
+[session-management documentation](https://github.com/KyuzanInc/peak-sdk-unity/blob/main/README.md#session-management).
+
+The copy under `upstream-snapshots/peak-sdk-unity/` is a read-only port
+reference, not the Unity package implementation used by consumers.
 
 ## Dependencies
 
@@ -92,8 +106,7 @@ peak-sdk-csharp/
 ├── nuget.config                     packageSourceMapping for nuget.org + GitHub Packages + local feed
 ├── packages/
 │   ├── peak-sdk-csharp/             KyuzanInc.Peak.Sdk
-│   ├── peak-public-api-client-csharp/  KyuzanInc.Peak.PublicApiClient
-│   └── peak-sdk-csharp-unity/       KyuzanInc.Peak.Sdk.Unity (Unity adapter)
+│   └── peak-public-api-client-csharp/  KyuzanInc.Peak.PublicApiClient
 ├── examples/                        Godot + console smoke
 ├── upstream-snapshots/              Read-only copies of port sources:
 │   ├── peak-sdk-unity/              Pinned @ commit SHA in upstream-snapshots/SOURCES.md

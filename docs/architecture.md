@@ -12,6 +12,11 @@ package; it is no longer built in this repo.
 +----------------------------------------------------------+
 |  Application code (consumer's project)                   |
 +----------------------------------------------------------+
+|  com.kyuzan.peak-sdk-unity v0.8  (separate UPM repo)     |
+|  - EncryptedPlayerPrefsStorage -> core IStorage          |
+|  - iOS Keychain / Android Keystore mobile DEK providers  |
+|  - software interim provider in Editor / desktop only    |
++----------------------------------------------------------+
 |  KyuzanInc.Peak.Sdk        (public surface, generic)     |
 |  - PeakClient, AuthenticatedPeakClient                   |
 |  - IStorage / ISecureStorage / DpapiSecureStorage        |
@@ -19,10 +24,6 @@ package; it is no longer built in this repo.
 |  - PeakCrypto (thin public wrapper over Turnkey crypto)  |
 |  - PeakError + PeakErrorCode                             |
 |  - DTOs hand-designed; generated types kept internal     |
-+----------------------------------------------------------+
-|  KyuzanInc.Peak.Sdk.Unity  (deferred v0.2 adapter)       |
-|  - UnsafePlaintextPlayerPrefsStorage (opt-in)            |
-|  - KeychainSecureStorage / KeyStoreSecureStorage         |
 +----------------------------------------------------------+
 |  KyuzanInc.Peak.PublicApiClient                          |
 |  - internal-only OpenAPI codegen                         |
@@ -63,7 +64,12 @@ out of scope: it stays a normal transitive dependency.
 |---|---|
 | `KyuzanInc.Peak.PublicApiClient` | `netstandard2.1;net8.0` |
 | `KyuzanInc.Peak.Sdk` | `netstandard2.1;net8.0;net8.0-windows` (last one only conditionally compiles `DpapiSecureStorage`) |
-| `KyuzanInc.Peak.Sdk.Unity` | `netstandard2.1` (Unity 2021.2+ compatible) |
+
+This repository currently contains no `KyuzanInc.Peak.Sdk.Unity` project or
+NuGet artifact. That name remains a roadmap item only. The separate
+[`com.kyuzan.peak-sdk-unity`](https://github.com/KyuzanInc/peak-sdk-unity) UPM
+package consumes the `netstandard2.1` build of `KyuzanInc.Peak.Sdk`; its v0.8.0
+`EncryptedPlayerPrefsStorage` implements `IStorage`, not `ISecureStorage`.
 
 `netstandard2.1` is the lowest common denominator that supports
 Unity 2021.2 LTS and modern .NET. `net8.0` is enabled so consumers on
