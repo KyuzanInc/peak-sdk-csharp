@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using KyuzanInc.Peak.Sdk.Models;
 using KyuzanInc.Peak.Sdk.Utils;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace KyuzanInc.Peak.Sdk.Tests
@@ -39,15 +40,36 @@ namespace KyuzanInc.Peak.Sdk.Tests
         private sealed class CapturingHandler : HttpMessageHandler
         {
             public HttpRequestMessage? LastRequest { get; private set; }
+            public string? LastBody { get; private set; }
 
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 LastRequest = request;
-                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                LastBody = request.Content == null
+                    ? null
+                    : await request.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("{\"otpId\":\"otp-1\"}"),
-                });
+                };
             }
+        }
+
+        private sealed class CollectingLogger<T> : ILogger<T>
+        {
+            public List<string> Messages { get; } = new List<string>();
+
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter) =>
+                Messages.Add(formatter(state, exception));
         }
 
         [Fact]
@@ -84,6 +106,48 @@ namespace KyuzanInc.Peak.Sdk.Tests
         }
 
         [Fact]
+        public async Task PostAsync_TransmitsJsonButDoesNotLogSensitivePayload()
+        {
+            var handler = new CapturingHandler();
+            var logger = new CollectingLogger<DefaultPeakHttpClient>();
+            var client = new DefaultPeakHttpClient(
+                "https://api.peak.xyz",
+                "project-key-secret",
+                new HttpClient(handler),
+                logger);
+            var payload = new CompleteOtpLoginRequest
+            {
+                Email = "sensitive@example.com",
+                OtpId = "otp-id-secret",
+                OtpCode = "otp-code-secret",
+                TargetPublicKey = "private-key-material",
+                Signup = true,
+            };
+            var headers = new Dictionary<string, string>
+            {
+                ["Authorization"] = "Bearer jwt-secret",
+            };
+
+            await client.PostAsync<CompleteOtpLoginRequest, CompleteOtpLoginResponse>(
+                "public-api/v1/auth/otp/complete-login",
+                payload,
+                headers);
+
+            handler.LastBody.Should().Be(
+                "{\"email\":\"sensitive@example.com\",\"otpId\":\"otp-id-secret\",\"otpCode\":\"otp-code-secret\",\"targetPublicKey\":\"private-key-material\",\"signup\":true}");
+
+            var log = string.Join(Environment.NewLine, logger.Messages);
+            log.Should().Contain("POST public-api/v1/auth/otp/complete-login");
+            log.Should().NotContain("sensitive@example.com");
+            log.Should().NotContain("otp-id-secret");
+            log.Should().NotContain("otp-code-secret");
+            log.Should().NotContain("private-key-material");
+            log.Should().NotContain("jwt-secret");
+            log.Should().NotContain("project-key-secret");
+            log.Should().NotContain("body=");
+        }
+
+        [Fact]
         public async Task GetAsync_PublicDto_DeserializesSuccessBody()
         {
             var client = ClientReturning(HttpStatusCode.OK, "{\"otpId\":\"otp-9\"}");
@@ -96,7 +160,13 @@ namespace KyuzanInc.Peak.Sdk.Tests
         {
             var client = ClientReturning(HttpStatusCode.OK, "{ not valid json");
             Func<Task> act = () => client.GetAsync<InitOtpLoginResponse>("public-api/v1/x");
-            (await act.Should().ThrowAsync<PeakError>()).Which.Code.Should().Be(PeakErrorCode.InvalidResponse);
+            var error = (await act.Should().ThrowAsync<PeakError>()).Which;
+            error.Code.Should().Be(PeakErrorCode.InvalidResponse);
+            error.ApiResponse.Should().NotBeNull();
+            error.ApiResponse!.HttpStatusCode.Should().Be(200);
+            error.ApiResponse.Method.Should().Be("GET");
+            error.ApiResponse.Endpoint.Should().Be("/public-api/v1/x");
+            error.ApiResponse.RawResponseBody.Should().BeNull();
         }
 
         [Fact]
@@ -170,7 +240,13 @@ namespace KyuzanInc.Peak.Sdk.Tests
         {
             var client = ClientReturning(HttpStatusCode.InternalServerError, "boom");
             Func<Task> act = () => client.GetAsync<InitOtpLoginResponse>("public-api/v1/x");
-            (await act.Should().ThrowAsync<PeakError>()).Which.Code.Should().Be(PeakErrorCode.HttpError);
+            var error = (await act.Should().ThrowAsync<PeakError>()).Which;
+            error.Code.Should().Be(PeakErrorCode.HttpError);
+            error.ApiResponse.Should().NotBeNull();
+            error.ApiResponse!.HttpStatusCode.Should().Be(500);
+            error.ApiResponse.Method.Should().Be("GET");
+            error.ApiResponse.Endpoint.Should().Be("/public-api/v1/x");
+            error.ApiResponse.RawResponseBody.Should().BeNull();
         }
     }
 }

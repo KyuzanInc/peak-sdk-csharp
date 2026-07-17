@@ -31,6 +31,12 @@ namespace KyuzanInc.Peak.Sdk
         public int? HttpStatusCode { get; init; }
         public string? Endpoint { get; init; }
         public string? Method { get; init; }
+
+        /// <summary>
+        /// Retained for source compatibility with earlier alpha releases.
+        /// <see cref="Utils.DefaultPeakHttpClient"/> never populates this value,
+        /// so consumers must treat it as optional and normally <see langword="null"/>.
+        /// </summary>
         public string? RawResponseBody { get; init; }
     }
 

@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>KyuzanInc.Peak.Sdk.Tests</RootNamespace>
     <AssemblyName>KyuzanInc.Peak.Sdk.Tests</AssemblyName>
+    <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>

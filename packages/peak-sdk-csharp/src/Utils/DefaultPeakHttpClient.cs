@@ -33,7 +33,7 @@ namespace KyuzanInc.Peak.Sdk.Utils
 
         /// <summary>
         /// User-Agent sent on every outgoing request (e.g.
-        /// <c>KyuzanInc.Peak.Sdk/0.1.0-alpha.3</c>). Peak's edge (nginx) returns
+        /// <c>KyuzanInc.Peak.Sdk/&lt;version&gt;</c>). Peak's edge (nginx) returns
         /// 403 Forbidden for requests with an empty/absent User-Agent, so the SDK
         /// must always send one. Derived from the assembly's informational version
         /// (the full semver, including any pre-release suffix), falling back to the
@@ -108,7 +108,10 @@ namespace KyuzanInc.Peak.Sdk.Utils
             }
 
             var json = JsonSerializer.Serialize(payload, typeInfo);
-            logger.LogDebug("POST {Endpoint} body={Body}", endpoint, json);
+            // Request bodies can contain OTPs, JWT-adjacent authentication
+            // material, or private-key payloads. Log only the operation and
+            // endpoint; never retain or emit the serialized body.
+            logger.LogDebug("POST {Endpoint}", endpoint);
             // Use a ByteArrayContent + explicit Content-Type header so the
             // wire value is exactly `application/json` (Unity-compatible)
             // rather than the .NET default of `application/json; charset=utf-8`
@@ -178,7 +181,6 @@ namespace KyuzanInc.Peak.Sdk.Utils
                             HttpStatusCode = (int)response.StatusCode,
                             Endpoint = req.RequestUri?.AbsolutePath,
                             Method = req.Method.Method,
-                            RawResponseBody = body,
                         });
                 }
 
@@ -197,7 +199,8 @@ namespace KyuzanInc.Peak.Sdk.Utils
             }
             // A parse failure surfaces as System.Text.Json.JsonException (the only
             // serialiser on the response path). Map it to InvalidResponse with the
-            // raw body.
+            // request metadata only. The default client deliberately does not
+            // retain the raw response body.
             catch (JsonException ex)
             {
                 throw new PeakError(PeakErrorCode.InvalidResponse,
@@ -207,7 +210,6 @@ namespace KyuzanInc.Peak.Sdk.Utils
                         HttpStatusCode = response != null ? (int)response.StatusCode : (int?)null,
                         Endpoint = req.RequestUri?.AbsolutePath,
                         Method = req.Method.Method,
-                        RawResponseBody = body,
                     });
             }
             finally

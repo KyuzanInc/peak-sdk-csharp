@@ -83,19 +83,3 @@ jobs:
               --source "https://nuget.pkg.github.com/KyuzanInc/index.json" \
               --api-key "$GITHUB_TOKEN" --skip-duplicate
           done
-
-      - name: Publish to NuGet.org
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          if ('${{ env.NUGET_API_KEY }}' -eq '') {
-            Write-Host "NUGET_API_KEY secret not configured — skipping push."
-            exit 0
-          }
-          Get-ChildItem ./artifacts -Filter "*.nupkg" | ForEach-Object {
-            dotnet nuget push $_.FullName --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
-          }
-          Get-ChildItem ./artifacts -Filter "*.snupkg" | ForEach-Object {
-            dotnet nuget push $_.FullName --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
-          }
