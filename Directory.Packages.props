@@ -25,9 +25,9 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
 
     <!-- Logging abstraction (NullLogger<T>.Instance default) -->
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
 
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
 
     <!-- DPAPI (Windows-only, used by net8.0-windows TFM of peak-sdk-csharp) -->
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
