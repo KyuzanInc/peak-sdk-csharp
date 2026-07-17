@@ -25,7 +25,7 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
 
     <!-- Logging abstraction (NullLogger<T>.Instance default) -->
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
 
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
 
