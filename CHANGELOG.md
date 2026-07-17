@@ -3,6 +3,26 @@
 All notable changes to `KyuzanInc.Peak.Sdk` are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/) (pre-1.0 alpha).
 
+## [0.1.0-alpha.4]
+
+### Security
+
+- `DefaultPeakHttpClient` debug logs now record only the HTTP method and
+  endpoint. Serialized POST bodies, which can contain OTP or key material, are
+  never logged.
+- HTTP and JSON parse errors preserve status, method, and endpoint context
+  without retaining the raw response body. The public `RawResponseBody`
+  property remains for source compatibility and is `null` for errors raised by
+  the default client.
+- Release publishing is restricted to GitHub Packages. The dormant NuGet.org
+  push path has been removed from the publish workflow.
+
+### Fixed
+
+- The test project now explicitly identifies itself to the current
+  `Microsoft.NET.Test.Sdk`, preventing `dotnet test` from silently skipping the
+  suite.
+
 ## [0.1.0-alpha.3]
 
 ### Fixed

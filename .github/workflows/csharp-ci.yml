@@ -154,7 +154,7 @@ jobs:
               <Nullable>enable</Nullable>
             </PropertyGroup>
             <ItemGroup>
-              <PackageReference Include="KyuzanInc.Peak.Sdk" Version="0.1.0-alpha.1" />
+              <PackageReference Include="KyuzanInc.Peak.Sdk" Version="0.1.0-alpha.4" />
             </ItemGroup>
           </Project>
           EOF
@@ -253,7 +253,7 @@ jobs:
               <Nullable>enable</Nullable>
             </PropertyGroup>
             <ItemGroup>
-              <PackageReference Include="KyuzanInc.Peak.Sdk" Version="0.1.0-alpha.1" />
+              <PackageReference Include="KyuzanInc.Peak.Sdk" Version="0.1.0-alpha.4" />
             </ItemGroup>
           </Project>
           EOF

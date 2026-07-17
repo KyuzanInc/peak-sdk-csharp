@@ -6,9 +6,8 @@ generalised so that Godot, console apps, .NET MAUI, and any modern
 .NET host can use the same code path Unity does today.
 
 **Status: pre-release (v0.1.0-alpha).** The `KyuzanInc.Peak.Sdk` package
-publishes to GitHub Packages on a `v*` tag (`v0.1.0-alpha.1` is the
-current release); a public nuget.org publish is scheduled for a later
-milestone. Both `KyuzanInc.Peak.Sdk` and its Turnkey crypto dependency
+publishes only to GitHub Packages on a `v*` tag (`v0.1.0-alpha.4` is the
+current release). Both `KyuzanInc.Peak.Sdk` and its Turnkey crypto dependency
 ship from GitHub Packages, so consumers need GitHub Packages auth set up
 locally (see [docs/development.md](docs/development.md)).
 
@@ -41,8 +40,7 @@ SDK as a deliberate version bump (see
 ## What this repo is *not*
 
 - Not on `nuget.org` yet — the released `KyuzanInc.Peak.Sdk` package ships
-  from GitHub Packages. The nuget.org publish is wired but gated on a
-  separate workstream.
+  only from GitHub Packages.
 - Not the source of the Turnkey crypto port. Crypto code is in
   [`KyuzanInc/turnkey-sdk-csharp`](https://github.com/KyuzanInc/turnkey-sdk-csharp);
   see that repo for the audit status and review evidence.
