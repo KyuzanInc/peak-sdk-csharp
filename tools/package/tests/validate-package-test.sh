@@ -43,7 +43,12 @@ done
 feed="$fixture/feed"
 mkdir -p "$feed"
 
-dotnet pack "$project" -c Release --no-build --no-restore --output "$feed"
+TurnkeySourceProject= dotnet restore "$project" \
+  --force-evaluate \
+  --configfile "$repo_root/nuget.public-ci.config" \
+  -p:NuGetLockFilePath="$fixture/peak-pack.packages.lock.json"
+TurnkeySourceProject= dotnet pack \
+  "$project" -c Release --no-build --no-restore --output "$feed"
 
 package="$feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
 symbols="$feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg"

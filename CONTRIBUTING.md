@@ -6,17 +6,25 @@ implementation.
 
 ## Local verification
 
-Prepare the authorized local Turnkey feed, then run the same non-E2E checks
-used for a contribution:
+Prepare the checksum-pinned public Turnkey source and source-compatible local
+feed, then run the same credential-free non-E2E checks used for a contribution:
 
 ```bash
-./tools/compatibility/prepare-turnkey-local-feed.sh
-dotnet restore peak-sdk-csharp.sln --locked-mode --configfile nuget.public-ci.config
+./tools/compatibility/prepare-turnkey-local-feed.sh \
+  .artifacts/turnkey-feed .artifacts/turnkey-source
+export TurnkeySourceProject="$PWD/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj"
+dotnet restore peak-sdk-csharp.sln --force-evaluate \
+  --configfile nuget.public-ci.config
 dotnet build peak-sdk-csharp.sln -c Release --no-restore
 dotnet test peak-sdk-csharp.sln -c Release --no-build --filter "Category!=E2E"
 dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore \
-  --exclude packages/peak-public-api-client-csharp/
+  --exclude packages/peak-public-api-client-csharp/ .artifacts/turnkey-source/
+unset TurnkeySourceProject
 ```
+
+The committed lock files separately pin the exact published
+`KyuzanInc.Turnkey.Sdk 1.0.0` package hash and are enforced by the version
+contract and trusted release checks.
 
 ## Pull requests
 

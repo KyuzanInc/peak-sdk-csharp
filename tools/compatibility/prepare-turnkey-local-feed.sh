@@ -9,9 +9,10 @@ url="https://github.com/KyuzanInc/turnkey-sdk-csharp/archive/${commit}.tar.gz"
 archive_name="turnkey-sdk-csharp-${commit}.tar.gz"
 manifest="$repo_root/tests/UpstreamSources/turnkey-sdk-csharp-1.0.0.sha256"
 output_directory=${1:-"$repo_root/.artifacts/turnkey-feed"}
+source_output_directory=${2:-"$repo_root/.artifacts/turnkey-source"}
 
-if [[ $# -gt 1 || -z "$output_directory" ]]; then
-  echo "usage: $0 [output-directory]" >&2
+if [[ $# -gt 2 || -z "$output_directory" || -z "$source_output_directory" ]]; then
+  echo "usage: $0 [output-directory] [source-output-directory]" >&2
   exit 1
 fi
 
@@ -58,10 +59,14 @@ fi
 
 temporary_directory=$(mktemp -d)
 destination_temporary_file=
+source_staging_directory=
 cleanup() {
   rm -rf "$temporary_directory"
   if [[ -n "$destination_temporary_file" ]]; then
     rm -f -- "$destination_temporary_file"
+  fi
+  if [[ -n "$source_staging_directory" ]]; then
+    rm -rf -- "$source_staging_directory"
   fi
 }
 trap cleanup EXIT
@@ -94,6 +99,18 @@ if [[ ! -f "$project" ]]; then
   echo "Turnkey source archive is missing src/turnkey-sdk-csharp.csproj" >&2
   exit 1
 fi
+
+if [[ -e "$source_output_directory" || -L "$source_output_directory" ]]; then
+  echo "source output already exists: $source_output_directory" >&2
+  exit 1
+fi
+
+source_output_parent=$(dirname "$source_output_directory")
+mkdir -p "$source_output_parent"
+source_staging_directory=$(mktemp -d "$source_output_parent/.turnkey-source.XXXXXX")
+cp -R "$source_directory/." "$source_staging_directory/"
+source_directory="$source_staging_directory"
+project="$source_directory/src/turnkey-sdk-csharp.csproj"
 
 public_nuget_config="$temporary_directory/nuget.public.config"
 cat > "$public_nuget_config" <<'XML'
@@ -145,5 +162,14 @@ if [[ "$final_count" != 1 || ! -f "$destination_package" || -L "$destination_pac
   exit 1
 fi
 
+if [[ -e "$source_output_directory" || -L "$source_output_directory" ]]; then
+  echo "source output appeared during preparation: $source_output_directory" >&2
+  exit 1
+fi
+mv "$source_staging_directory" "$source_output_directory"
+source_staging_directory=
+project="$source_output_directory/src/turnkey-sdk-csharp.csproj"
+
 printf 'Turnkey source archive SHA-256: %s\n' "$actual_sha"
+printf 'Turnkey source project: %s\n' "$project"
 printf 'Turnkey local package: %s\n' "$output_directory/$package_name"

@@ -21,6 +21,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      TurnkeySourceProject: ${{ github.workspace }}/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
@@ -29,14 +31,16 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Build pinned Turnkey 1.0.0 local feed
-        shell: bash
-        run: ./tools/compatibility/prepare-turnkey-local-feed.sh .artifacts/turnkey-feed
-
-      - name: Restore (locked, credential-free)
+      - name: Prepare pinned Turnkey 1.0.0 source and local feed
         shell: bash
         run: >-
-          dotnet restore peak-sdk-csharp.sln --locked-mode
+          ./tools/compatibility/prepare-turnkey-local-feed.sh
+          .artifacts/turnkey-feed .artifacts/turnkey-source
+
+      - name: Restore against pinned public Turnkey source
+        shell: bash
+        run: >-
+          dotnet restore peak-sdk-csharp.sln --force-evaluate
           --configfile nuget.public-ci.config
 
       - name: Build
@@ -47,6 +51,7 @@ jobs:
         run: >-
           dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore
           --exclude packages/peak-public-api-client-csharp/
+          .artifacts/turnkey-source/
 
       - name: Test (unit, no E2E)
         shell: bash
@@ -86,7 +91,12 @@ jobs:
         shell: bash
         run: |
           mkdir -p .artifacts/peak-feed
-          dotnet pack packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+          TurnkeySourceProject= dotnet restore \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            --force-evaluate --configfile nuget.public-ci.config \
+            -p:NuGetLockFilePath="$PWD/.artifacts/peak-pack.packages.lock.json"
+          TurnkeySourceProject= dotnet pack \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
             -c Release --no-build --no-restore -o .artifacts/peak-feed
           bash tools/package/validate-package.sh \
             .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg \
@@ -116,6 +126,8 @@ jobs:
       fail-fast: false
       matrix:
         tfm: [netstandard2.1, net8.0]
+    env:
+      TurnkeySourceProject: ${{ github.workspace }}/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
@@ -124,14 +136,16 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Build pinned Turnkey 1.0.0 local feed
-        shell: bash
-        run: ./tools/compatibility/prepare-turnkey-local-feed.sh .artifacts/turnkey-feed
-
-      - name: Restore (locked, credential-free)
+      - name: Prepare pinned Turnkey 1.0.0 source and local feed
         shell: bash
         run: >-
-          dotnet restore peak-sdk-csharp.sln --locked-mode
+          ./tools/compatibility/prepare-turnkey-local-feed.sh
+          .artifacts/turnkey-feed .artifacts/turnkey-source
+
+      - name: Restore against pinned public Turnkey source
+        shell: bash
+        run: >-
+          dotnet restore peak-sdk-csharp.sln --force-evaluate
           --configfile nuget.public-ci.config
 
       - name: Build and pack Peak 1.0.0
@@ -139,7 +153,12 @@ jobs:
         run: |
           dotnet build peak-sdk-csharp.sln --no-restore -c Release
           mkdir -p .artifacts/peak-feed
-          dotnet pack packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+          TurnkeySourceProject= dotnet restore \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            --force-evaluate --configfile nuget.public-ci.config \
+            -p:NuGetLockFilePath="$PWD/.artifacts/peak-pack.packages.lock.json"
+          TurnkeySourceProject= dotnet pack \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
             -c Release --no-build --no-restore -o .artifacts/peak-feed
 
       - name: Validate local consumer

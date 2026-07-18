@@ -9,7 +9,7 @@
     crypto changes that need a deliberate review pass on this side.
     BouncyCastle.Cryptography arrives transitively through that
     package and is pinned exactly by the committed packages.lock.json
-    files (CI restores with locked-mode to enforce them).
+    files (the version-contract and trusted release checks enforce them).
   -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

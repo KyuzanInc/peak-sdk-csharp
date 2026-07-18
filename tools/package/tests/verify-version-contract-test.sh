@@ -45,7 +45,8 @@ XML
       "KyuzanInc.Turnkey.Sdk": {
         "type": "Direct",
         "requested": "[1.0.0, 1.0.0]",
-        "resolved": "1.0.0"
+        "resolved": "1.0.0",
+        "contentHash": "emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw=="
       }
     }
   }
@@ -66,7 +67,8 @@ JSON
       "KyuzanInc.Turnkey.Sdk": {
         "type": "CentralTransitive",
         "requested": "[1.0.0, 1.0.0]",
-        "resolved": "1.0.0"
+        "resolved": "1.0.0",
+        "contentHash": "emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw=="
       }
     }
   }
@@ -267,6 +269,13 @@ sed -i.bak '/"resolved":/d' "$fixture/packages/peak-sdk-csharp/src/packages.lock
 rm -f "$fixture/packages/peak-sdk-csharp/src/packages.lock.json.bak"
 git -C "$fixture" add -A
 run_expect_fail 'missing resolved lock field'
+
+write_valid_contract
+sed -i.bak 's#emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw==#rebuilt-package-hash#' \
+  "$fixture/packages/peak-sdk-csharp/src/packages.lock.json"
+rm -f "$fixture/packages/peak-sdk-csharp/src/packages.lock.json.bak"
+git -C "$fixture" add -A
+run_expect_fail 'non-published Turnkey package content hash'
 
 write_valid_contract
 sed -i.bak 's#"KyuzanInc.Turnkey.Sdk": "\[1.0.0, 1.0.0\]"#"KyuzanInc.Turnkey.Sdk": "[1.0.0, 2.0.0)"#' \

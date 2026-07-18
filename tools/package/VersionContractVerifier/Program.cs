@@ -14,6 +14,8 @@ internal static class Program
     private const string TurnkeyCentralVersion = "[1.0.0]";
     private const string TurnkeyLockRequest = "[1.0.0, 1.0.0]";
     private const string TurnkeyResolvedVersion = "1.0.0";
+    private const string TurnkeyPublishedContentHash =
+        "emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw==";
     private const string PeakVersion = "1.0.0";
 
     private static readonly string[] ItemOperationAttributes =
@@ -396,6 +398,12 @@ internal static class Program
             value,
             "resolved",
             TurnkeyResolvedVersion,
+            location,
+            errors);
+        RequireExactString(
+            value,
+            "contentHash",
+            TurnkeyPublishedContentHash,
             location,
             errors);
     }

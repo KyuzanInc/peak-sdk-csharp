@@ -3,12 +3,13 @@
 ## Prerequisites
 
 - .NET SDK 8.0.x (`dotnet --version`)
-- Either a classic GitHub PAT with `read:packages` and explicit package access,
-  or an authorized private repository `GITHUB_TOKEN`
+- `curl` and `tar` for the checksum-pinned public Turnkey source archive
 
 `KyuzanInc.Turnkey.Sdk [1.0.0]` is a private GitHub Packages dependency.
 Source visibility does not grant package access. Fine-grained tokens are not
-used for this setup.
+used for this setup. Package credentials are required for consuming or
+releasing the published package, but not for the standard source-compatibility
+checks below.
 
 ## GitHub Packages authentication
 
@@ -34,17 +35,25 @@ authorization of any private-repository token.
 ## Build and test
 
 ```bash
-./tools/compatibility/prepare-turnkey-local-feed.sh
-dotnet restore peak-sdk-csharp.sln --locked-mode --configfile nuget.public-ci.config
+./tools/compatibility/prepare-turnkey-local-feed.sh \
+  .artifacts/turnkey-feed .artifacts/turnkey-source
+export TurnkeySourceProject="$PWD/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj"
+dotnet restore peak-sdk-csharp.sln --force-evaluate \
+  --configfile nuget.public-ci.config
 dotnet build peak-sdk-csharp.sln -c Release --no-restore
 dotnet test peak-sdk-csharp.sln -c Release --no-build --filter "Category!=E2E"
 dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore \
-  --exclude packages/peak-public-api-client-csharp/
+  --exclude packages/peak-public-api-client-csharp/ .artifacts/turnkey-source/
+unset TurnkeySourceProject
 ```
 
-`--locked-mode` is mandatory. Committed `packages.lock.json` files are the
-source of truth for the dependency graph. The build is deterministic, and CI
-enables `ContinuousIntegrationBuild`.
+The contributor path compiles against the checksum-pinned public Turnkey 1.0.0
+source and writes separate ignored lock files under `obj/`; it never exposes a
+private package credential to pull-request code. The committed
+`packages.lock.json` files remain the published-package source of truth:
+`verify-version-contract.sh` requires the exact version, range, and published
+package SHA-512. The trusted release workflow performs the locked restore
+against the published package. CI enables `ContinuousIntegrationBuild`.
 
 ## E2E tests
 
