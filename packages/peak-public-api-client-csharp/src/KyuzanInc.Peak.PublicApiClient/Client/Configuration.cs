@@ -67,7 +67,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
 
         /// <summary>
         /// Defines the base path of the target API server.
-        /// Example: http://localhost:3000/v1/
+        /// Example: https://api.example.invalid/v1/
         /// </summary>
         private string _basePath;
 
@@ -113,7 +113,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
         {
             Proxy = null;
             UserAgent = WebUtility.UrlEncode("OpenAPI-Generator/1.0.0/csharp");
-            BasePath = "http://localhost:3000";
+            BasePath = "https://api.example.invalid";
             DefaultHeaders = new ConcurrentDictionary<string, string>();
             ApiKey = new ConcurrentDictionary<string, string>();
             ApiKeyPrefix = new ConcurrentDictionary<string, string>();
@@ -121,20 +121,8 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
             {
                 {
                     new Dictionary<string, object> {
-                        {"url", "http://localhost:3000"},
-                        {"description", "Local environment"},
-                    }
-                },
-                {
-                    new Dictionary<string, object> {
-                        {"url", "https://development.yourapi.com"},
-                        {"description", "Development"},
-                    }
-                },
-                {
-                    new Dictionary<string, object> {
-                        {"url", "https://production.yourapi.com"},
-                        {"description", "Production"},
+                        {"url", "https://api.example.invalid"},
+                        {"description", "Public contract example"},
                     }
                 }
             };
@@ -154,7 +142,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Client
             IDictionary<string, string> defaultHeaders,
             IDictionary<string, string> apiKey,
             IDictionary<string, string> apiKeyPrefix,
-            string basePath = "http://localhost:3000") : this()
+            string basePath = "https://api.example.invalid") : this()
         {
             if (string.IsNullOrWhiteSpace(basePath))
                 throw new ArgumentException("The provided basePath is invalid.", "basePath");

@@ -16,6 +16,7 @@ packages/*/lib/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+/.artifacts/
 
 # Node (OpenAPI codegen tooling only; pinned via package-lock.json + npm ci)
 node_modules/

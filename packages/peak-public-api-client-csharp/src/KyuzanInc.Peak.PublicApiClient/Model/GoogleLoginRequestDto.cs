@@ -64,7 +64,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// </summary>
         /// <value>Google ID Token (OIDC token) obtained from Google OAuth</value>
         /*
-        <example>eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</example>
+        <example>synthetic.jwt.token</example>
         */
         [DataMember(Name = "oidcToken", IsRequired = true, EmitDefaultValue = true)]
         public string OidcToken { get; set; }

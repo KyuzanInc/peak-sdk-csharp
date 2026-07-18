@@ -72,7 +72,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// </summary>
         /// <value>Google OAuth Callback URL</value>
         /*
-        <example>https://wallet.peak-dev.xyz/auth/google/callback</example>
+        <example>https://wallet.example.invalid/auth/google/callback</example>
         */
         [DataMember(Name = "callbackUrl", IsRequired = true, EmitDefaultValue = true)]
         public string CallbackUrl { get; set; }

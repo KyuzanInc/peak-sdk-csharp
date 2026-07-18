@@ -55,7 +55,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// </summary>
         /// <value>OTP ID to be used in verify-otp</value>
         /*
-        <example>9c7076e7-c8d4-4b7b-a484-e9ed28f3931d</example>
+        <example>00000000-0000-0000-0000-000000000000</example>
         */
         [DataMember(Name = "otpId", IsRequired = true, EmitDefaultValue = true)]
         public string OtpId { get; set; }

@@ -1,0 +1,28 @@
+actions/checkout
+  pinned_sha:     9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+  pinned_tag:     v7.0.0
+  used_in:        csharp-ci.yml
+                  consumer-smoke.yml
+                  release.yml
+
+actions/setup-dotnet
+  pinned_sha:     c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7
+  pinned_tag:     v5.2.0
+  used_in:        csharp-ci.yml
+                  consumer-smoke.yml
+                  release.yml
+
+actions/setup-java
+  pinned_sha:     03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+  pinned_tag:     v5.6.0
+  used_in:        csharp-ci.yml
+
+actions/setup-node
+  pinned_sha:     820762786026740c76f36085b0efc47a31fe5020
+  pinned_tag:     v7.0.0
+  used_in:        csharp-ci.yml
+
+actions/upload-artifact
+  pinned_sha:     043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+  pinned_tag:     v7.0.1
+  used_in:        csharp-ci.yml

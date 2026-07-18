@@ -1,7 +1,15 @@
 # Changelog
 
 All notable changes to `KyuzanInc.Peak.Sdk` are documented here. This project
-adheres to [Semantic Versioning](https://semver.org/) (pre-1.0 alpha).
+adheres to [Semantic Versioning](https://semver.org/).
+
+## [1.0.0]
+
+- Established the stable public API for `KyuzanInc.Peak.Sdk`.
+- Pinned `KyuzanInc.Turnkey.Sdk` to the exact `[1.0.0]` dependency version.
+- Prepared public source provenance and documentation for external maintenance.
+- Established the public-source, private-GitHub-Packages distribution boundary
+  for explicitly authorized consumers.
 
 ## [0.1.0-alpha.4]
 

@@ -69,7 +69,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// </summary>
         /// <value>Body</value>
         /*
-        <example>{&quot;organizationId&quot;:&quot;c0731898-7908-472a-aaff-373417cdb213&quot;}</example>
+        <example>{&quot;organizationId&quot;:&quot;00000000-0000-0000-0000-000000000000&quot;}</example>
         */
         [DataMember(Name = "body", IsRequired = true, EmitDefaultValue = true)]
         public string Body { get; set; }

@@ -2,186 +2,96 @@
 
 ## Prerequisites
 
-- .NET SDK 8.0.x (verify with `dotnet --version`)
-- A GitHub PAT with `read:packages` scope, exported as `GITHUB_TOKEN`,
-  for pulling `KyuzanInc.Turnkey.Sdk` from GitHub Packages (see below)
-- Optional for Unity smoke: Unity 2021.2 LTS or newer, plus
-  NuGetForUnity 4.x for consuming locally-packed `.nupkg`s
+- .NET SDK 8.0.x (`dotnet --version`)
+- Either a classic GitHub PAT with `read:packages` and explicit package access,
+  or an authorized private repository `GITHUB_TOKEN`
 
-## GitHub Packages auth setup (one-time)
+`KyuzanInc.Turnkey.Sdk [1.0.0]` is a private GitHub Packages dependency.
+Source visibility does not grant package access. Fine-grained tokens are not
+used for this setup.
 
-`KyuzanInc.Turnkey.Sdk` is published to GitHub Packages until it ships
-to nuget.org. Restoring this repo therefore needs a personal access
-token (classic, scope `read:packages`) — fine-grained tokens with
-package read access also work.
+## GitHub Packages authentication
 
-The repo's `nuget.config` already declares the `github-kyuzan` source,
-but it stores no credentials (and must not). Attach credentials to the
-user-level config instead — that file is independent of the repo's
-config, so `add source` does not collide with the repo's declaration
-when scoped via `--configfile`. Use `add source` the first time on a
-machine; `update source` on later token refreshes:
+The repository does not store credentials. Configure them in your user-level
+NuGet configuration, not in a committed file:
 
-```
-export GITHUB_TOKEN=ghp_...   # PAT with read:packages
+```bash
+export GITHUB_TOKEN=ghp_... # classic PAT with read:packages and package access
 
-# Make sure the user-level NuGet config exists as valid XML
-# (brand-new profiles do not have it yet, and `add source` rejects
-# an empty file with "Root element is missing").
-mkdir -p ~/.nuget/NuGet
-[ -s ~/.nuget/NuGet/NuGet.Config ] || cat > ~/.nuget/NuGet/NuGet.Config <<'XML'
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-</configuration>
-XML
-
-# First time on this machine — declare the source in the user config:
 dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
   --name github-kyuzan \
   --username <your-github-username> \
   --password "$GITHUB_TOKEN" \
   --store-password-in-clear-text \
   --configfile ~/.nuget/NuGet/NuGet.Config
-
-# Subsequent token refreshes use update-source (NOT add-source —
-# that would error with duplicate-source on second run):
-# dotnet nuget update source github-kyuzan \
-#   --username <your-github-username> \
-#   --password "$GITHUB_TOKEN" \
-#   --store-password-in-clear-text \
-#   --configfile ~/.nuget/NuGet/NuGet.Config
 ```
 
-Alternatively, edit `~/.nuget/NuGet/NuGet.Config` directly. Adding only
-a `packageSourceCredentials` block (without re-declaring the source)
-attaches credentials to the repo-declared source without duplication:
+On later token refreshes, use `dotnet nuget update source github-kyuzan` with
+the same username, password, and config-file arguments. If restore returns
+`401 Unauthorized`, confirm `read:packages`, explicit package access, and the
+authorization of any private-repository token.
 
-```xml
-<configuration>
-  <packageSources>
-    <add key="github-kyuzan" value="https://nuget.pkg.github.com/KyuzanInc/index.json" />
-  </packageSources>
-  <packageSourceCredentials>
-    <github-kyuzan>
-      <add key="Username" value="<your-github-username>" />
-      <add key="ClearTextPassword" value="ghp_..." />
-    </github-kyuzan>
-  </packageSourceCredentials>
-</configuration>
+## Build and test
+
+```bash
+./tools/compatibility/prepare-turnkey-local-feed.sh
+dotnet restore peak-sdk-csharp.sln --locked-mode --configfile nuget.public-ci.config
+dotnet build peak-sdk-csharp.sln -c Release --no-restore
+dotnet test peak-sdk-csharp.sln -c Release --no-build --filter "Category!=E2E"
+dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore \
+  --exclude packages/peak-public-api-client-csharp/
 ```
 
-If `dotnet restore` fails with `401 Unauthorized` against
-`nuget.pkg.github.com`, the token is missing the `read:packages` scope
-or has not been granted access to the `KyuzanInc/turnkey-sdk-csharp`
-package.
+`--locked-mode` is mandatory. Committed `packages.lock.json` files are the
+source of truth for the dependency graph. The build is deterministic, and CI
+enables `ContinuousIntegrationBuild`.
 
-## Build
+## E2E tests
 
-```
-dotnet restore peak-sdk-csharp.sln --locked-mode
-dotnet build peak-sdk-csharp.sln -c Release
-```
+E2E tests need dedicated credentials and are not part of the standard
+contributor command:
 
-`--locked-mode` is mandatory for reproducibility. The committed
-`packages.lock.json` files under
-`packages/peak-sdk-csharp/{src,tests}/` are the source of truth for
-the resolved dependency graph; CI uses the same flag.
-
-The build is deterministic (`Deterministic=true` in
-`Directory.Build.props`) and `ContinuousIntegrationBuild=true` is
-toggled on by the `CI` env var, so CI artifacts are reproducible.
-
-## Test
-
-```
-dotnet test peak-sdk-csharp.sln -c Release --collect:"XPlat Code Coverage"
-```
-
-E2E tests are gated by environment variables:
-
-```
+```bash
 export TURNKEY_TEST_ORG_API_KEY=...
 export TURNKEY_TEST_ORG_ID=...
 dotnet test peak-sdk-csharp.sln --filter "Category=E2E"
 ```
 
-Without those variables, the E2E suite is silently skipped — not
-failed.
+Without those variables, the E2E suite is skipped.
 
-## Consuming `KyuzanInc.Peak.Sdk` from another project
+## Consuming the package
 
-`KyuzanInc.Peak.Sdk` publishes to GitHub Packages on every `v*` tag
-(it is the only published package — `KyuzanInc.Peak.PublicApiClient`
-is `internal` / `IsPackable=false`, and the Unity adapter is not in the
-solution). A downstream project that has the `github-kyuzan` source
-configured — the same one-time auth setup as above, which also serves
-the transitive `KyuzanInc.Turnkey.Sdk` — installs the published package
-straight from the feed (`--prerelease` is required while the latest
-published version is the `0.1.0-alpha.1` prerelease — a bare
-`dotnet add package` resolves stable versions only):
+`KyuzanInc.Peak.Sdk 1.0.0` is distributed from private GitHub Packages for
+explicitly authorized consumers. With the `github-kyuzan` source configured,
+install the stable version:
 
-```
-dotnet add package KyuzanInc.Peak.Sdk --prerelease
+```bash
+dotnet add package KyuzanInc.Peak.Sdk --version 1.0.0
 ```
 
-The repo's own `nuget.config` maps `KyuzanInc.Peak.*` to `local-feed`
-(see below) for the local-pack workflow; a downstream consumer does not
-copy that mapping, so its `KyuzanInc.Peak.Sdk` resolves from
-`github-kyuzan` instead.
+The project also requires the same authorized source for the exact transitive
+dependency `KyuzanInc.Turnkey.Sdk [1.0.0]`. This project does not publish to
+nuget.org.
 
-### Local `.nupkg` feed (offline or unreleased versions)
+## Local package feed
 
-To consume a build that is not on GitHub Packages — offline, or a
-version between releases — pack to a local feed:
+For offline development or an unreleased local build, create a local feed:
 
-```
+```bash
 dotnet pack peak-sdk-csharp.sln -c Release -o ./local-feed
 ```
 
-Point a downstream `nuget.config` at the absolute `./local-feed` path
-and `dotnet add package KyuzanInc.Peak.Sdk --prerelease` from there. The
-downstream project still needs the GitHub Packages source configured,
-because
-`KyuzanInc.Peak.Sdk` pulls `KyuzanInc.Turnkey.Sdk` transitively. Unity
-consumers via NuGetForUnity follow the same pattern after the
-`.nupkg` is copied into the Unity project's Packages folder.
+Point a downstream `nuget.config` at the absolute `local-feed` path and add the
+desired local `KyuzanInc.Peak.Sdk` version. The downstream project still needs
+authorized GitHub Packages access for the transitive Turnkey dependency.
 
-## Bumping `KyuzanInc.Turnkey.Sdk`
+## Updating Turnkey
 
-See [docs/sync-rules.md](sync-rules.md) for the full bump procedure.
-TL;DR:
+See [docs/sync-rules.md](sync-rules.md). A dependency update changes
+`Directory.Packages.props`, refreshes lock files, runs the wire-format smoke
+test, and links the upstream release notes in the pull request.
 
-1. Edit `Directory.Packages.props` to set the new version.
-2. `dotnet restore peak-sdk-csharp.sln --force-evaluate`
-3. Commit the refreshed `packages.lock.json` files.
-4. Run the wire-format smoke locally:
-   `dotnet test peak-sdk-csharp.sln --filter "FullyQualifiedName~TurnkeyWireFormatSmokeTests"`
-5. Open a PR with the upstream release notes linked in the body.
+## Cross-platform storage
 
-## Lint / format
-
-```
-dotnet format peak-sdk-csharp.sln --verify-no-changes
-```
-
-The `.editorconfig` is normative. Roslyn analyzer severities flag
-weak / broken cryptographic algorithm usage as errors.
-
-## Re-sync upstream snapshots
-
-```
-./scripts/sync-upstream.sh peak-sdk-unity <new-commit-sha>
-./scripts/sync-upstream.sh peak-server-openapi <new-tag>
-```
-
-Each command produces one commit on a `sync/` branch. Review and
-merge per [docs/sync-rules.md](sync-rules.md).
-
-## Cross-platform notes
-
-- Windows: DPAPI is the default `ISecureStorage`. Other platforms
-  return `ISecureStorage.IsAvailable == false`.
-- macOS / Linux: build and test green on .NET 8; no built-in
-  secure storage in v0.1.0.
-- Unity standalone: respects the host OS rule above; mobile gets the
-  Unity adapter implementations.
+- Windows: DPAPI is the default `ISecureStorage` implementation.
+- macOS and Linux: no built-in secure storage implementation is provided.

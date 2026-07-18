@@ -18,7 +18,7 @@
 
   <ItemGroup Label="Production">
     <!-- External Turnkey port (Crypto, ApiKeyStamper, Http, Encoding). Pinned exact. -->
-    <PackageVersion Include="KyuzanInc.Turnkey.Sdk" Version="[0.1.0-alpha.0]" />
+    <PackageVersion Include="KyuzanInc.Turnkey.Sdk" Version="[1.0.0]" />
 
     <!-- JSON: source generator for AOT / IL2CPP safety. Pinned 8.0.x to align
          with KyuzanInc.Turnkey.Sdk (IL2CPP-proven) and minimize Unity restore risk. -->
