@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 validator="$repo_root/tools/package/validate-package.sh"
+canonicalizer="$repo_root/tools/package/canonicalize-nuget-package.py"
 project="$repo_root/packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj"
 
 for tool in dotnet python3; do
@@ -14,6 +15,10 @@ done
 
 if [[ ! -f "$validator" ]]; then
   echo "package validator is missing: $validator" >&2
+  exit 1
+fi
+if [[ ! -f "$canonicalizer" ]]; then
+  echo "package canonicalizer is missing: $canonicalizer" >&2
   exit 1
 fi
 
@@ -58,6 +63,8 @@ if [[ ! -f "$package" || ! -f "$symbols" ]]; then
   exit 1
 fi
 
+python3 "$canonicalizer" "$package"
+python3 "$canonicalizer" "$symbols"
 bash "$validator" "$package" "$symbols"
 
 rewrite_package() {

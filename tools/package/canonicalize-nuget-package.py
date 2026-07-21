@@ -44,6 +44,38 @@ def validate_name(name: str) -> None:
         fail(f"unsafe NuGet package path: {name!r}")
 
 
+def local_name(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1]
+
+
+def canonicalize_nuspec(data: bytes) -> bytes:
+    try:
+        root = ET.fromstring(data)
+    except ET.ParseError as exc:
+        fail(f"invalid NuGet nuspec XML: {exc}")
+
+    if local_name(root.tag) != "package":
+        fail("NuGet nuspec XML has an unexpected root")
+    metadata = [child for child in root if local_name(child.tag) == "metadata"]
+    if len(metadata) != 1:
+        fail("NuGet nuspec must contain exactly one metadata element")
+    repositories = [
+        child for child in metadata[0] if local_name(child.tag) == "repository"
+    ]
+    if len(repositories) != 1:
+        fail("NuGet nuspec must contain exactly one repository element")
+
+    repository = repositories[0]
+    if "branch" not in repository.attrib:
+        return data
+    del repository.attrib["branch"]
+
+    if root.tag.startswith("{"):
+        namespace = root.tag[1:].split("}", 1)[0]
+        ET.register_namespace("", namespace)
+    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
+
 def canonicalize_relationships(data: bytes, old_core_name: str) -> bytes:
     try:
         root = ET.fromstring(data)
@@ -119,6 +151,15 @@ def canonicalize(package_path: pathlib.Path) -> None:
             old_core_name = core_names[0]
             if RELATIONSHIPS_NAME not in names:
                 fail("NuGet package is missing _rels/.rels")
+            nuspec_names = [
+                name
+                for name in names
+                if len(pathlib.PurePosixPath(name).parts) == 1
+                and name.casefold().endswith(".nuspec")
+            ]
+            if len(nuspec_names) != 1:
+                fail("NuGet package must contain exactly one root nuspec")
+            nuspec_name = nuspec_names[0]
 
             payloads: dict[str, bytes] = {}
             for entry in entries:
@@ -132,6 +173,7 @@ def canonicalize(package_path: pathlib.Path) -> None:
     payloads[RELATIONSHIPS_NAME] = canonicalize_relationships(
         payloads[RELATIONSHIPS_NAME], old_core_name
     )
+    payloads[nuspec_name] = canonicalize_nuspec(payloads[nuspec_name])
 
     temporary_name: str | None = None
     try:
