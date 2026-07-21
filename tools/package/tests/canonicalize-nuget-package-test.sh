@@ -28,9 +28,9 @@ TurnkeySourceProject= dotnet restore "$project" \
   --configfile "$repo_root/nuget.public-ci.config" \
   -p:NuGetLockFilePath="$fixture/peak-pack.packages.lock.json"
 TurnkeySourceProject= dotnet pack "$project" \
-  -c Release --no-build --no-restore --output "$first"
+  -c Release --no-build --no-restore -p:RepositoryBranch= --output "$first"
 TurnkeySourceProject= dotnet pack "$project" \
-  -c Release --no-build --no-restore --output "$second"
+  -c Release --no-build --no-restore -p:RepositoryBranch= --output "$second"
 
 for package in \
   "$first/KyuzanInc.Peak.Sdk.1.0.0.nupkg" \

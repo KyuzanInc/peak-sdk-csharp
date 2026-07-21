@@ -34,7 +34,9 @@ if [[ "$actual_package" != "$expected_package" ]]; then
   exit 1
 fi
 
-if ! unzip -p "$expected_package" '*.nuspec' | grep -Fq '<version>1.0.0</version>'; then
+nuspec="$fixture/turnkey-sdk-csharp.nuspec"
+unzip -p "$expected_package" '*.nuspec' > "$nuspec"
+if ! grep -Fq '<version>1.0.0</version>' "$nuspec"; then
   echo "Turnkey package metadata does not contain version 1.0.0" >&2
   exit 1
 fi

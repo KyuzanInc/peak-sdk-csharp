@@ -74,6 +74,7 @@ jobs:
           bash tools/package/tests/validate-package-test.sh
           bash tools/package/tests/canonicalize-nuget-package-test.sh
           bash tools/publication/tests/verify-workflows-test.sh
+          bash tools/publication/verify-actions-schema.sh
 
       - name: Verify public-source and workflow policy
         if: matrix.os == 'ubuntu-latest'
@@ -95,7 +96,8 @@ jobs:
             -p:NuGetLockFilePath="$PWD/.artifacts/peak-pack.packages.lock.json"
           TurnkeySourceProject= dotnet pack \
             packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
-            -c Release --no-build --no-restore -o .artifacts/peak-feed
+            -c Release --no-build --no-restore -p:RepositoryBranch= \
+            -o .artifacts/peak-feed
           python3 tools/package/canonicalize-nuget-package.py \
             .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg
           python3 tools/package/canonicalize-nuget-package.py \
@@ -161,7 +163,8 @@ jobs:
             -p:NuGetLockFilePath="$PWD/.artifacts/peak-pack.packages.lock.json"
           TurnkeySourceProject= dotnet pack \
             packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
-            -c Release --no-build --no-restore -o .artifacts/peak-feed
+            -c Release --no-build --no-restore -p:RepositoryBranch= \
+            -o .artifacts/peak-feed
 
       - name: Validate local consumer
         shell: bash
