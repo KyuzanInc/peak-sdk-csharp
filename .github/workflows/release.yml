@@ -164,11 +164,8 @@ jobs:
           set -euo pipefail
           umask 077
           rm -f "$READ_CONFIG"
-          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$READ_CONFIG"
-          dotnet nuget add source https://api.nuget.org/v3/index.json \
-            --name nuget.org --configfile "$READ_CONFIG"
-          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --name github-kyuzan \
+          cp nuget.config "$READ_CONFIG"
+          dotnet nuget update source github-kyuzan \
             --username "$NUGET_READ_USERNAME" \
             --password "$NUGET_READ_TOKEN" \
             --store-password-in-clear-text \
@@ -186,11 +183,8 @@ jobs:
           set -euo pipefail
           umask 077
           rm -f "$READ_CONFIG"
-          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$READ_CONFIG"
-          dotnet nuget add source https://api.nuget.org/v3/index.json \
-            --name nuget.org --configfile "$READ_CONFIG"
-          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --name github-kyuzan \
+          cp nuget.config "$READ_CONFIG"
+          dotnet nuget update source github-kyuzan \
             --username "$NUGET_READ_USERNAME" \
             --password "$NUGET_READ_TOKEN" \
             --store-password-in-clear-text \
@@ -211,11 +205,8 @@ jobs:
           }
           umask 077
           rm -f "$READ_CONFIG"
-          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$READ_CONFIG"
-          dotnet nuget add source https://api.nuget.org/v3/index.json \
-            --name nuget.org --configfile "$READ_CONFIG"
-          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
-            --name github-kyuzan \
+          cp nuget.config "$READ_CONFIG"
+          dotnet nuget update source github-kyuzan \
             --username "$NUGET_READ_USERNAME" \
             --password "$NUGET_READ_TOKEN" \
             --store-password-in-clear-text \

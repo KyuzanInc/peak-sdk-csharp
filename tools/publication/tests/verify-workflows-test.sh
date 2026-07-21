@@ -4,6 +4,7 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 verifier="$repo_root/tools/publication/verify-workflows.sh"
 csharp_ci="$repo_root/.github/workflows/csharp-ci.yml"
+release_workflow="$repo_root/.github/workflows/release.yml"
 schema_verifier="$repo_root/tools/publication/verify-actions-schema.sh"
 
 if [[ ! -f "$verifier" ]]; then
@@ -30,6 +31,15 @@ if ! grep -Fqx -- \
     '          bash tools/publication/verify-actions-schema.sh' \
     "$csharp_ci"; then
   echo 'C# CI must run the GitHub Actions schema verifier' >&2
+  exit 1
+fi
+
+if [[ $(grep -Fc '          cp nuget.config "$READ_CONFIG"' "$release_workflow") -ne 3 ]]; then
+  echo 'release read credentials must preserve the committed NuGet source mapping' >&2
+  exit 1
+fi
+if grep -Fq 'dotnet nuget add source https://api.nuget.org/v3/index.json' "$release_workflow"; then
+  echo 'release read credentials must not reconstruct a mapping-free NuGet config' >&2
   exit 1
 fi
 
@@ -1588,6 +1598,8 @@ env \
   /''bin/bash "$read_config_script" >/dev/null
 grep -Fq 'https://api.nuget.org/v3/index.json' "$read_config"
 grep -Fq 'https://nuget.pkg.github.com/KyuzanInc/index.json' "$read_config"
+grep -Fq '<packageSourceMapping>' "$read_config"
+grep -Fq '<package pattern="KyuzanInc.Turnkey.*" />' "$read_config"
 python3 - "$read_config" <<'PY'
 import os
 import pathlib

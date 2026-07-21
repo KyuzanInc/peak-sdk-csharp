@@ -46,7 +46,7 @@ XML
         "type": "Direct",
         "requested": "[1.0.0, 1.0.0]",
         "resolved": "1.0.0",
-        "contentHash": "emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw=="
+        "contentHash": "I3vQF6qcpQh2rpxnPQ7FzrcyS80vT8Rv8DDD4h8YrBAROpfRq3LuHiAqXTsjeT2gK4XQcEMfm4G8yr0CFoqSng=="
       }
     }
   }
@@ -68,7 +68,7 @@ JSON
         "type": "CentralTransitive",
         "requested": "[1.0.0, 1.0.0]",
         "resolved": "1.0.0",
-        "contentHash": "emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw=="
+        "contentHash": "I3vQF6qcpQh2rpxnPQ7FzrcyS80vT8Rv8DDD4h8YrBAROpfRq3LuHiAqXTsjeT2gK4XQcEMfm4G8yr0CFoqSng=="
       }
     }
   }
@@ -271,7 +271,7 @@ git -C "$fixture" add -A
 run_expect_fail 'missing resolved lock field'
 
 write_valid_contract
-sed -i.bak 's#emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw==#rebuilt-package-hash#' \
+sed -i.bak 's#I3vQF6qcpQh2rpxnPQ7FzrcyS80vT8Rv8DDD4h8YrBAROpfRq3LuHiAqXTsjeT2gK4XQcEMfm4G8yr0CFoqSng==#rebuilt-package-hash#' \
   "$fixture/packages/peak-sdk-csharp/src/packages.lock.json"
 rm -f "$fixture/packages/peak-sdk-csharp/src/packages.lock.json.bak"
 git -C "$fixture" add -A

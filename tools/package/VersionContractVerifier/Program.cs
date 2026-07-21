@@ -15,7 +15,7 @@ internal static class Program
     private const string TurnkeyLockRequest = "[1.0.0, 1.0.0]";
     private const string TurnkeyResolvedVersion = "1.0.0";
     private const string TurnkeyPublishedContentHash =
-        "emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw==";
+        "I3vQF6qcpQh2rpxnPQ7FzrcyS80vT8Rv8DDD4h8YrBAROpfRq3LuHiAqXTsjeT2gK4XQcEMfm4G8yr0CFoqSng==";
     private const string PeakVersion = "1.0.0";
 
     private static readonly string[] ItemOperationAttributes =
