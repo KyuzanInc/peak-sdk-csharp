@@ -9,6 +9,7 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <NuGetLockFilePath Condition="'$(TurnkeySourceProject)' != ''">$(BaseIntermediateOutputPath)turnkey-source.packages.lock.json</NuGetLockFilePath>
   </PropertyGroup>
 
   <ItemGroup>

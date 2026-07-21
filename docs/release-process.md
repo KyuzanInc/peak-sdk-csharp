@@ -1,0 +1,64 @@
+# Release process
+
+This runbook governs source releases for `KyuzanInc.Peak.Sdk`. The source
+repository is public, while the package is private GitHub Packages distribution
+for explicitly authorized consumers. Source availability does not grant package
+access. The dependency on `KyuzanInc.Turnkey.Sdk` is exactly `[1.0.0]`.
+
+## Release procedure
+
+1. Merge the approved release commit into `main` and ensure its required CI and
+   review checks have passed.
+2. Create a strict Semantic Versioning tag such as `v1.0.0` that targets the
+   current approved `main` tip. The release workflow rejects tags behind or
+   ahead of `main`. Do not retag or move an existing release tag.
+3. Keep the source repository private for the bootstrap release. Create the
+   public GitHub Release record for the `v1.0.0` tag while the repository is
+   still private. Do not attach package binaries; this Release becomes public
+   only after the final repository-visibility step.
+4. The published Release event triggers the reviewed `release.yml` workflow.
+   It checks out the immutable tag, performs the locked restore, build, tests,
+   package validation, and byte-stable package canonicalization. Publish the
+   immutable package version to the private GitHub Packages feed only from that
+   workflow. The workflow uploads `release-checksums.txt` and no `.nupkg` or
+   `.snupkg` Release assets.
+5. After the Release workflow succeeds, run the authorized consumer restore and
+   smoke checks through the protected `github-packages-read` environment with a
+   dedicated read credential. The exact Peak and Turnkey versions must both be
+   `1.0.0`.
+6. Disable package repository-permission inheritance. Confirm that the package
+   is private and that the source repository has no package Actions access.
+7. Configure the protected `github-packages` and `github-packages-read`
+   environments with separate, least-privilege publish and read credentials,
+   then make the source repository public. Future public-repository releases
+   fail closed when any dedicated credential is unavailable.
+
+Package versions are immutable. If a released package needs correction, publish
+a new patch version (for example, `1.0.1`); do not replace or delete the
+existing version. This project does not publish packages to nuget.org.
+
+## Administrator checklist
+
+Before creating the bootstrap Release, an administrator confirms that `main`
+has branch/ruleset protection, required CI, and required review; force pushes
+and branch deletion are prevented. Secret scanning, push protection,
+Dependabot, CodeQL for C#, and private vulnerability reporting must be enabled
+and reviewed. The source repository and `KyuzanInc.Peak.Sdk` package must both
+still be private.
+
+After the Release and consumer workflows succeed, but before changing source
+visibility, confirm all of the following:
+
+- Package access inheritance is disabled, the package remains private, and the
+  source repository has no package Actions access.
+- `github-packages` and `github-packages-read` are protected environments with
+  separate, least-privilege credentials for future publish and read operations.
+- No package binaries are attached to the Release or retained in Actions
+  artifacts; the only public release asset is `release-checksums.txt`.
+- The isolated consumer restored and ran exact Peak `1.0.0` with exact Turnkey
+  `1.0.0` from the authorized GitHub Packages source.
+
+After making the source repository public, verify that it remains public, the
+package remains private, and only explicitly authorized consumers retain
+package access. If any phase-specific check is not true, stop and correct the
+administration setting before continuing.

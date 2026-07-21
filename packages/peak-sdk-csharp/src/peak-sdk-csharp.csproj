@@ -16,13 +16,15 @@
     <RootNamespace>KyuzanInc.Peak.Sdk</RootNamespace>
     <AssemblyName>KyuzanInc.Peak.Sdk</AssemblyName>
     <!--
-      Lock-file restore: commit packages.lock.json and require
-      'dotnet restore' with locked-mode in CI for reproducible restores.
+      The committed lock file pins the published Turnkey package for trusted
+      release restores. Public PR CI uses a separate ignored lock file while
+      compiling the checksum-pinned public Turnkey source project.
     -->
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <NuGetLockFilePath Condition="'$(TurnkeySourceProject)' != ''">$(BaseIntermediateOutputPath)turnkey-source.packages.lock.json</NuGetLockFilePath>
 
     <PackageId>KyuzanInc.Peak.Sdk</PackageId>
-    <Version>0.1.0-alpha.4</Version>
+    <Version>1.0.0</Version>
     <Title>KyuzanInc.Peak.Sdk</Title>
     <Description>Peak embedded-wallet SDK for .NET. OTP login, account management, private key import/export. A generic-NET port of peak-sdk-unity by Kyuzan Inc.; semantic equivalent of the Unity public surface plus selected behaviour from peak-sdk-browser. Includes IStorage / ISecureStorage abstractions; secure storage backends live in KyuzanInc.Peak.Sdk.Unity (Unity) or KyuzanInc.Peak.Sdk (Windows DPAPI).</Description>
     <PackageTags>peak;wallet;turnkey;sdk;embedded-wallet;p256;otp</PackageTags>
@@ -30,10 +32,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="KyuzanInc.Turnkey.Sdk" />
+    <PackageReference Include="KyuzanInc.Turnkey.Sdk" Condition="'$(TurnkeySourceProject)' == ''" />
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TurnkeySourceProject)' != ''">
+    <ProjectReference Include="$(TurnkeySourceProject)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
@@ -42,6 +48,7 @@
 
   <ItemGroup>
     <None Include="..\README.public.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\..\..\LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>

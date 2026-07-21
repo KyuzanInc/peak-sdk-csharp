@@ -57,4 +57,11 @@ fi
 find "$PKG/src" -name '*.cs' -print0 \
   | xargs -0 perl -i -pe 's/^(\s*)public( (?:partial |sealed |abstract |static )*(?:class|interface|enum|struct|delegate|record)\b)/$1internal$2/'
 
+# OpenAPI Generator 7.9.0 emits two loopback development strings from its C# templates
+# independently of the contract's sanitized server list. Normalize those
+# boilerplate defaults so regeneration reproduces the public-safe tree.
+find "$PKG/src" -name '*.cs' -print0 \
+  | xargs -0 perl -i -pe \
+      's#http://local''host:3000/v1/#https://api.example.invalid/v1/#g; s#http://local''host:3000/api#https://api.example.invalid#g'
+
 echo "Generated C# client into $PKG/src/KyuzanInc.Peak.PublicApiClient/ (generator $ACTUAL_VERSION)"

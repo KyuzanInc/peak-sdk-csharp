@@ -1406,12 +1406,8 @@ info:
   contact: {}
 tags: []
 servers:
-  - url: http://localhost:3000/
-    description: Local environment
-  - url: https://development.yourapi.com/
-    description: Development
-  - url: https://production.yourapi.com/
-    description: Production
+  - url: https://api.example.invalid/
+    description: Public contract example
 components:
   securitySchemes:
     public-api-project-api-key:
@@ -1530,7 +1526,7 @@ components:
         stampHeaderValue:
           type: string
           description: Stamp header value
-          example: eyJwdWJsaWNLZXkiOiIwMjVmNzg0ZjZhYjc1MzU5NTQ5NTBkZjMzZmJkMTVkMTMwNDFhMzNjNGIyMmY2ZDk4ZTMzYzJhYzU3Nzc5MTdjY2UiLCJzY2hlbWUiOiJTSUdOQVRVUkVfU0NIRU1FX1RLX0FQSV9QMjU2Iiwic2lnbmF0dXJlIjoiMzA0NDAyMjA0OWFmMjE3NzRiYWYwODI2NTZjYzgyYjZmODQ5ZTNlMmI4MDg2ZmYyMDNkMTQ4YWY3MTdiNGZhMDgxMjg3NDEyMDIyMDY4ZjQwYmU2Yjk4YTNjNWRjN2VlMmZlNjFhYmRiYzE3YzMwZjU0MjFlNzQxODBkMDZiNTcwM2Y0OTUyN2U5NjQifQ
+          example: synthetic-stamp
       required:
         - stampHeaderName
         - stampHeaderValue
@@ -1540,7 +1536,7 @@ components:
         body:
           type: string
           description: Body
-          example: '{"organizationId":"c0731898-7908-472a-aaff-373417cdb213"}'
+          example: '{"organizationId":"00000000-0000-0000-0000-000000000000"}'
         stamp:
           description: Stamp
           allOf:
@@ -1847,7 +1843,7 @@ components:
         otpId:
           type: string
           description: OTP ID to be used in verify-otp
-          example: 9c7076e7-c8d4-4b7b-a484-e9ed28f3931d
+          example: 00000000-0000-0000-0000-000000000000
       required:
         - otpId
     CompleteOtpLoginRequestDto:
@@ -1860,7 +1856,7 @@ components:
         otpId:
           type: string
           description: OTP ID returned from init-otp-login
-          example: 9c7076e7-c8d4-4b7b-a484-e9ed28f3931d
+          example: 00000000-0000-0000-0000-000000000000
         otpCode:
           type: string
           description: OTP code sent to user email
@@ -1921,7 +1917,7 @@ components:
         callbackUrl:
           type: string
           description: Google OAuth Callback URL
-          example: https://wallet.peak-dev.xyz/auth/google/callback
+          example: https://wallet.example.invalid/auth/google/callback
       required:
         - clientId
         - callbackUrl
@@ -1931,7 +1927,7 @@ components:
         oidcToken:
           type: string
           description: Google ID Token (OIDC token) obtained from Google OAuth
-          example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+          example: synthetic.jwt.token
         targetPublicKey:
           type: string
           description: Target public key for session creation (from SDK IndexedDB)

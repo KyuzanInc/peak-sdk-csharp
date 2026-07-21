@@ -1,10 +1,12 @@
 # Architecture
 
-`peak-sdk-csharp` is a multi-package .NET solution that ports the
-Unity-only `peak-sdk-unity` SDK to generic NuGet packages. The Turnkey
-crypto / API key stamping layer is consumed from the external
+`peak-sdk-csharp` is a multi-package .NET solution for the generic Peak SDK.
+The separate `peak-sdk-unity` repository is a downstream adapter; its source
+tree is intentionally not retained here. The Turnkey crypto / API key stamping
+layer is consumed from the external
 [`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
-package; it is no longer built in this repo.
+private package at the exact stable `[1.0.0]` dependency boundary; it is not
+built in this repository.
 
 ## Layering
 
@@ -20,7 +22,7 @@ package; it is no longer built in this repo.
 |  - PeakError + PeakErrorCode                             |
 |  - DTOs hand-designed; generated types kept internal     |
 +----------------------------------------------------------+
-|  KyuzanInc.Peak.Sdk.Unity  (deferred v0.2 adapter)       |
+|  KyuzanInc.Peak.Sdk.Unity  (downstream adapter support)  |
 |  - UnsafePlaintextPlayerPrefsStorage (opt-in)            |
 |  - KeychainSecureStorage / KeyStoreSecureStorage         |
 +----------------------------------------------------------+
@@ -28,7 +30,7 @@ package; it is no longer built in this repo.
 |  - internal-only OpenAPI codegen                         |
 |  - build-time only; not a runtime/package dependency     |
 +----------------------------------------------------------+
-|  KyuzanInc.Turnkey.Sdk   (third-party NuGet package)     |
+|  KyuzanInc.Turnkey.Sdk [1.0.0] (private NuGet package)   |
 |  - Crypto (HPKE / ECDSA / HKDF / Bundle parse)           |
 |  - ApiKeyStamper (P-256 ECDSA + DER + low-S)             |
 |  - Http (typed activity request signers)                 |
@@ -39,7 +41,7 @@ package; it is no longer built in this repo.
 +----------------------------------------------------------+
 ```
 
-`KyuzanInc.Turnkey.Sdk` is now an external dependency: this repo does
+`KyuzanInc.Turnkey.Sdk` `[1.0.0]` is an exact external dependency: this repo does
 not build, ship, or audit its crypto code. The security review boundary
 for Peak SDK code is the `KyuzanInc.Peak.Sdk` ↔ `Turnkey.*` line — the
 API surface we consume from the Turnkey package. Wire-format
@@ -97,9 +99,10 @@ SDK's public DTOs are hand-written System.Text.Json types
 do not wrap the generated types (reverted per issue #18).
 
 Source spec: `upstream-snapshots/peak-server-openapi/public-api.yaml`,
-tracking `KyuzanInc/peak` `main` HEAD, recorded as an exact commit in
-`upstream-snapshots/peak-server-openapi/PIN.md` (see
-[docs/sync-rules.md](sync-rules.md)).
+imported from `KyuzanInc/peak` `main` at an exact commit and then sanitized as a
+public contract. Provenance and both imported/public checksums are recorded in
+[`docs/compatibility/upstream-pins.md`](compatibility/upstream-pins.md); sync
+rules live in [`docs/sync-rules.md`](sync-rules.md).
 
 ## Test layout
 

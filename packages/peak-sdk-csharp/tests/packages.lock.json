@@ -343,7 +343,7 @@
       "KyuzanInc.Peak.Sdk": {
         "type": "Project",
         "dependencies": {
-          "KyuzanInc.Turnkey.Sdk": "[0.1.0-alpha.0, 0.1.0-alpha.0]",
+          "KyuzanInc.Turnkey.Sdk": "[1.0.0, 1.0.0]",
           "Microsoft.Extensions.Http": "[8.0.1, )",
           "Microsoft.Extensions.Logging.Abstractions": "[8.0.2, )",
           "System.Text.Json": "[8.0.5, )"
@@ -351,9 +351,9 @@
       },
       "KyuzanInc.Turnkey.Sdk": {
         "type": "CentralTransitive",
-        "requested": "[0.1.0-alpha.0, 0.1.0-alpha.0]",
-        "resolved": "0.1.0-alpha.0",
-        "contentHash": "IWT1D50Bg+tyOPxR/9hG4XKDfxZ01sm7852rXhuYsk7vpXmgSPiHM+6U045iHtv8PR52wfmBYbC4dBTBO9xMoQ==",
+        "requested": "[1.0.0, 1.0.0]",
+        "resolved": "1.0.0",
+        "contentHash": "emsWT/tODzeGH22K0R1Q9BjAnUlwZB4qefGx4T5hgAQZXeY40GTEr5aFivnudprU8SlqCTytqBKG0Kylb9X0cw==",
         "dependencies": {
           "BouncyCastle.Cryptography": "[2.5.0]",
           "System.Text.Json": "8.0.5"

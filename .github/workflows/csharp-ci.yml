@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  packages: read
 
 concurrency:
   group: csharp-ci-${{ github.ref }}
@@ -22,85 +21,101 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      TurnkeySourceProject: ${{ github.workspace }}/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7
         with:
           dotnet-version: 8.0.x
 
-      - name: Authenticate GitHub Packages NuGet source
+      - name: Prepare pinned Turnkey 1.0.0 source and local feed
         shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # The `github-kyuzan` source itself (URL included) is already
-          # declared in the repo's nuget.config; this step just
-          # attaches credentials. `add source` would exit with a
-          # duplicate-source error here, so we use `update source`.
-          # The username can be any non-empty string when
-          # authenticating with GITHUB_TOKEN; ${{ github.actor }} is
-          # the documented GitHub Packages convention and avoids
-          # leaking maintainer identity into the workflow file.
-          # NOTE: --store-password-in-clear-text writes the token to the
-          # runner's user-level NuGet config. Safe on ephemeral
-          # GitHub-hosted runners (the token is the job-scoped, job-lived
-          # GITHUB_TOKEN). Reconsider if self-hosted/persistent runners
-          # are ever added.
-          dotnet nuget update source github-kyuzan \
-            --username "${{ github.actor }}" \
-            --password "$GITHUB_TOKEN" \
-            --store-password-in-clear-text
-          # Auth-liveness probe: `update source` only writes config and
-          # exits 0 regardless of token validity, so a bad/expired/
-          # under-scoped token would otherwise stay invisible until a
-          # COLD-cache restore. Hit the package's auth-required index
-          # now so a 401/403 fails loudly here instead of silently
-          # serving a stale cached package once NuGet caching exists.
-          curl -sSf -o /dev/null \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://nuget.pkg.github.com/KyuzanInc/download/kyuzaninc.turnkey.sdk/index.json" \
-            || { echo "::error::GitHub Packages auth failed for KyuzanInc.Turnkey.Sdk (token scope/expiry/grant?)."; exit 1; }
+        run: >-
+          ./tools/compatibility/prepare-turnkey-local-feed.sh
+          .artifacts/turnkey-feed .artifacts/turnkey-source
 
-      - name: Restore (locked)
+      - name: Restore against pinned public Turnkey source
         shell: bash
-        run: dotnet restore peak-sdk-csharp.sln --locked-mode
+        run: >-
+          dotnet restore peak-sdk-csharp.sln --force-evaluate
+          --configfile nuget.public-ci.config
 
       - name: Build
         run: dotnet build peak-sdk-csharp.sln --no-restore -c Release
 
       - name: Format check
         if: matrix.os == 'ubuntu-latest'
-        # The generated OpenAPI client is marked generated_code=true in
-        # .editorconfig (so format already skips it); --exclude is a second,
-        # independent guard against the generated sources tripping the check.
-        run: dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore --exclude packages/peak-public-api-client-csharp/
+        run: >-
+          dotnet format peak-sdk-csharp.sln --verify-no-changes --no-restore
+          --exclude packages/peak-public-api-client-csharp/
+          .artifacts/turnkey-source/
 
       - name: Test (unit, no E2E)
         shell: bash
-        env:
-          TURNKEY_TEST_ORG_API_KEY: ${{ secrets.TURNKEY_TEST_ORG_API_KEY }}
-          TURNKEY_TEST_ORG_ID: ${{ secrets.TURNKEY_TEST_ORG_ID }}
         run: |
           dotnet test peak-sdk-csharp.sln --no-build -c Release \
             --collect:"XPlat Code Coverage" \
             --results-directory ./TestResults \
             --filter "Category!=E2E"
 
-      - name: Test (E2E, ubuntu only, when secrets present)
-        if: matrix.os == 'ubuntu-latest' && env.TURNKEY_TEST_ORG_API_KEY != ''
+      - name: Verify public-source and package regressions
+        if: matrix.os == 'ubuntu-latest'
         shell: bash
-        env:
-          TURNKEY_TEST_ORG_API_KEY: ${{ secrets.TURNKEY_TEST_ORG_API_KEY }}
-          TURNKEY_TEST_ORG_ID: ${{ secrets.TURNKEY_TEST_ORG_ID }}
         run: |
-          dotnet test peak-sdk-csharp.sln --no-build -c Release \
-            --filter "Category=E2E"
+          bash tools/tests/verify-action-pins-test.sh
+          bash tools/verify-action-pins.sh
+          bash tools/publication/tests/verify-public-tree-test.sh
+          bash tools/publication/tests/verify-docs-test.sh
+          bash tools/package/tests/verify-version-contract-test.sh
+          bash tools/compatibility/tests/prepare-turnkey-local-feed-test.sh
+          bash tools/package/tests/validate-package-test.sh
+          bash tools/package/tests/canonicalize-nuget-package-test.sh
+          bash tools/publication/tests/verify-workflows-test.sh
+
+      - name: Verify public-source and workflow policy
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          bash tools/publication/verify-public-tree.sh
+          bash tools/publication/verify-docs.sh
+          bash tools/package/verify-version-contract.sh
+          bash tools/publication/verify-workflows.sh
+
+      - name: Pack and validate Peak 1.0.0
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          mkdir -p .artifacts/peak-feed
+          TurnkeySourceProject= dotnet restore \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            --force-evaluate --configfile nuget.public-ci.config \
+            -p:NuGetLockFilePath="$PWD/.artifacts/peak-pack.packages.lock.json"
+          TurnkeySourceProject= dotnet pack \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            -c Release --no-build --no-restore -o .artifacts/peak-feed
+          python3 tools/package/canonicalize-nuget-package.py \
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg
+          python3 tools/package/canonicalize-nuget-package.py \
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg
+          bash tools/package/validate-package.sh \
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg \
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg
+
+      - name: Validate local consumers
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          bash tools/package/consumer-smoke.sh \
+            .artifacts/peak-feed .artifacts/turnkey-feed netstandard2.1
+          bash tools/package/consumer-smoke.sh \
+            .artifacts/peak-feed .artifacts/turnkey-feed net8.0
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: coverage
           path: TestResults/**/coverage.cobertura.xml
@@ -113,242 +128,77 @@ jobs:
       fail-fast: false
       matrix:
         tfm: [netstandard2.1, net8.0]
+    env:
+      TurnkeySourceProject: ${{ github.workspace }}/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7
         with:
           dotnet-version: 8.0.x
-      - name: Authenticate GitHub Packages NuGet source
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # `github-kyuzan` is already declared in the repo nuget.config;
-          # update (don't add) attaches credentials. See the build job's
-          # auth step for why --store-password-in-clear-text is safe here.
-          dotnet nuget update source github-kyuzan \
-            --username "${{ github.actor }}" \
-            --password "$GITHUB_TOKEN" \
-            --store-password-in-clear-text
-          # Auth-liveness probe (see build job for rationale).
-          curl -sSf -o /dev/null \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://nuget.pkg.github.com/KyuzanInc/download/kyuzaninc.turnkey.sdk/index.json" \
-            || { echo "::error::GitHub Packages auth failed for KyuzanInc.Turnkey.Sdk (token scope/expiry/grant?)."; exit 1; }
-      - name: Restore (locked) + Pack KyuzanInc.Peak.Sdk
-        shell: bash
-        run: |
-          dotnet restore peak-sdk-csharp.sln --locked-mode
-          dotnet pack packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
-            --no-restore -c Release -o ./local-feed
-      - name: Smoke consumer project that references the .nupkg
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p /tmp/consumer && cd /tmp/consumer
-          cat > consumer.csproj <<EOF
-          <Project Sdk="Microsoft.NET.Sdk">
-            <PropertyGroup>
-              <TargetFramework>${{ matrix.tfm }}</TargetFramework>
-              <Nullable>enable</Nullable>
-            </PropertyGroup>
-            <ItemGroup>
-              <PackageReference Include="KyuzanInc.Peak.Sdk" Version="0.1.0-alpha.4" />
-            </ItemGroup>
-          </Project>
-          EOF
-          cat > Program.cs <<'EOF'
-          using KyuzanInc.Peak.Sdk;
-          public static class Program {
-              public static void Main() {
-                  // PeakClient has a private constructor; the only
-                  // entry point is the static Initialize() factory.
-                  // Use the (apiUrl, projectApiKey) overload to keep
-                  // the smoke consumer LangVersion-agnostic — the
-                  // options-bag overload needs C# 9+ (init) and 11+
-                  // (required), which a default netstandard2.1
-                  // consumer does NOT pick up automatically.
-                  var _ = PeakClient.Initialize("https://example.invalid/", "key");
-                  System.Console.WriteLine("ok");
-              }
-          }
-          EOF
-          # nuget.config: pin local feed, allow GitHub Packages for
-          # the transitive KyuzanInc.Turnkey.Sdk pull, and let
-          # nuget.org cover everything else.
-          cat > nuget.config <<EOF
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <packageSources>
-              <clear />
-              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-              <add key="github-kyuzan" value="https://nuget.pkg.github.com/KyuzanInc/index.json" />
-              <add key="local" value="${GITHUB_WORKSPACE}/local-feed" />
-            </packageSources>
-            <packageSourceMapping>
-              <packageSource key="nuget.org">
-                <package pattern="*" />
-              </packageSource>
-              <packageSource key="github-kyuzan">
-                <package pattern="KyuzanInc.Turnkey.*" />
-              </packageSource>
-              <packageSource key="local">
-                <package pattern="KyuzanInc.Peak.*" />
-              </packageSource>
-            </packageSourceMapping>
-            <packageSourceCredentials>
-              <github-kyuzan>
-                <add key="Username" value="${{ github.actor }}" />
-                <add key="ClearTextPassword" value="${GITHUB_TOKEN}" />
-              </github-kyuzan>
-            </packageSourceCredentials>
-          </configuration>
-          EOF
-          dotnet restore consumer.csproj
-          # Build too: restore alone leaves PeakClient unverified, so a
-          # bad ProjectReference + missing constructor would still pass.
-          dotnet build consumer.csproj --no-restore -c Release
 
-      - name: Assert STJ-only dependency graph + nuspec (Unity/IL2CPP guard)
+      - name: Prepare pinned Turnkey 1.0.0 source and local feed
+        shell: bash
+        run: >-
+          ./tools/compatibility/prepare-turnkey-local-feed.sh
+          .artifacts/turnkey-feed .artifacts/turnkey-source
+
+      - name: Restore against pinned public Turnkey source
+        shell: bash
+        run: >-
+          dotnet restore peak-sdk-csharp.sln --force-evaluate
+          --configfile nuget.public-ci.config
+
+      - name: Build and pack Peak 1.0.0
         shell: bash
         run: |
-          set -euo pipefail
-          cd /tmp/consumer
-          # 1. No RestSharp/Polly/Newtonsoft anywhere in the consumer's transitive
-          #    graph. (Do NOT ban System.ComponentModel.Annotations: it is a benign
-          #    transitive of Microsoft.Extensions.Http -> Microsoft.Extensions.Options
-          #    on netstandard2.1, not a remnant of the old generated/Newtonsoft path.)
-          graph="$(dotnet list consumer.csproj package --include-transitive)"
-          for banned in RestSharp Polly Newtonsoft.Json; do
-            if grep -qi "$banned" <<<"$graph"; then
-              echo "::error::$banned leaked into the consumer graph (Unity/IL2CPP regression)"; exit 1
-            fi
-          done
-          # 2. The packed nuspec must declare System.Text.Json 8.0.x and neither
-          #    Newtonsoft.Json nor System.ComponentModel.Annotations.
-          nupkg="$(ls "${GITHUB_WORKSPACE}"/local-feed/KyuzanInc.Peak.Sdk.*.nupkg | head -1)"
-          nuspec="$(unzip -p "$nupkg" '*.nuspec')"
-          if grep -qiE 'id="(Newtonsoft\.Json|System\.ComponentModel\.Annotations|RestSharp|Polly)"' <<<"$nuspec"; then
-            echo "::error::nuspec declares a banned dependency"; echo "$nuspec"; exit 1
-          fi
-          if ! grep -qiE 'id="System\.Text\.Json" version="\[?8\.0\.' <<<"$nuspec"; then
-            echo "::error::nuspec does not pin System.Text.Json 8.0.x"; echo "$nuspec"; exit 1
-          fi
-          echo "STJ-only dependency graph + nuspec verified for ${{ matrix.tfm }}."
+          dotnet build peak-sdk-csharp.sln --no-restore -c Release
+          mkdir -p .artifacts/peak-feed
+          TurnkeySourceProject= dotnet restore \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            --force-evaluate --configfile nuget.public-ci.config \
+            -p:NuGetLockFilePath="$PWD/.artifacts/peak-pack.packages.lock.json"
+          TurnkeySourceProject= dotnet pack \
+            packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            -c Release --no-build --no-restore -o .artifacts/peak-feed
 
-      - name: STJ-resolution execution smoke (net8.0 only)
-        if: matrix.tfm == 'net8.0'
+      - name: Validate local consumer
         shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/stj-smoke && cd /tmp/stj-smoke
-          cat > smoke.csproj <<EOF
-          <Project Sdk="Microsoft.NET.Sdk">
-            <PropertyGroup>
-              <OutputType>Exe</OutputType>
-              <TargetFramework>net8.0</TargetFramework>
-              <Nullable>enable</Nullable>
-            </PropertyGroup>
-            <ItemGroup>
-              <PackageReference Include="KyuzanInc.Peak.Sdk" Version="0.1.0-alpha.4" />
-            </ItemGroup>
-          </Project>
-          EOF
-          cat > Program.cs <<'EOF'
-          using System;
-          using System.Net;
-          using System.Net.Http;
-          using System.Threading;
-          using System.Threading.Tasks;
-          using KyuzanInc.Peak.Sdk.Models;
-          using KyuzanInc.Peak.Sdk.Utils;
-
-          // A stub handler returns a canned 200 body so the SDK's public GetAsync<T>
-          // exercises the real System.Text.Json source-gen path end to end. A missing
-          // [JsonSerializable] registration throws here (the actual Unity failure).
-          internal sealed class StubHandler : HttpMessageHandler
-          {
-              protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage r, CancellationToken ct) =>
-                  Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-                  { Content = new StringContent("{\"otpId\":\"otp-smoke\"}") });
-          }
-
-          internal static class Program
-          {
-              private static int Main()
-              {
-                  var client = new DefaultPeakHttpClient(
-                      "https://example.invalid/", "key", new HttpClient(new StubHandler()));
-                  var dto = client.GetAsync<InitOtpLoginResponse>("public-api/v1/auth/otp/init-login")
-                      .GetAwaiter().GetResult();
-                  if (dto?.OtpId != "otp-smoke")
-                  {
-                      Console.Error.WriteLine($"STJ smoke failed: otpId='{dto?.OtpId}'");
-                      return 2;
-                  }
-                  Console.WriteLine("STJ source-gen resolution smoke ok (InitOtpLoginResponse).");
-                  return 0;
-              }
-          }
-          EOF
-          # Same source layout as the build smoke: local feed for KyuzanInc.Peak.*,
-          # GitHub Packages for the transitive KyuzanInc.Turnkey.*, nuget.org for the rest.
-          cat > nuget.config <<EOF
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <packageSources>
-              <clear />
-              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-              <add key="github-kyuzan" value="https://nuget.pkg.github.com/KyuzanInc/index.json" />
-              <add key="local" value="${GITHUB_WORKSPACE}/local-feed" />
-            </packageSources>
-            <packageSourceMapping>
-              <packageSource key="nuget.org"><package pattern="*" /></packageSource>
-              <packageSource key="github-kyuzan"><package pattern="KyuzanInc.Turnkey.*" /></packageSource>
-              <packageSource key="local"><package pattern="KyuzanInc.Peak.*" /></packageSource>
-            </packageSourceMapping>
-            <packageSourceCredentials>
-              <github-kyuzan>
-                <add key="Username" value="${{ github.actor }}" />
-                <add key="ClearTextPassword" value="${GITHUB_TOKEN}" />
-              </github-kyuzan>
-            </packageSourceCredentials>
-          </configuration>
-          EOF
-          dotnet run -c Release
+        run: >-
+          bash tools/package/consumer-smoke.sh
+          .artifacts/peak-feed .artifacts/turnkey-feed ${{ matrix.tfm }}
 
   openapi-client-drift:
     name: openapi client drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
       - name: Setup JRE (openapi-generator runs on Java)
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
         with:
           distribution: temurin
           java-version: '17'
-      - uses: actions/setup-node@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '22'
+
       - name: Regenerate the C# client from the pinned spec
         run: ./scripts/generate-public-api-client.sh
+
       - name: Fail if the committed client drifted from the spec
+        shell: bash
         run: |
-          # Stage adds, deletes, AND modifications so the check sees the
-          # TOTAL state. Plain `git diff` only inspects tracked files, so a
-          # spec change that ADDS a new model/endpoint (a brand-new untracked
-          # .cs) would slip through; `git add -A` + `git diff --cached` makes
-          # additions and deletions first-class.
           git add -A -- \
             packages/peak-public-api-client-csharp/src \
             packages/peak-public-api-client-csharp/.openapi-generator
           if ! git diff --cached --quiet -- \
               packages/peak-public-api-client-csharp/src \
               packages/peak-public-api-client-csharp/.openapi-generator; then
-            echo "::error::Generated client is out of sync with the pinned spec. Run scripts/generate-public-api-client.sh and commit the result."
+            echo "::error::Generated client is out of sync with the pinned spec."
             git --no-pager diff --cached --stat -- \
               packages/peak-public-api-client-csharp/src \
               packages/peak-public-api-client-csharp/.openapi-generator

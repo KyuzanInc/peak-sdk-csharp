@@ -1,0 +1,590 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: github-packages
+    steps:
+      - name: Check out the published Release tag
+        id: checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up .NET
+        id: setup-dotnet
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Validate Release, ancestry, visibility, and project version
+        id: preflight
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          TAG_COMMIT: ${{ github.sha }}
+          PROJECT_FILE: packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj
+          EXPECTED_VERSION: 1.0.0
+        run: |
+          set -euo pipefail
+
+          visibility="$(gh api "repos/$REPOSITORY" --jq '.visibility')"
+          case "$visibility" in
+            private|public|internal) ;;
+            *) printf '%s\n' 'Unexpected repository visibility' >&2; exit 1 ;;
+          esac
+
+          [[ "$TAG_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+            echo "::error::Release tag must be a strict final SemVer"; exit 1;
+          }
+          [[ "$TAG_NAME" == "v$EXPECTED_VERSION" ]] || {
+            echo "::error::Only v1.0.0 may publish this package"; exit 1;
+          }
+
+          checked_out_commit="$(git rev-parse HEAD)"
+          [[ "$checked_out_commit" == "$TAG_COMMIT" ]] || {
+            echo "::error::Checked-out commit does not match the Release tag commit"; exit 1;
+          }
+          compare_status="$(gh api "repos/$REPOSITORY/compare/main...$TAG_COMMIT" --jq '.status')"
+          [[ "$compare_status" == "identical" ]] || {
+            printf '%s\n' 'Release tag must target the current main tip' >&2
+            exit 1
+          }
+
+          project_version="$(python3 - "$PROJECT_FILE" "$TAG_NAME" "$EXPECTED_VERSION" <<'PY'
+          import pathlib
+          import sys
+          import xml.etree.ElementTree as ET
+
+          project_path = pathlib.Path(sys.argv[1])
+          tag_name = sys.argv[2]
+          expected_version = sys.argv[3]
+          try:
+              root = ET.parse(project_path).getroot()
+          except (OSError, ET.ParseError) as exc:
+              raise SystemExit(f"invalid project XML: {exc}")
+
+          versions = [
+              (element.text or "").strip()
+              for element in root.iter()
+              if element.tag.rsplit("}", 1)[-1] == "Version"
+          ]
+          package_ids = [
+              (element.text or "").strip()
+              for element in root.iter()
+              if element.tag.rsplit("}", 1)[-1] == "PackageId"
+          ]
+          if versions != [expected_version]:
+              raise SystemExit(
+                  f"project must contain exactly Version {expected_version}: {versions}"
+              )
+          if package_ids != ["KyuzanInc.Peak.Sdk"]:
+              raise SystemExit(
+                  "project must contain exactly PackageId KyuzanInc.Peak.Sdk"
+              )
+          if tag_name != f"v{versions[0]}":
+              raise SystemExit("Release tag and project version disagree")
+          print(versions[0])
+          PY
+          )"
+          [[ "$project_version" == "$EXPECTED_VERSION" ]] || {
+            echo "::error::Project version preflight failed"; exit 1;
+          }
+
+          printf 'visibility=%s\n' "$visibility" >> "$GITHUB_OUTPUT"
+
+      - name: Require protected credentials for public or internal repositories
+        id: dedicated-credential-check
+        if: steps.preflight.outputs.visibility == 'public' || steps.preflight.outputs.visibility == 'internal'
+        shell: bash
+        env:
+          NUGET_READ_USERNAME: ${{ secrets.NUGET_READ_USERNAME }}
+          NUGET_READ_TOKEN: ${{ secrets.NUGET_READ_TOKEN }}
+          NUGET_PUBLISH_USERNAME: ${{ secrets.NUGET_PUBLISH_USERNAME }}
+          NUGET_PUBLISH_TOKEN: ${{ secrets.NUGET_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          for variable in \
+            NUGET_READ_USERNAME NUGET_READ_TOKEN \
+            NUGET_PUBLISH_USERNAME NUGET_PUBLISH_TOKEN; do
+            [[ -n "${!variable}" ]] || {
+              echo "::error::A protected package credential is unavailable"; exit 1;
+            }
+          done
+
+      - name: Select the private-repository credential mode
+        id: credential-mode
+        if: steps.preflight.outputs.visibility == 'private'
+        shell: bash
+        env:
+          NUGET_READ_USERNAME: ${{ secrets.NUGET_READ_USERNAME }}
+          NUGET_READ_TOKEN: ${{ secrets.NUGET_READ_TOKEN }}
+          NUGET_PUBLISH_USERNAME: ${{ secrets.NUGET_PUBLISH_USERNAME }}
+          NUGET_PUBLISH_TOKEN: ${{ secrets.NUGET_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          present=0
+          for variable in \
+            NUGET_READ_USERNAME NUGET_READ_TOKEN \
+            NUGET_PUBLISH_USERNAME NUGET_PUBLISH_TOKEN; do
+            [[ -n "${!variable}" ]] && present=$((present + 1))
+          done
+          case "$present" in
+            0) mode=fallback ;;
+            4) mode=dedicated ;;
+            *) printf '%s\n' 'Dedicated package credentials are only partially configured' >&2; exit 1 ;;
+          esac
+          printf 'mode=%s\n' "$mode" >> "$GITHUB_OUTPUT"
+
+      - name: Configure dedicated read credentials for public or internal
+        id: read-public-internal
+        if: steps.preflight.outputs.visibility == 'public' || steps.preflight.outputs.visibility == 'internal'
+        shell: bash
+        env:
+          NUGET_READ_USERNAME: ${{ secrets.NUGET_READ_USERNAME }}
+          NUGET_READ_TOKEN: ${{ secrets.NUGET_READ_TOKEN }}
+          READ_CONFIG: ${{ runner.temp }}/nuget-read.config
+        run: |
+          set -euo pipefail
+          umask 077
+          rm -f "$READ_CONFIG"
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$READ_CONFIG"
+          dotnet nuget add source https://api.nuget.org/v3/index.json \
+            --name nuget.org --configfile "$READ_CONFIG"
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username "$NUGET_READ_USERNAME" \
+            --password "$NUGET_READ_TOKEN" \
+            --store-password-in-clear-text \
+            --configfile "$READ_CONFIG"
+
+      - name: Configure dedicated read credentials for private
+        id: read-private-dedicated
+        if: steps.preflight.outputs.visibility == 'private' && steps.credential-mode.outputs.mode == 'dedicated'
+        shell: bash
+        env:
+          NUGET_READ_USERNAME: ${{ secrets.NUGET_READ_USERNAME }}
+          NUGET_READ_TOKEN: ${{ secrets.NUGET_READ_TOKEN }}
+          READ_CONFIG: ${{ runner.temp }}/nuget-read.config
+        run: |
+          set -euo pipefail
+          umask 077
+          rm -f "$READ_CONFIG"
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$READ_CONFIG"
+          dotnet nuget add source https://api.nuget.org/v3/index.json \
+            --name nuget.org --configfile "$READ_CONFIG"
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username "$NUGET_READ_USERNAME" \
+            --password "$NUGET_READ_TOKEN" \
+            --store-password-in-clear-text \
+            --configfile "$READ_CONFIG"
+
+      - name: Configure fallback read credentials for private
+        id: read-private-fallback
+        if: steps.preflight.outputs.visibility == 'private' && steps.credential-mode.outputs.mode == 'fallback'
+        shell: bash
+        env:
+          NUGET_READ_USERNAME: ${{ github.actor }}
+          NUGET_READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          READ_CONFIG: ${{ runner.temp }}/nuget-read.config
+        run: |
+          set -euo pipefail
+          [[ -n "$NUGET_READ_TOKEN" ]] || {
+            echo "::error::Private fallback read token is unavailable"; exit 1;
+          }
+          umask 077
+          rm -f "$READ_CONFIG"
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$READ_CONFIG"
+          dotnet nuget add source https://api.nuget.org/v3/index.json \
+            --name nuget.org --configfile "$READ_CONFIG"
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username "$NUGET_READ_USERNAME" \
+            --password "$NUGET_READ_TOKEN" \
+            --store-password-in-clear-text \
+            --configfile "$READ_CONFIG"
+
+      - name: Restore the exact Turnkey dependency
+        id: restore
+        shell: bash
+        env:
+          READ_CONFIG: ${{ runner.temp }}/nuget-read.config
+        run: |
+          set -euo pipefail
+          test -f "$READ_CONFIG"
+          dotnet restore peak-sdk-csharp.sln --locked-mode --configfile "$READ_CONFIG"
+
+      - name: Remove read credentials
+        id: cleanup-read
+        if: always()
+        shell: bash
+        env:
+          READ_CONFIG: ${{ runner.temp }}/nuget-read.config
+        run: rm -f "$READ_CONFIG"
+
+      - name: Build
+        id: build
+        run: dotnet build peak-sdk-csharp.sln --no-restore -c Release -m:1 /nr:false
+
+      - name: Test
+        id: test
+        run: dotnet test peak-sdk-csharp.sln --no-build -c Release --filter "Category!=E2E" -m:1 /nr:false
+
+      - name: Pack Peak 1.0.0
+        id: pack
+        shell: bash
+        env:
+          PACKAGE_DIR: ${{ runner.temp }}/peak-package
+        run: |
+          set -euo pipefail
+          rm -rf "$PACKAGE_DIR"
+          mkdir -p "$PACKAGE_DIR"
+          dotnet pack packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
+            --no-build -c Release -o "$PACKAGE_DIR"
+
+      - name: Validate package and deterministic checksums
+        id: package
+        shell: bash
+        env:
+          PACKAGE_DIR: ${{ runner.temp }}/peak-package
+          MANIFEST_PATH: ${{ runner.temp }}/release-checksums.txt
+        run: |
+          set -euo pipefail
+          NUPKG_PATH="$PACKAGE_DIR/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
+          SNUPKG_PATH="$PACKAGE_DIR/KyuzanInc.Peak.Sdk.1.0.0.snupkg"
+          test -f "$NUPKG_PATH"
+          test -f "$SNUPKG_PATH"
+          if [[ "$(find "$PACKAGE_DIR" -maxdepth 1 -type f -name '*.nupkg' | wc -l | tr -d ' ')" != 1 ]]; then
+            printf '%s\n' 'Package directory must contain exactly one nupkg' >&2
+            exit 1
+          fi
+          if [[ "$(find "$PACKAGE_DIR" -maxdepth 1 -type f -name '*.snupkg' | wc -l | tr -d ' ')" != 1 ]]; then
+            printf '%s\n' 'Package directory must contain exactly one snupkg' >&2
+            exit 1
+          fi
+          python3 tools/package/canonicalize-nuget-package.py "$NUPKG_PATH"
+          python3 tools/package/canonicalize-nuget-package.py "$SNUPKG_PATH"
+          bash tools/package/validate-package.sh "$NUPKG_PATH" "$SNUPKG_PATH"
+          (
+            cd "$PACKAGE_DIR"
+            printf '%s\n' \
+              KyuzanInc.Peak.Sdk.1.0.0.nupkg \
+              KyuzanInc.Peak.Sdk.1.0.0.snupkg |
+              LC_ALL=C sort |
+              while IFS= read -r package; do
+                sha256sum "$package"
+              done
+          ) > "$MANIFEST_PATH"
+          printf 'nupkg_path=%s\n' "$NUPKG_PATH" >> "$GITHUB_OUTPUT"
+          printf 'snupkg_path=%s\n' "$SNUPKG_PATH" >> "$GITHUB_OUTPUT"
+          printf 'manifest_path=%s\n' "$MANIFEST_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Validate existing Release assets
+        id: release-assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_ID: ${{ github.event.release.id }}
+          MANIFEST_PATH: ${{ steps.package.outputs.manifest_path }}
+          ASSET_JSON: ${{ runner.temp }}/release-assets.json
+          ASSET_NAME_FILE: ${{ runner.temp }}/release-asset-names
+          MANIFEST_ASSET_ID: ${{ runner.temp }}/release-manifest-asset-id
+          DOWNLOADED_MANIFEST: ${{ runner.temp }}/existing-release-checksums.txt
+        run: |
+          set -euo pipefail
+          umask 077
+          gh api --paginate --slurp \
+            "repos/$REPOSITORY/releases/$RELEASE_ID/assets?per_page=100" > "$ASSET_JSON"
+          python3 - "$ASSET_JSON" "$ASSET_NAME_FILE" "$MANIFEST_ASSET_ID" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          pages = payload if isinstance(payload, list) else None
+          if pages is None or any(not isinstance(page, list) for page in pages):
+              raise SystemExit("Release assets response is not a paginated array")
+          assets = [asset for page in pages for asset in page]
+          manifest_ids = []
+          asset_names = []
+          for asset in assets:
+              if not isinstance(asset, dict):
+                  raise SystemExit("Release asset is not an object")
+              asset_name = asset.get("name")
+              if not isinstance(asset_name, str) or "\n" in asset_name:
+                  raise SystemExit("Release asset has an invalid name")
+              asset_names.append(asset_name)
+              asset_id = asset.get("id")
+              if not isinstance(asset_id, int):
+                  raise SystemExit("Release asset has no integer id")
+              if asset_name == "release-checksums.txt":
+                  manifest_ids.append(str(asset_id))
+          if len(manifest_ids) > 1:
+              raise SystemExit("Release contains duplicate checksum manifests")
+          pathlib.Path(sys.argv[2]).write_text(
+              "".join(f"{name}\n" for name in asset_names), encoding="utf-8"
+          )
+          pathlib.Path(sys.argv[3]).write_text(
+              manifest_ids[0] if manifest_ids else "", encoding="utf-8"
+          )
+          PY
+          while IFS= read -r asset_name; do
+            if [[ "$asset_name" != "release-checksums.txt" ]]; then
+              echo "::error::Forbidden public Release asset"; exit 1
+            fi
+          done < "$ASSET_NAME_FILE"
+          manifest_asset_id="$(cat "$MANIFEST_ASSET_ID")"
+          if [[ -n "$manifest_asset_id" ]]; then
+            gh api "repos/$REPOSITORY/releases/assets/$manifest_asset_id" \
+              -H "Accept: application/octet-stream" > "$DOWNLOADED_MANIFEST"
+            cmp --silent "$DOWNLOADED_MANIFEST" "$MANIFEST_PATH"
+            manifest_exists=1
+          else
+            manifest_exists=0
+          fi
+          printf 'manifest_exists=%s\n' "$manifest_exists" >> "$GITHUB_OUTPUT"
+
+      - name: Configure dedicated publish credentials for public or internal
+        id: publish-public-internal
+        if: steps.preflight.outputs.visibility == 'public' || steps.preflight.outputs.visibility == 'internal'
+        shell: bash
+        env:
+          NUGET_PUBLISH_USERNAME: ${{ secrets.NUGET_PUBLISH_USERNAME }}
+          NUGET_PUBLISH_TOKEN: ${{ secrets.NUGET_PUBLISH_TOKEN }}
+          PUBLISH_CONFIG: ${{ runner.temp }}/nuget-publish.config
+          PUBLISH_USERNAME_FILE: ${{ runner.temp }}/nuget-publish-username
+          PUBLISH_TOKEN_FILE: ${{ runner.temp }}/nuget-publish-token
+        run: |
+          set -euo pipefail
+          umask 077
+          rm -f "$PUBLISH_CONFIG" "$PUBLISH_USERNAME_FILE" "$PUBLISH_TOKEN_FILE"
+          printf '%s' "$NUGET_PUBLISH_USERNAME" > "$PUBLISH_USERNAME_FILE"
+          printf '%s' "$NUGET_PUBLISH_TOKEN" > "$PUBLISH_TOKEN_FILE"
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$PUBLISH_CONFIG"
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username "$NUGET_PUBLISH_USERNAME" \
+            --password "$NUGET_PUBLISH_TOKEN" \
+            --store-password-in-clear-text \
+            --configfile "$PUBLISH_CONFIG"
+
+      - name: Configure dedicated publish credentials for private
+        id: publish-private-dedicated
+        if: steps.preflight.outputs.visibility == 'private' && steps.credential-mode.outputs.mode == 'dedicated'
+        shell: bash
+        env:
+          NUGET_PUBLISH_USERNAME: ${{ secrets.NUGET_PUBLISH_USERNAME }}
+          NUGET_PUBLISH_TOKEN: ${{ secrets.NUGET_PUBLISH_TOKEN }}
+          PUBLISH_CONFIG: ${{ runner.temp }}/nuget-publish.config
+          PUBLISH_USERNAME_FILE: ${{ runner.temp }}/nuget-publish-username
+          PUBLISH_TOKEN_FILE: ${{ runner.temp }}/nuget-publish-token
+        run: |
+          set -euo pipefail
+          umask 077
+          rm -f "$PUBLISH_CONFIG" "$PUBLISH_USERNAME_FILE" "$PUBLISH_TOKEN_FILE"
+          printf '%s' "$NUGET_PUBLISH_USERNAME" > "$PUBLISH_USERNAME_FILE"
+          printf '%s' "$NUGET_PUBLISH_TOKEN" > "$PUBLISH_TOKEN_FILE"
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$PUBLISH_CONFIG"
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username "$NUGET_PUBLISH_USERNAME" \
+            --password "$NUGET_PUBLISH_TOKEN" \
+            --store-password-in-clear-text \
+            --configfile "$PUBLISH_CONFIG"
+
+      - name: Configure fallback publish credentials for private
+        id: publish-private-fallback
+        if: steps.preflight.outputs.visibility == 'private' && steps.credential-mode.outputs.mode == 'fallback'
+        shell: bash
+        env:
+          NUGET_PUBLISH_USERNAME: ${{ github.actor }}
+          NUGET_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH_CONFIG: ${{ runner.temp }}/nuget-publish.config
+          PUBLISH_USERNAME_FILE: ${{ runner.temp }}/nuget-publish-username
+          PUBLISH_TOKEN_FILE: ${{ runner.temp }}/nuget-publish-token
+        run: |
+          set -euo pipefail
+          [[ -n "$NUGET_PUBLISH_TOKEN" ]] || {
+            echo "::error::Private fallback publish token is unavailable"; exit 1;
+          }
+          umask 077
+          rm -f "$PUBLISH_CONFIG" "$PUBLISH_USERNAME_FILE" "$PUBLISH_TOKEN_FILE"
+          printf '%s' "$NUGET_PUBLISH_USERNAME" > "$PUBLISH_USERNAME_FILE"
+          printf '%s' "$NUGET_PUBLISH_TOKEN" > "$PUBLISH_TOKEN_FILE"
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<configuration />' > "$PUBLISH_CONFIG"
+          dotnet nuget add source https://nuget.pkg.github.com/KyuzanInc/index.json \
+            --name github-kyuzan \
+            --username "$NUGET_PUBLISH_USERNAME" \
+            --password "$NUGET_PUBLISH_TOKEN" \
+            --store-password-in-clear-text \
+            --configfile "$PUBLISH_CONFIG"
+
+      - name: Compare or publish the immutable package
+        id: registry
+        shell: bash
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          PACKAGE_VERSION: 1.0.0
+          NUPKG_PATH: ${{ steps.package.outputs.nupkg_path }}
+          PUBLISH_CONFIG: ${{ runner.temp }}/nuget-publish.config
+          PUBLISH_USERNAME_FILE: ${{ runner.temp }}/nuget-publish-username
+          PUBLISH_TOKEN_FILE: ${{ runner.temp }}/nuget-publish-token
+          PACKAGE_INVENTORY_JSON: ${{ runner.temp }}/peak-package-inventory.json
+          VERSION_INVENTORY_JSON: ${{ runner.temp }}/peak-version-inventory.json
+          PACKAGE_PRESENT_FILE: ${{ runner.temp }}/peak-package-present
+          VERSION_PRESENT_FILE: ${{ runner.temp }}/peak-version-present
+          DOWNLOADED_NUPKG: ${{ runner.temp }}/existing-peak-package.nupkg
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$REPOSITORY_OWNER" == "KyuzanInc" ]]
+          test -f "$PUBLISH_CONFIG"
+          test -f "$PUBLISH_USERNAME_FILE"
+          test -f "$PUBLISH_TOKEN_FILE"
+          PUBLISH_USERNAME="$(cat "$PUBLISH_USERNAME_FILE")"
+          PUBLISH_TOKEN="$(cat "$PUBLISH_TOKEN_FILE")"
+          [[ -n "$PUBLISH_USERNAME" && -n "$PUBLISH_TOKEN" ]]
+          export GH_TOKEN="$PUBLISH_TOKEN"
+
+          gh api --paginate --slurp \
+            "orgs/$REPOSITORY_OWNER/packages?package_type=nuget&per_page=100" \
+            > "$PACKAGE_INVENTORY_JSON"
+          python3 - "$PACKAGE_INVENTORY_JSON" "$PACKAGE_PRESENT_FILE" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          inventory_path = pathlib.Path(sys.argv[1])
+          try:
+              payload = json.loads(inventory_path.read_text(encoding="utf-8"))
+          except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+              raise SystemExit(f"package inventory is unreadable JSON: {exc}")
+          if not isinstance(payload, list) or not payload or any(
+              not isinstance(page, list) for page in payload
+          ):
+              raise SystemExit("package inventory is not a paginated array")
+          matches = []
+          seen_names = set()
+          for package in [item for page in payload for item in page]:
+              if (
+                  not isinstance(package, dict)
+                  or not isinstance(package.get("name"), str)
+                  or package.get("package_type") != "nuget"
+              ):
+                  raise SystemExit("package inventory item has an invalid schema")
+              normalized_name = package["name"].casefold()
+              if normalized_name in seen_names:
+                  raise SystemExit("package inventory contains duplicate package names")
+              seen_names.add(normalized_name)
+              if normalized_name == "kyuzaninc.peak.sdk":
+                  matches.append(package)
+          pathlib.Path(sys.argv[2]).write_text(
+              str(len(matches)), encoding="utf-8"
+          )
+          PY
+          PACKAGE_PRESENT="$(cat "$PACKAGE_PRESENT_FILE")"
+          if [[ "$PACKAGE_PRESENT" == 1 ]]; then
+            gh api --paginate --slurp \
+              "orgs/$REPOSITORY_OWNER/packages/nuget/KyuzanInc.Peak.Sdk/versions?per_page=100" \
+              > "$VERSION_INVENTORY_JSON"
+            python3 - "$VERSION_INVENTORY_JSON" "$PACKAGE_VERSION" "$VERSION_PRESENT_FILE" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          inventory_path = pathlib.Path(sys.argv[1])
+          try:
+              payload = json.loads(inventory_path.read_text(encoding="utf-8"))
+          except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+              raise SystemExit(f"version inventory is unreadable JSON: {exc}")
+          if not isinstance(payload, list) or not payload or any(
+              not isinstance(page, list) for page in payload
+          ):
+              raise SystemExit("version inventory is not a paginated array")
+          matches = []
+          seen_names = set()
+          for version in [item for page in payload for item in page]:
+              version_id = version.get("id") if isinstance(version, dict) else None
+              if (
+                  not isinstance(version, dict)
+                  or not isinstance(version.get("name"), str)
+                  or isinstance(version_id, bool)
+                  or not isinstance(version_id, int)
+              ):
+                  raise SystemExit("version inventory item has an invalid schema")
+              if version["name"] in seen_names:
+                  raise SystemExit("version inventory contains duplicate version names")
+              seen_names.add(version["name"])
+              if version["name"] == sys.argv[2]:
+                  matches.append(version)
+          pathlib.Path(sys.argv[3]).write_text(
+              str(len(matches)), encoding="utf-8"
+          )
+          PY
+          elif [[ "$PACKAGE_PRESENT" == 0 ]]; then
+            printf '0' > "$VERSION_PRESENT_FILE"
+          else
+            printf 'Unexpected package inventory decision: %s\n' "$PACKAGE_PRESENT" >&2
+            exit 1
+          fi
+
+          VERSION_PRESENT="$(cat "$VERSION_PRESENT_FILE")"
+          if [[ "$VERSION_PRESENT" == 1 ]]; then
+            HTTP_STATUS="$(curl --silent --show-error --location \
+              --user "$PUBLISH_USERNAME:$PUBLISH_TOKEN" \
+              --output "$DOWNLOADED_NUPKG" \
+              --write-out '%{http_code}' \
+              "https://nuget.pkg.github.com/$REPOSITORY_OWNER/download/kyuzaninc.peak.sdk/$PACKAGE_VERSION/kyuzaninc.peak.sdk.$PACKAGE_VERSION.nupkg")"
+            if [[ "$HTTP_STATUS" != 200 ]]; then
+              printf 'Inventory-present package download returned HTTP %s\n' "$HTTP_STATUS" >&2
+              exit 1
+            fi
+            cmp --silent "$DOWNLOADED_NUPKG" "$NUPKG_PATH"
+          elif [[ "$VERSION_PRESENT" == 0 ]]; then
+            dotnet nuget push "$NUPKG_PATH" \
+              --source github-kyuzan \
+              --api-key "$PUBLISH_TOKEN" \
+              --no-symbols \
+              --configfile "$PUBLISH_CONFIG"
+          else
+            printf 'Unexpected version inventory decision: %s\n' "$VERSION_PRESENT" >&2
+            exit 1
+          fi
+
+      - name: Upload the checksum manifest only when absent
+        id: upload-manifest
+        if: steps.release-assets.outputs.manifest_exists == '0'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          MANIFEST_PATH: ${{ steps.package.outputs.manifest_path }}
+        run: gh release upload "$TAG_NAME" "$MANIFEST_PATH"
+
+      - name: Remove publish credentials
+        id: cleanup-publish
+        if: always()
+        shell: bash
+        env:
+          PUBLISH_CONFIG: ${{ runner.temp }}/nuget-publish.config
+          PUBLISH_USERNAME_FILE: ${{ runner.temp }}/nuget-publish-username
+          PUBLISH_TOKEN_FILE: ${{ runner.temp }}/nuget-publish-token
+        run: rm -f "$PUBLISH_CONFIG" "$PUBLISH_USERNAME_FILE" "$PUBLISH_TOKEN_FILE"

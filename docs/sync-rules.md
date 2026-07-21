@@ -1,124 +1,105 @@
-# Sync rules — upstream-snapshots, OpenAPI, and the Turnkey SDK pin
+# Sync rules — public OpenAPI contract and Turnkey SDK pin
 
-`peak-sdk-csharp` mirrors several external sources into
-`upstream-snapshots/` and an OpenAPI spec into
-`upstream-snapshots/peak-server-openapi/`. The mirrors are read-only
-port references; the build never compiles them directly. The Turnkey
-crypto layer is consumed as the external
+`peak-sdk-csharp` retains one sanitized OpenAPI contract in
+`upstream-snapshots/peak-server-openapi/`. Complete upstream repositories are
+not mirrored here. Provenance is recorded as an exact commit plus checksums in
+[`docs/compatibility/upstream-pins.md`](compatibility/upstream-pins.md).
+
+The Turnkey crypto layer is consumed from the external
 [`KyuzanInc.Turnkey.Sdk`](https://github.com/KyuzanInc/turnkey-sdk-csharp)
-NuGet package pinned in `Directory.Packages.props`. This document
-describes when each pin / mirror must be refreshed and how to do it
-safely.
+private package at the exact stable `[1.0.0]` dependency boundary.
 
-## When to re-sync
+## When to update
 
-| Trigger | Affected pin / mirror | Operator action |
+| Trigger | Affected input | Operator action |
 |---|---|---|
-| `KyuzanInc/peak-sdk-unity` ships a relevant change | `upstream-snapshots/peak-sdk-unity/` | resync + port if the change is in `Runtime/` |
-| `KyuzanInc/turnkey-sdk-csharp` cuts a new release | `Directory.Packages.props` pin + lock files | bump per "Bump KyuzanInc.Turnkey.Sdk" below |
-| We want peak-server's latest public API (its `main` moved) | `upstream-snapshots/peak-server-openapi/public-api.yaml` | resync from `main` + regenerate the OpenAPI client |
-| Consumer reports a behaviour mismatch with `peak-sdk-browser` | depends on root cause | usually no resync; instead update the C# DTO wrapper |
+| `KyuzanInc/peak` publishes a relevant public API change | `upstream-snapshots/peak-server-openapi/public-api.yaml` | import from `main`, sanitize, regenerate, and update provenance/checksum records |
+| `KyuzanInc/turnkey-sdk-csharp` cuts a compatible stable release | `Directory.Packages.props` and lock files | review the release and explicitly decide whether to move the exact dependency pin |
+| A consumer reports a behavior mismatch | hand-written DTO or request surface | investigate the C# surface; do not import a complete source tree |
 
-## Workflow
+## OpenAPI workflow
 
-### Upstream snapshot resync
+Run the importer only for the OpenAPI source:
 
+```bash
+./scripts/sync-upstream.sh peak-server-openapi main
 ```
-./scripts/sync-upstream.sh <name> <pin>
-```
 
-Where `<name>` is one of `peak-sdk-unity` or `peak-server-openapi`,
-and `<pin>` is the new commit SHA, tag, or branch. For
-`peak-server-openapi` we track `main` — pass `main` and the script records
-the resolved HEAD commit in `PIN.md`.
+The script clones `KyuzanInc/peak`, replaces only the working-tree OpenAPI
+contract and `PIN.md`, and prints the resolved commit plus imported raw-contract
+SHA-256. It does not create or switch a branch, stage files, commit, or otherwise
+mutate the repository index. The copied contract is untrusted raw input until
+the following sequence completes:
 
-The script:
+1. Record the exact resolved commit and imported raw-contract SHA-256 in
+   `upstream-snapshots/SOURCES.md` and
+   `docs/compatibility/upstream-pins.md`.
+2. Apply all deterministic public-contract substitutions to
+   `upstream-snapshots/peak-server-openapi/public-api.yaml`:
+   - replace `servers` with one `https://api.example.invalid/` entry;
+   - replace the `Stamp.stampHeaderValue` example with `synthetic-stamp`;
+   - replace the `SignedRequest` `organizationId` with
+     `00000000-0000-0000-0000-000000000000`;
+   - replace every `9c7076e7-c8d4-4b7b-a484-e9ed28f3931d` example with
+     `00000000-0000-0000-0000-000000000000`;
+   - replace the Google callback URL with
+     `https://wallet.example.invalid/auth/google/callback`; and
+   - replace the Google OIDC token example with `synthetic.jwt.token`.
+3. Run `scripts/generate-public-api-client.sh` (OpenAPI Generator 7.9.0).
+4. Calculate the sanitized contract SHA-256. Write exactly
+   `<lowercase-sha256>  upstream-snapshots/peak-server-openapi/public-api.yaml`
+   as the sole line of
+   `tests/UpstreamSources/peak-server-openapi-public-api.sha256`, and record the
+   same public digest in `docs/compatibility/upstream-pins.md`.
+5. Run `bash tools/publication/verify-public-tree.sh` and require PASS. Run the
+   focused generated-client build/tests as applicable. Do not stage on failure.
+6. Only after the gate passes, stage every sanitized/generated/provenance/
+   checksum output:
 
-1. Fetches the new source.
-2. Replaces the corresponding `upstream-snapshots/<name>/` directory (and,
-   for `peak-server-openapi`, writes its `PIN.md` with the resolved HEAD
-   commit).
-3. Creates a branch `sync/<name>-<short-pin>` and stages the snapshot.
-4. Prints the manual follow-up: update `upstream-snapshots/SOURCES.md`, then
-   `git add` + `git commit` + `git push` (the script does not commit for you),
-   and regenerate downstream artefacts (e.g. the OpenAPI client).
-
-### Bump KyuzanInc.Turnkey.Sdk
-
-1. Confirm the new release on
-   <https://github.com/KyuzanInc/turnkey-sdk-csharp/releases>. Read the
-   release notes — crypto changes need extra care.
-2. Edit `Directory.Packages.props` and update the
-   `<PackageVersion Include="KyuzanInc.Turnkey.Sdk" Version="[<new>]" />`
-   row (keep the square brackets — the pin must stay exact).
-3. Re-resolve the lock files:
+   ```bash
+   git add -- \
+     upstream-snapshots/peak-server-openapi/public-api.yaml \
+     upstream-snapshots/peak-server-openapi/PIN.md \
+     upstream-snapshots/SOURCES.md \
+     docs/compatibility/upstream-pins.md \
+     tests/UpstreamSources/peak-server-openapi-public-api.sha256 \
+     packages/peak-public-api-client-csharp/src \
+     packages/peak-public-api-client-csharp/.openapi-generator
    ```
-   dotnet restore peak-sdk-csharp.sln --force-evaluate
-   ```
-4. Inspect the diff on
-   `packages/peak-sdk-csharp/src/packages.lock.json` and
-   `packages/peak-sdk-csharp/tests/packages.lock.json`. Commit both
-   alongside the props change.
-5. Run the wire-format smoke against the new package:
-   ```
-   dotnet test peak-sdk-csharp.sln \
-     --filter "FullyQualifiedName~TurnkeyWireFormatSmokeTests"
-   ```
-   A failure means the external surface drifted in a way the
-   consumer-side code is not yet aligned with.
-6. Open a PR with title prefix `port:` and link the upstream release
-   notes in the body.
 
-## Post-sync mandatory steps
+7. Inspect `git diff --cached --check` and the full `git diff --cached` before
+   committing and opening the dedicated pull request. A checksum mismatch is a
+   hard failure.
 
-### `peak-sdk-unity` resync
+The only accepted name is `peak-server-openapi`; this repository has no Unity
+snapshot synchronization path. Create any dedicated sync branch explicitly
+before invoking the importer; the importer never changes repository HEAD or the
+index.
 
-- Re-run `git diff` against the old mirror to surface the change.
-- Apply the equivalent edit to `packages/peak-sdk-csharp/src/`.
-- Refresh tests if the change touches a tested code path.
+## Turnkey dependency updates
 
-### `peak-server-openapi` resync
+`KyuzanInc.Turnkey.Sdk` is currently pinned to `[1.0.0]`. To propose a later
+stable version:
 
-- Re-generate the client with `scripts/generate-public-api-client.sh`
-  (engine: `@openapitools/openapi-generator-cli`, core pinned to 7.9.0 by
-  `packages/peak-public-api-client-csharp/openapitools.json`; settings in
-  `packages/peak-public-api-client-csharp/openapi-config.yaml`).
-- Build the client and commit the regenerated
-  `packages/peak-public-api-client-csharp/src/` plus the refreshed
-  `packages.lock.json`.
-- Drift CI compares the regenerated artefacts byte-for-byte with the
-  committed `src/`; a mismatch fails the build.
-- If/when the client is wired into `KyuzanInc.Peak.Sdk`, update the DTO
-  wrappers in `packages/peak-sdk-csharp/src/Models/` if the public surface
-  gained or lost fields.
+1. Review its public source and release notes and confirm the private package
+   exists at the proposed exact version.
+2. Update `Directory.Packages.props` while preserving the square-bracket exact
+   version syntax.
+3. Re-resolve the source and test lock files with
+   `dotnet restore peak-sdk-csharp.sln --force-evaluate`.
+4. Inspect both lock-file diffs.
+5. Run
+   `dotnet test peak-sdk-csharp.sln --filter "FullyQualifiedName~TurnkeyWireFormatSmokeTests"`.
+6. Review the change in a dedicated pull request.
 
-### Consumer wiring
+## Generated client boundary
 
-`KyuzanInc.Peak.Sdk` deserializes peak-server **responses** directly into its
-hand-written System.Text.Json DTOs (`Models/Models.cs`) via the source-generated
-`PeakJsonContext` — no Newtonsoft, no generated-DTO mapping on the runtime path
-(issue #18 / the 2026-06-03 STJ-only design). The generated client
-(`KyuzanInc.Peak.PublicApiClient`) is **build-time only**: it is not referenced by
-the SDK at runtime and is not shipped in the package; it exists to detect spec
-drift and to back the `GeneratedDtoContractTests` field-coverage check. The
-generation script still flips all generated types to `internal`; regenerate with
-`scripts/generate-public-api-client.sh` (the internalize step runs automatically
-and the drift job reproduces it). Requests and the public DTO surface are
-hand-written and unchanged.
+`KyuzanInc.Peak.Sdk` deserializes runtime responses into hand-written
+System.Text.Json DTOs in `Models/Models.cs` through `PeakJsonContext`. The
+generated `KyuzanInc.Peak.PublicApiClient` types are internal, build-time-only,
+and excluded from the shipped SDK package. They exist for deterministic drift
+and field-coverage checks.
 
-## Drift CI
-
-`.github/workflows/csharp-ci.yml` runs an `openapi-client-drift` job that:
-
-- Regenerates the C# client from the committed
-  `upstream-snapshots/peak-server-openapi/public-api.yaml` using
-  `scripts/generate-public-api-client.sh`.
-- Fails the build if the committed
-  `packages/peak-public-api-client-csharp/src/` differs from the
-  regenerated output, naming the drift in the log.
-
-The job needs a JRE + Node (the generator is Java, launched from the
-project-local npm wrapper after `npm ci --ignore-scripts`). It does **not**
-fetch peak; comparing the snapshot against the live `peak-server` `main` HEAD
-is a manual operator step via
-`scripts/sync-upstream.sh peak-server-openapi main`.
+The `openapi-client-drift` CI job regenerates from the committed sanitized
+contract and compares the generated `src/` tree byte-for-byte. It needs Java
+and Node, but it does not fetch `KyuzanInc/peak`.

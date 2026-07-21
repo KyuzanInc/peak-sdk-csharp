@@ -72,7 +72,7 @@ namespace KyuzanInc.Peak.PublicApiClient.Model
         /// </summary>
         /// <value>Stamp header value</value>
         /*
-        <example>eyJwdWJsaWNLZXkiOiIwMjVmNzg0ZjZhYjc1MzU5NTQ5NTBkZjMzZmJkMTVkMTMwNDFhMzNjNGIyMmY2ZDk4ZTMzYzJhYzU3Nzc5MTdjY2UiLCJzY2hlbWUiOiJTSUdOQVRVUkVfU0NIRU1FX1RLX0FQSV9QMjU2Iiwic2lnbmF0dXJlIjoiMzA0NDAyMjA0OWFmMjE3NzRiYWYwODI2NTZjYzgyYjZmODQ5ZTNlMmI4MDg2ZmYyMDNkMTQ4YWY3MTdiNGZhMDgxMjg3NDEyMDIyMDY4ZjQwYmU2Yjk4YTNjNWRjN2VlMmZlNjFhYmRiYzE3YzMwZjU0MjFlNzQxODBkMDZiNTcwM2Y0OTUyN2U5NjQifQ</example>
+        <example>synthetic-stamp</example>
         */
         [DataMember(Name = "stampHeaderValue", IsRequired = true, EmitDefaultValue = true)]
         public string StampHeaderValue { get; set; }
