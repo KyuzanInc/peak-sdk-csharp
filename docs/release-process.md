@@ -32,6 +32,10 @@ access. The dependency on `KyuzanInc.Turnkey.Sdk` is exactly `[1.0.0]`.
    environments with separate, least-privilege publish and read credentials,
    then make the source repository public. Future public-repository releases
    fail closed when any dedicated credential is unavailable.
+8. After public visibility is confirmed, enable and verify secret scanning,
+   push protection, Dependabot security updates, CodeQL default setup for C#
+   and Actions, and private vulnerability reporting. These public-repository
+   controls are verified after the private bootstrap release, not before it.
 
 Package versions are immutable. If a released package needs correction, publish
 a new patch version (for example, `1.0.1`); do not replace or delete the
@@ -41,10 +45,10 @@ existing version. This project does not publish packages to nuget.org.
 
 Before creating the bootstrap Release, an administrator confirms that `main`
 has branch/ruleset protection, required CI, and required review; force pushes
-and branch deletion are prevented. Secret scanning, push protection,
-Dependabot, CodeQL for C#, and private vulnerability reporting must be enabled
-and reviewed. The source repository and `KyuzanInc.Peak.Sdk` package must both
-still be private.
+and branch deletion are prevented. Release tags are protected against update
+and deletion, and the two package environments admit only the reviewed tag or
+branch. The source repository and `KyuzanInc.Peak.Sdk` package must both still
+be private.
 
 After the Release and consumer workflows succeed, but before changing source
 visibility, confirm all of the following:
@@ -60,5 +64,7 @@ visibility, confirm all of the following:
 
 After making the source repository public, verify that it remains public, the
 package remains private, and only explicitly authorized consumers retain
-package access. If any phase-specific check is not true, stop and correct the
+package access. Also verify secret scanning, push protection, Dependabot
+security updates, CodeQL for C# and Actions, and private vulnerability
+reporting. If any phase-specific check is not true, stop and correct the
 administration setting before continuing.
