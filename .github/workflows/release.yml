@@ -257,7 +257,7 @@ jobs:
           rm -rf "$PACKAGE_DIR"
           mkdir -p "$PACKAGE_DIR"
           dotnet pack packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
-            --no-build -c Release -o "$PACKAGE_DIR"
+            --no-build -c Release -p:RepositoryBranch= -o "$PACKAGE_DIR"
 
       - name: Validate package and deterministic checksums
         id: package

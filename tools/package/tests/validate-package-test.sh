@@ -48,7 +48,8 @@ TurnkeySourceProject= dotnet restore "$project" \
   --configfile "$repo_root/nuget.public-ci.config" \
   -p:NuGetLockFilePath="$fixture/peak-pack.packages.lock.json"
 TurnkeySourceProject= dotnet pack \
-  "$project" -c Release --no-build --no-restore --output "$feed"
+  "$project" -c Release --no-build --no-restore -p:RepositoryBranch= \
+  --output "$feed"
 
 package="$feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
 symbols="$feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg"

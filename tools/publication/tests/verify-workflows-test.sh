@@ -4,16 +4,68 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 verifier="$repo_root/tools/publication/verify-workflows.sh"
 csharp_ci="$repo_root/.github/workflows/csharp-ci.yml"
+schema_verifier="$repo_root/tools/publication/verify-actions-schema.sh"
 
 if [[ ! -f "$verifier" ]]; then
   echo "verify-workflows verifier is missing: $verifier" >&2
   exit 1
 fi
+if [[ ! -x "$schema_verifier" ]]; then
+  echo "GitHub Actions schema verifier is missing: $schema_verifier" >&2
+  exit 1
+fi
+if ! grep -Fqx -- \
+    'actionlint_module=github.com/rhysd/actionlint/cmd/actionlint@v1.7.12' \
+    "$schema_verifier"; then
+  echo 'GitHub Actions schema verification must pin actionlint v1.7.12' >&2
+  exit 1
+fi
+if ! grep -Fqx -- \
+    'go run "$actionlint_module" -shellcheck= -pyflakes= "${workflow_paths[@]}"' \
+    "$schema_verifier"; then
+  echo 'GitHub Actions schema verification must separate script lint diagnostics' >&2
+  exit 1
+fi
+if ! grep -Fqx -- \
+    '          bash tools/publication/verify-actions-schema.sh' \
+    "$csharp_ci"; then
+  echo 'C# CI must run the GitHub Actions schema verifier' >&2
+  exit 1
+fi
 
-if rg -q 'ACTION_PIN_VERIFY_TARGETS|WORKFLOW_VERIFY_TARGETS' "$csharp_ci"; then
+if grep -Eq 'ACTION_PIN_VERIFY_TARGETS|WORKFLOW_VERIFY_TARGETS' "$csharp_ci"; then
   echo "C# CI must verify the complete tracked workflow set" >&2
   exit 1
 fi
+
+python3 - "$repo_root" <<'PY'
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1])
+pack_sources = [
+    ".github/workflows/csharp-ci.yml",
+    ".github/workflows/release.yml",
+    "tools/package/tests/validate-package-test.sh",
+    "tools/package/tests/canonicalize-nuget-package-test.sh",
+]
+for relative in pack_sources:
+    lines = (root / relative).read_text(encoding="utf-8").splitlines()
+    commands = []
+    index = 0
+    while index < len(lines):
+        if "dotnet pack" not in lines[index]:
+            index += 1
+            continue
+        command = lines[index].strip()
+        while command.endswith("\\"):
+            index += 1
+            command += " " + lines[index].strip()
+        commands.append(command)
+        index += 1
+    if not commands or any("-p:RepositoryBranch=" not in command for command in commands):
+        raise SystemExit(f"Peak pack commands must suppress CI branch metadata: {relative}")
+PY
 
 fixture=$(mktemp -d)
 trap 'rm -rf "$fixture"' EXIT
@@ -661,11 +713,11 @@ if [[ ! -f "$consumer_source" ]]; then
   echo "consumer workflow is missing: $consumer_source" >&2
   exit 1
 fi
-if rg -Fq '${{ secrets.GITHUB_TOKEN }}' "$consumer_source"; then
+if grep -Fq '${{ secrets.GITHUB_TOKEN }}' "$consumer_source"; then
   echo "consumer workflow must not use GITHUB_TOKEN without packages permission" >&2
   exit 1
 fi
-if rg -q '^[[:space:]]+packages:[[:space:]]' "$consumer_source"; then
+if grep -Eq '^[[:space:]]+packages:[[:space:]]' "$consumer_source"; then
   echo "consumer workflow permissions must not request packages access" >&2
   exit 1
 fi
@@ -775,15 +827,20 @@ run_expect_fail consumer-smoke.yml "floating Peak consumer version"
 
 reset_consumer_fixture
 replace_consumer_once \
-  '${{ runner.temp }}/peak-consumer/PeakSdkConsumer' \
-  '/''tmp/consumer/PeakSdkConsumer'
+  '          consumer_root="$RUNNER_TEMP_ROOT/peak-consumer"' \
+  '          consumer_root=/''tmp/consumer'
 run_expect_fail consumer-smoke.yml "ambient tmp consumer root"
 
 reset_consumer_fixture
 replace_consumer_once \
-  '${{ runner.temp }}/peak-consumer/.nuget/packages' \
-  '~''/.nuget/packages'
+  '            printf '\''NUGET_PACKAGES=%s\n'\'' "$consumer_root/.nuget/packages"' \
+  '            printf '\''NUGET_PACKAGES=%s\n'\'' "$HOME/.nuget/packages"'
 run_expect_fail consumer-smoke.yml "ambient NuGet package cache"
+
+reset_consumer_fixture
+insert_consumer_once $'    environment: github-packages-read\n    env:\n' \
+  $'      INVALID_RUNNER_TEMP: ${{ runner.temp }}\n'
+run_expect_fail consumer-smoke.yml "runner context at consumer job scope"
 
 reset_consumer_fixture
 replace_consumer_once \
@@ -1606,7 +1663,7 @@ expected_manifest="$local_test_dir/expected-release-checksums.txt"
     done
 ) > "$expected_manifest"
 cmp "$expected_manifest" "$manifest_path"
-if rg -q "$package_dir" "$manifest_path"; then
+if grep -Fq "$package_dir" "$manifest_path"; then
   echo "checksum manifest must contain basename-only paths" >&2
   exit 1
 fi

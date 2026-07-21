@@ -1205,17 +1205,10 @@ def validate_strict_consumer_structure(path, root):
     if consumer["environment"] != "github-packages-read":
         fail(path, "consumer job must use environment github-packages-read")
     expected_job_env = {
-        "CONSUMER_ROOT": "${{ runner.temp }}/peak-consumer",
-        "CONSUMER_PROJECT": "${{ runner.temp }}/peak-consumer/PeakSdkConsumer",
-        "DOTNET_CLI_HOME": "${{ runner.temp }}/peak-consumer/.dotnet",
         "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
         "DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE": "true",
         "DOTNET_NOLOGO": "true",
         "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
-        "NUGET_HTTP_CACHE_PATH": "${{ runner.temp }}/peak-consumer/.nuget/http-cache",
-        "NUGET_PACKAGES": "${{ runner.temp }}/peak-consumer/.nuget/packages",
-        "NUGET_PLUGINS_CACHE_PATH": "${{ runner.temp }}/peak-consumer/.nuget/plugins-cache",
-        "NUGET_CONFIG": "${{ runner.temp }}/peak-consumer/NuGet.Config",
     }
     if not isinstance(consumer["env"], dict):
         fail(path, "consumer job env must be one plain mapping")
@@ -1225,6 +1218,11 @@ def validate_strict_consumer_structure(path, root):
         fail(path, "consumer steps must be one plain sequence")
 
     expected_steps = [
+        (
+            "Initialize isolated consumer paths",
+            "initialize-paths",
+            ["name", "id", "shell", "env", "run"],
+        ),
         (
             "Check out the consumer workflow revision",
             "checkout",
@@ -1282,6 +1280,9 @@ def validate_strict_consumer_structure(path, root):
 
     expected_ifs = {"cleanup-config": "always()"}
     expected_env = {
+        "initialize-paths": {
+            "RUNNER_TEMP_ROOT": "${{ runner.temp }}",
+        },
         "preflight": {
             "GH_TOKEN": "${{ github.token }}",
             "REPOSITORY": "${{ github.repository }}",
@@ -1365,6 +1366,7 @@ def validate_consumer(path, active_lines, active_text):
         fail(path, "consumer workflow step ids must be unique")
 
     reviewed_hashes = {
+        "initialize-paths": "ffab10a73a8b151832b229be41462b2e360e6d5696cf527e775302dae8b3fa42",
         "preflight": "214990694bfd2c653b96631ccd45b3673a279c380a5543dc90be3e27b02aa3f7",
         "dedicated-credential-check": "9fb92ac398c94c3a0ac80d36d70a8ecb341c97fd475afc89ca33c91136f7ea48",
         "prepare-consumer": "12086072b008d3d4080b36fee039e281d3d45b16e9adf7f8348bcc8060270cc2",
@@ -1377,6 +1379,18 @@ def validate_consumer(path, active_lines, active_text):
     }
     for identifier, expected_hash in reviewed_hashes.items():
         require_command_sha256(path, steps_by_id[identifier], expected_hash)
+
+    require_fragments(
+        path,
+        steps_by_id["initialize-paths"],
+        [
+            'consumer_root="$RUNNER_TEMP_ROOT/peak-consumer"',
+            "printf 'CONSUMER_ROOT=%s\\n' \"$consumer_root\"",
+            "printf 'CONSUMER_PROJECT=%s\\n' \"$consumer_root/PeakSdkConsumer\"",
+            "printf 'NUGET_PACKAGES=%s\\n' \"$consumer_root/.nuget/packages\"",
+            '} >> "$GITHUB_ENV"',
+        ],
+    )
 
     preflight = steps_by_id["preflight"]
     require_fragments(
@@ -1447,6 +1461,7 @@ def validate_consumer(path, active_lines, active_text):
     if package_publication.search(all_normalized):
         fail(path, "package publication is forbidden in consumer workflow execution")
     ordered_ids = [
+        "initialize-paths",
         "checkout",
         "setup-dotnet",
         "preflight",
@@ -1631,7 +1646,7 @@ def validate_release(path, active_lines, active_text):
         "cleanup-read": "36d5eb9d960cb412d1b63ba6254b3f0f94e318861e71739e233ef8b2eec42154",
         "build": "540982ff771869914cb47509f42a822657d480d19fd34c6cf8ca50ed1ef7963c",
         "test": "09961f0949f5944d4cd61f4f7af3d6d728f8584ea78d365d09405affead70a64",
-        "pack": "969b776288aee4f4fecac1eb1d053f5ee553ccb71465b24794a08078bd9ab11d",
+        "pack": "33f3665a5cb3d5dfe2c81333f6cae627a3ec8fe4dcb35eecb81dff66d1542ae1",
         "package": "8b39602306a4f1b7489c20731c7647f13600ba25011c4d12999f2a0705ce115c",
         "release-assets": "9d218a0d0cd80952205a2f880bf64382d232e07f6cd19282b4f4efed34a0e54f",
         "publish-public-internal": "e3d2df2213ebd3df5283834d1ffce894f183050e7f5b1b1b904ad3b8cf4e9d37",
