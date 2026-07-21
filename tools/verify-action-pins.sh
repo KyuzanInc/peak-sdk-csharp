@@ -86,7 +86,7 @@ if [[ -n ${ACTION_PIN_VERIFY_TARGETS:-} ]]; then
   focused=1
   while IFS= read -r target; do
     if [[ "$target" == *..* || "$target" == */* || "$target" == *\\* ||
-          ! "$target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.yml$ ]]; then
+          ! "$target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.ya?ml$ ]]; then
       printf 'invalid Action-pin workflow target: %s\n' "$target" >&2
       exit 1
     fi

@@ -3,9 +3,15 @@ set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 verifier="$repo_root/tools/publication/verify-workflows.sh"
+csharp_ci="$repo_root/.github/workflows/csharp-ci.yml"
 
 if [[ ! -f "$verifier" ]]; then
   echo "verify-workflows verifier is missing: $verifier" >&2
+  exit 1
+fi
+
+if rg -q 'ACTION_PIN_VERIFY_TARGETS|WORKFLOW_VERIFY_TARGETS' "$csharp_ci"; then
+  echo "C# CI must verify the complete tracked workflow set" >&2
   exit 1
 fi
 
@@ -545,6 +551,21 @@ run_expect_fail $'verify.yml\nsecond.yml' "newline-delimited bad target was igno
 
 write_clean_workflow "$fixture/.github/workflows/second.yml"
 git -C "$fixture" add .github/workflows/second.yml
+
+cat > "$fixture/.github/workflows/bypass.yaml" <<'WORKFLOW'
+name: Bypass
+permissions:
+  packages: write
+jobs: {}
+WORKFLOW
+git -C "$fixture" add .github/workflows/bypass.yaml
+if WORKFLOW_VERIFY_REPO_ROOT="$fixture" WORKFLOW_VERIFY_TARGETS= \
+  bash "$verifier" >/dev/null 2>&1; then
+  echo "default target set ignored a tracked .yaml workflow" >&2
+  exit 1
+fi
+git -C "$fixture" rm --cached -q .github/workflows/bypass.yaml
+rm "$fixture/.github/workflows/bypass.yaml"
 
 cat > "$fixture/.github/workflows/untracked.yml" <<WORKFLOW
 name: Untracked
@@ -1287,6 +1308,12 @@ run_expect_fail release.yml "package binary uploaded to the Release"
 
 reset_release_fixture
 replace_release_once \
+  'python3 tools/package/canonicalize-nuget-package.py "$NUPKG_PATH"' \
+  'true # package canonicalization removed'
+run_expect_fail release.yml "missing deterministic package canonicalization"
+
+reset_release_fixture
+replace_release_once \
   'gh release upload "$TAG_NAME" "$MANIFEST_PATH"' \
   'gh release upload "$TAG_NAME" "$MANIFEST_PATH" --clobber'
 run_expect_fail release.yml "release manifest clobber"
@@ -1547,6 +1574,14 @@ set -euo pipefail
 exit 0
 STUB
 chmod +x "$stub_bin/bash"
+cat > "$stub_bin/python3" <<'STUB'
+#!/bin/bash
+set -euo pipefail
+[[ "${1-}" == "tools/package/canonicalize-nuget-package.py" ]]
+[[ -f "${2-}" ]]
+exit 0
+STUB
+chmod +x "$stub_bin/python3"
 package_dir="$local_test_dir/package"
 manifest_path="$local_test_dir/release-checksums.txt"
 mkdir -p "$package_dir"
@@ -1587,6 +1622,7 @@ if env \
 fi
 rm "$package_dir/Unexpected.1.0.0.nupkg"
 rm "$stub_bin/bash"
+rm "$stub_bin/python3"
 
 cat > "$stub_bin/gh" <<'STUB'
 #!/usr/bin/env bash

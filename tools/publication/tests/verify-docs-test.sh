@@ -45,6 +45,11 @@ for path in "${required_files[@]}" "${stale_files[@]}"; do
   mkdir -p "$fixture/$(dirname "$path")"
   printf 'public documentation\n' > "$fixture/$path"
 done
+cat > "$fixture/docs/release-process.md" <<'DOC'
+Create the public GitHub Release while the repository is private.
+The published Release event triggers validation.
+Publish the immutable package version only from that workflow.
+DOC
 
 git -C "$fixture" init -q
 git -C "$fixture" config user.email fixture@example.com
@@ -68,4 +73,19 @@ done
 
 printf 'public documentation\n' > "$fixture/README.md"
 PUBLICATION_REPO_ROOT="$fixture" bash "$verifier"
+
+python3 - "$repo_root/docs/release-process.md" <<'PY'
+import pathlib
+import sys
+
+text = " ".join(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").split())
+release = text.find("Create the public GitHub Release")
+trigger = text.find("published Release event triggers")
+package = text.find("Publish the immutable package version")
+if min(release, trigger, package) < 0:
+    raise SystemExit("release procedure must document the Release-triggered package flow")
+if not release < trigger < package:
+    raise SystemExit("Release creation must precede its workflow trigger and package publication")
+PY
+
 echo "verify-docs regression tests passed"

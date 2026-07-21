@@ -29,6 +29,10 @@ if ! git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   printf 'PUBLICATION_REPO_ROOT is not a Git worktree: %s\n' "$repo_root" >&2
   exit 1
 fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo 'required tool is unavailable: python3' >&2
+  exit 1
+fi
 
 for path in "${required_files[@]}"; do
   if [[ ! -f "$repo_root/$path" ]]; then
@@ -39,6 +43,25 @@ for path in "${required_files[@]}"; do
     failed=1
   fi
 done
+
+release_process="$repo_root/docs/release-process.md"
+if [[ -f "$release_process" ]]; then
+  if ! python3 - "$release_process" <<'PY'
+import pathlib
+import sys
+
+text = " ".join(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").split())
+release = text.find("Create the public GitHub Release")
+trigger = text.find("published Release event triggers")
+package = text.find("Publish the immutable package version")
+if min(release, trigger, package) < 0 or not release < trigger < package:
+    raise SystemExit(1)
+PY
+  then
+    echo 'release procedure does not document the Release-triggered package order' >&2
+    failed=1
+  fi
+fi
 
 for path in "${stale_files[@]}"; do
   if [[ ! -f "$repo_root/$path" ]]; then

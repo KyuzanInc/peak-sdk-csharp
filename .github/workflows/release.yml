@@ -279,6 +279,8 @@ jobs:
             printf '%s\n' 'Package directory must contain exactly one snupkg' >&2
             exit 1
           fi
+          python3 tools/package/canonicalize-nuget-package.py "$NUPKG_PATH"
+          python3 tools/package/canonicalize-nuget-package.py "$SNUPKG_PATH"
           bash tools/package/validate-package.sh "$NUPKG_PATH" "$SNUPKG_PATH"
           (
             cd "$PACKAGE_DIR"

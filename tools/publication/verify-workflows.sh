@@ -17,7 +17,7 @@ seen_targets=$'\n'
 if [[ -n ${WORKFLOW_VERIFY_TARGETS:-} ]]; then
   while IFS= read -r target; do
     if [[ "$target" == *..* || "$target" == */* || "$target" == *\\* ||
-          ! "$target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.yml$ ]]; then
+          ! "$target" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*\.ya?ml$ ]]; then
       printf 'invalid workflow target: %s\n' "$target" >&2
       exit 1
     fi
@@ -52,10 +52,13 @@ else
     target=${workflow_path##*/}
     [[ "$workflow_path" == ".github/workflows/$target" ]] || continue
     targets+=("$target")
-  done < <(git -C "$repo_root" ls-files -z -- '.github/workflows/*.yml')
+  done < <(
+    git -C "$repo_root" ls-files -z -- \
+      '.github/workflows/*.yml' '.github/workflows/*.yaml'
+  )
 
   (( ${#targets[@]} > 0 )) || {
-    echo 'no committed .github/workflows/*.yml workflows were found' >&2
+    echo 'no committed workflow YAML files were found' >&2
     exit 1
   }
   for target in "${targets[@]}"; do
@@ -1629,7 +1632,7 @@ def validate_release(path, active_lines, active_text):
         "build": "540982ff771869914cb47509f42a822657d480d19fd34c6cf8ca50ed1ef7963c",
         "test": "09961f0949f5944d4cd61f4f7af3d6d728f8584ea78d365d09405affead70a64",
         "pack": "969b776288aee4f4fecac1eb1d053f5ee553ccb71465b24794a08078bd9ab11d",
-        "package": "a6c96163ef8ce7fa87958116221e6a43d1e67ab2979a491511b5cc701c555ebc",
+        "package": "8b39602306a4f1b7489c20731c7647f13600ba25011c4d12999f2a0705ce115c",
         "release-assets": "9d218a0d0cd80952205a2f880bf64382d232e07f6cd19282b4f4efed34a0e54f",
         "publish-public-internal": "e3d2df2213ebd3df5283834d1ffce894f183050e7f5b1b1b904ad3b8cf4e9d37",
         "publish-private-dedicated": "e3d2df2213ebd3df5283834d1ffce894f183050e7f5b1b1b904ad3b8cf4e9d37",
@@ -1984,6 +1987,8 @@ def validate_release(path, active_lines, active_text):
             "bash tools/package/validate-package.sh \"$NUPKG_PATH\" \"$SNUPKG_PATH\"",
             "KyuzanInc.Peak.Sdk.1.0.0.nupkg",
             "KyuzanInc.Peak.Sdk.1.0.0.snupkg",
+            "python3 tools/package/canonicalize-nuget-package.py \"$NUPKG_PATH\"",
+            "python3 tools/package/canonicalize-nuget-package.py \"$SNUPKG_PATH\"",
             "LC_ALL=C sort",
             "sha256sum \"$package\"",
             "cd \"$PACKAGE_DIR\"",

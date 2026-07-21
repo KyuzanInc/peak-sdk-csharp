@@ -66,20 +66,18 @@ jobs:
         shell: bash
         run: |
           bash tools/tests/verify-action-pins-test.sh
-          ACTION_PIN_VERIFY_TARGETS=csharp-ci.yml \
-            bash tools/verify-action-pins.sh
+          bash tools/verify-action-pins.sh
           bash tools/publication/tests/verify-public-tree-test.sh
           bash tools/publication/tests/verify-docs-test.sh
           bash tools/package/tests/verify-version-contract-test.sh
           bash tools/compatibility/tests/prepare-turnkey-local-feed-test.sh
           bash tools/package/tests/validate-package-test.sh
+          bash tools/package/tests/canonicalize-nuget-package-test.sh
           bash tools/publication/tests/verify-workflows-test.sh
 
       - name: Verify public-source and workflow policy
         if: matrix.os == 'ubuntu-latest'
         shell: bash
-        env:
-          WORKFLOW_VERIFY_TARGETS: csharp-ci.yml
         run: |
           bash tools/publication/verify-public-tree.sh
           bash tools/publication/verify-docs.sh
@@ -98,6 +96,10 @@ jobs:
           TurnkeySourceProject= dotnet pack \
             packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj \
             -c Release --no-build --no-restore -o .artifacts/peak-feed
+          python3 tools/package/canonicalize-nuget-package.py \
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg
+          python3 tools/package/canonicalize-nuget-package.py \
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg
           bash tools/package/validate-package.sh \
             .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg \
             .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg
