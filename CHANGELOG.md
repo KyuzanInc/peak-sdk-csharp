@@ -3,6 +3,20 @@
 All notable changes to `KyuzanInc.Peak.Sdk` are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.1]
+
+### Security
+
+- Require absolute HTTPS API base URIs, reject ambiguous authority and path
+  forms, and disable redirects in the built-in transport.
+- Update the OpenAPI generator wrapper and its vulnerable transitive
+  dependencies while retaining generator core 7.9.0.
+- Remove email addresses and OTP identifiers from authentication lifecycle
+  logs.
+- Reject DPAPI dot-segment namespaces and enforce normalized containment under
+  the default storage root.
+- Treat session JWTs with `exp` equal to the current Unix second as expired.
+
 ## [1.0.0]
 
 - Established the stable public API for `KyuzanInc.Peak.Sdk`.

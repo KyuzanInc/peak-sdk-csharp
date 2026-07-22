@@ -70,12 +70,12 @@ Without those variables, the E2E suite is skipped.
 
 ## Consuming the package
 
-`KyuzanInc.Peak.Sdk 1.0.0` is distributed from private GitHub Packages for
+`KyuzanInc.Peak.Sdk 1.0.1` is distributed from private GitHub Packages for
 explicitly authorized consumers. With the `github-kyuzan` source configured,
 install the stable version:
 
 ```bash
-dotnet add package KyuzanInc.Peak.Sdk --version 1.0.0
+dotnet add package KyuzanInc.Peak.Sdk --version 1.0.1
 ```
 
 The project also requires the same authorized source for the exact transitive

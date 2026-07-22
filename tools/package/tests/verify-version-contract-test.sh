@@ -29,7 +29,7 @@ XML
   cat > "$fixture/packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj" <<XML
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="KyuzanInc.Turnkey.Sdk" />
@@ -103,7 +103,7 @@ run_expect_fail_with_message() {
 }
 
 write_valid_contract
-sed -i.bak 's#<Version>1.0.0</Version>#<Version>0.1.0-alpha.3</Version>#' \
+sed -i.bak 's#<Version>1.0.1</Version>#<Version>1.0.0</Version>#' \
   "$fixture/packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj"
 rm -f "$fixture/packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj.bak"
 git -C "$fixture" add -A
@@ -180,7 +180,7 @@ run_expect_fail 'wildcard central Update override'
 write_valid_contract
 cat > "$fixture/packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj" <<'XML'
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><Version>1.0.0</Version></PropertyGroup>
+  <PropertyGroup><Version>1.0.1</Version></PropertyGroup>
   <ItemGroup>
     <!-- <PackageReference Include="KyuzanInc.Turnkey.Sdk" /> -->
   </ItemGroup>
@@ -191,7 +191,7 @@ run_expect_fail 'comment-only Turnkey PackageReference'
 
 write_valid_contract
 cat > "$fixture/packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj" <<'XML'
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><Version>1.0.0</Version></PropertyGroup><ItemGroup><PackageReference Include="KyuzanInc.Turnkey.Sdk" /><PackageReference Include="KyuzanInc.Turnkey.Sdk" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><Version>1.0.1</Version></PropertyGroup><ItemGroup><PackageReference Include="KyuzanInc.Turnkey.Sdk" /><PackageReference Include="KyuzanInc.Turnkey.Sdk" /></ItemGroup></Project>
 XML
 git -C "$fixture" add -A
 run_expect_fail 'same-line duplicate Turnkey PackageReferences'

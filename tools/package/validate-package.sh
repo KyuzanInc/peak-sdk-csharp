@@ -38,7 +38,7 @@ NUPKG = pathlib.Path(sys.argv[1])
 SNUPKG = pathlib.Path(sys.argv[2])
 ASSEMBLY = "KyuzanInc.Peak.Sdk"
 TURNKEY = "KyuzanInc.Turnkey.Sdk"
-EXPECTED_VERSION = "1.0.0"
+EXPECTED_VERSION = "1.0.1"
 EXPECTED_TURNKEY_RANGE = "[1.0.0]"
 EXPECTED_REPOSITORY = "https://github.com/KyuzanInc/peak-sdk-csharp"
 

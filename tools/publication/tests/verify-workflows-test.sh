@@ -799,8 +799,8 @@ insert_consumer_once $'  workflow_dispatch:\n' $'  push:\n'
 run_expect_fail consumer-smoke.yml "extra consumer trigger"
 
 reset_consumer_fixture
-replace_consumer_once '        default: 1.0.0' '        default: 1.0.1'
-run_expect_fail consumer-smoke.yml "manual version other than exact 1.0.0"
+replace_consumer_once '        default: 1.0.1' '        default: 1.0.2'
+run_expect_fail consumer-smoke.yml "manual version other than exact 1.0.1"
 
 reset_consumer_fixture
 replace_consumer_once '  contents: read' $'  contents: read\n  packages: read'
@@ -831,7 +831,7 @@ run_expect_fail consumer-smoke.yml "GITHUB_TOKEN in contents-only consumer"
 
 reset_consumer_fixture
 replace_consumer_once \
-  '<PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.0]" />' \
+  '<PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.1]" />' \
   '<PackageReference Include="KyuzanInc.Peak.Sdk" Version="1.*" />'
 run_expect_fail consumer-smoke.yml "floating Peak consumer version"
 
@@ -965,16 +965,16 @@ run_consumer_preflight() {
     DISPATCH_VERSION="$dispatch_version" \
     WORKFLOW_RUN_NAME="$workflow_run_name" \
     WORKFLOW_RUN_CONCLUSION="$workflow_run_conclusion" \
-    EXPECTED_VERSION=1.0.0 \
+    EXPECTED_VERSION=1.0.1 \
     GITHUB_OUTPUT="$consumer_preflight_output" \
     /''bin/bash "$consumer_preflight_script"
 }
 
 for validated_visibility in private public internal; do
   run_consumer_preflight \
-    workflow_dispatch 1.0.0 '' '' "$validated_visibility"
+    workflow_dispatch 1.0.1 '' '' "$validated_visibility"
   grep -Fxq "visibility=$validated_visibility" "$consumer_preflight_output"
-  grep -Fxq 'package_version=1.0.0' "$consumer_preflight_output"
+  grep -Fxq 'package_version=1.0.1' "$consumer_preflight_output"
   env \
     NUGET_READ_USERNAME=reader \
     NUGET_READ_TOKEN=read-token \
@@ -983,12 +983,12 @@ done
 run_consumer_preflight workflow_run '' Release success private
 grep -Fxq 'visibility=private' "$consumer_preflight_output"
 for invalid_case in \
-  'workflow_dispatch|1.0.1|||public' \
+  'workflow_dispatch|1.0.2|||public' \
   'workflow_dispatch|1.*|||internal' \
   'workflow_run||Other|success|private' \
   'workflow_run||Release|failure|private' \
   'push||||private' \
-  'workflow_dispatch|1.0.0|||unknown'; do
+  'workflow_dispatch|1.0.1|||unknown'; do
   IFS='|' read -r \
     event_name dispatch_version workflow_name conclusion visibility \
     <<< "$invalid_case"
@@ -1030,7 +1030,7 @@ env \
   NUGET_CONFIG="$consumer_config" \
   /''bin/bash "$consumer_prepare_script"
 grep -Fxq \
-  '    <PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.0]" />' \
+  '    <PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.1]" />' \
   "$consumer_project/PeakSdkConsumer.csproj"
 grep -Fq 'PeakClient.Initialize(new PeakClientOptions' "$consumer_project/Program.cs"
 grep -Fq 'var storage = new InMemoryStorage();' "$consumer_project/Program.cs"
@@ -1084,13 +1084,13 @@ grep -Fq \
   "restore $consumer_project/PeakSdkConsumer.csproj --configfile $consumer_config --no-cache --force-evaluate" \
   "$consumer_dotnet_log"
 
-mkdir -p "$consumer_project/obj" "$consumer_packages/kyuzaninc.peak.sdk/1.0.0"
+mkdir -p "$consumer_project/obj" "$consumer_packages/kyuzaninc.peak.sdk/1.0.1"
 consumer_assets="$consumer_project/obj/project.assets.json"
-consumer_metadata="$consumer_packages/kyuzaninc.peak.sdk/1.0.0/.nupkg.metadata"
+consumer_metadata="$consumer_packages/kyuzaninc.peak.sdk/1.0.1/.nupkg.metadata"
 cat > "$consumer_assets" <<'JSON'
 {
   "libraries": {
-    "KyuzanInc.Peak.Sdk/1.0.0": {},
+    "KyuzanInc.Peak.Sdk/1.0.1": {},
     "kyuzaninc.turnkey.sdk/1.0.0": {}
   }
 }
@@ -1104,9 +1104,9 @@ env \
   /''bin/bash "$consumer_assert_script" >/dev/null
 
 for invalid_assets in \
-  '{"libraries":{"KyuzanInc.Peak.Sdk/1.0.1":{},"KyuzanInc.Turnkey.Sdk/1.0.0":{}}}' \
-  '{"libraries":{"KyuzanInc.Peak.Sdk/1.0.0":{},"KyuzanInc.Peak.Sdk/2.0.0":{},"KyuzanInc.Turnkey.Sdk/1.0.0":{}}}' \
-  '{"libraries":{"KyuzanInc.Peak.Sdk/1.0.0":{},"KyuzanInc.Turnkey.Sdk/1.*":{}}}'; do
+  '{"libraries":{"KyuzanInc.Peak.Sdk/1.0.0":{},"KyuzanInc.Turnkey.Sdk/1.0.0":{}}}' \
+  '{"libraries":{"KyuzanInc.Peak.Sdk/1.0.1":{},"KyuzanInc.Peak.Sdk/2.0.0":{},"KyuzanInc.Turnkey.Sdk/1.0.0":{}}}' \
+  '{"libraries":{"KyuzanInc.Peak.Sdk/1.0.1":{},"KyuzanInc.Turnkey.Sdk/1.*":{}}}'; do
   printf '%s\n' "$invalid_assets" > "$consumer_assets"
   if env \
     CONSUMER_PROJECT="$consumer_project" \
@@ -1117,7 +1117,7 @@ for invalid_assets in \
   fi
 done
 cat > "$consumer_assets" <<'JSON'
-{"libraries":{"KyuzanInc.Peak.Sdk/1.0.0":{},"KyuzanInc.Turnkey.Sdk/1.0.0":{}}}
+{"libraries":{"KyuzanInc.Peak.Sdk/1.0.1":{},"KyuzanInc.Turnkey.Sdk/1.0.0":{}}}
 JSON
 printf '%s\n' '{"source":"https://api.nuget.org/v3/index.json"}' > "$consumer_metadata"
 if env \
@@ -1285,7 +1285,7 @@ run_expect_fail release.yml "comparison reordered before Release asset download"
 
 reset_release_fixture
 replace_release_once $'  release:\n    types: [published]' \
-  $'  push:\n    tags: [v1.0.0]'
+  $'  push:\n    tags: [v1.0.1]'
 run_expect_fail release.yml "push publication trigger"
 
 reset_release_fixture
@@ -1486,28 +1486,28 @@ run_preflight() {
     TAG_NAME="$tag" \
     TAG_COMMIT="$tag_commit" \
     PROJECT_FILE="$project_fixture" \
-    EXPECTED_VERSION=1.0.0 \
+    EXPECTED_VERSION=1.0.1 \
     GITHUB_OUTPUT="$output" \
     /''bin/bash "$preflight_script"
 }
 
-write_project_fixture 1.0.0
-run_preflight v1.0.0 private identical
+write_project_fixture 1.0.1
+run_preflight v1.0.1 private identical
 grep -Fxq 'visibility=private' "$local_test_dir/preflight-output"
-if run_preflight v1.0.0 public behind >/dev/null 2>&1; then
+if run_preflight v1.0.1 public behind >/dev/null 2>&1; then
   echo "expected Release preflight to reject a tag behind main" >&2
   exit 1
 fi
 
 for invalid_tag in \
-  v01.0.0 \
-  v1.00.0 \
-  v1.0.00 \
-  v1.0.0-alpha \
-  v1.0.0+build \
-  prefix-v1.0.0 \
-  v1.0.0-suffix \
-  v1.0.1; do
+  v01.0.1 \
+  v1.00.1 \
+  v1.0.01 \
+  v1.0.1-alpha \
+  v1.0.1+build \
+  prefix-v1.0.1 \
+  v1.0.1-suffix \
+  v1.0.0; do
   if run_preflight "$invalid_tag" private identical >/dev/null 2>&1; then
     echo "expected strict Release preflight to reject tag: $invalid_tag" >&2
     exit 1
@@ -1515,37 +1515,37 @@ for invalid_tag in \
 done
 
 for invalid_visibility in unknown ''; do
-  if run_preflight v1.0.0 "$invalid_visibility" identical >/dev/null 2>&1; then
+  if run_preflight v1.0.1 "$invalid_visibility" identical >/dev/null 2>&1; then
     echo "expected Release preflight to reject visibility: $invalid_visibility" >&2
     exit 1
   fi
 done
 
 for invalid_compare in behind ahead diverged unexpected ''; do
-  if run_preflight v1.0.0 private "$invalid_compare" >/dev/null 2>&1; then
+  if run_preflight v1.0.1 private "$invalid_compare" >/dev/null 2>&1; then
     echo "expected Release preflight to reject compare status: $invalid_compare" >&2
     exit 1
   fi
 done
 
-if run_preflight v1.0.0 private identical \
+if run_preflight v1.0.1 private identical \
   1111111111111111111111111111111111111111 \
   2222222222222222222222222222222222222222 >/dev/null 2>&1; then
   echo "expected Release preflight to reject a checkout/tag commit mismatch" >&2
   exit 1
 fi
 
-write_project_fixture 1.0.1
-if run_preflight v1.0.0 private identical >/dev/null 2>&1; then
+write_project_fixture 1.0.0
+if run_preflight v1.0.1 private identical >/dev/null 2>&1; then
   echo "expected Release preflight to reject a project version mismatch" >&2
   exit 1
 fi
-write_project_fixture 1.0.0 Wrong.Package
-if run_preflight v1.0.0 private identical >/dev/null 2>&1; then
+write_project_fixture 1.0.1 Wrong.Package
+if run_preflight v1.0.1 private identical >/dev/null 2>&1; then
   echo "expected Release preflight to reject a package id mismatch" >&2
   exit 1
 fi
-write_project_fixture 1.0.0
+write_project_fixture 1.0.1
 
 credential_output="$local_test_dir/credential-output"
 run_credential_mode() {
@@ -1654,8 +1654,8 @@ chmod +x "$stub_bin/python3"
 package_dir="$local_test_dir/package"
 manifest_path="$local_test_dir/release-checksums.txt"
 mkdir -p "$package_dir"
-printf 'nupkg bytes\n' > "$package_dir/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
-printf 'snupkg bytes\n' > "$package_dir/KyuzanInc.Peak.Sdk.1.0.0.snupkg"
+printf 'nupkg bytes\n' > "$package_dir/KyuzanInc.Peak.Sdk.1.0.1.nupkg"
+printf 'snupkg bytes\n' > "$package_dir/KyuzanInc.Peak.Sdk.1.0.1.snupkg"
 : > "$local_test_dir/package-output"
 env \
   PATH="$stub_bin:$PATH" \
@@ -1667,8 +1667,8 @@ expected_manifest="$local_test_dir/expected-release-checksums.txt"
 (
   cd "$package_dir"
   printf '%s\n' \
-    KyuzanInc.Peak.Sdk.1.0.0.nupkg \
-    KyuzanInc.Peak.Sdk.1.0.0.snupkg |
+    KyuzanInc.Peak.Sdk.1.0.1.nupkg \
+    KyuzanInc.Peak.Sdk.1.0.1.snupkg |
     LC_ALL=C sort |
     while IFS= read -r package; do
       sha256sum "$package"
@@ -1679,7 +1679,7 @@ if grep -Fq "$package_dir" "$manifest_path"; then
   echo "checksum manifest must contain basename-only paths" >&2
   exit 1
 fi
-printf 'unexpected\n' > "$package_dir/Unexpected.1.0.0.nupkg"
+printf 'unexpected\n' > "$package_dir/Unexpected.1.0.1.nupkg"
 if env \
   PATH="$stub_bin:$PATH" \
   PACKAGE_DIR="$package_dir" \
@@ -1689,7 +1689,7 @@ if env \
   echo "expected checksum generation to reject an extra nupkg" >&2
   exit 1
 fi
-rm "$package_dir/Unexpected.1.0.0.nupkg"
+rm "$package_dir/Unexpected.1.0.1.nupkg"
 rm "$stub_bin/bash"
 rm "$stub_bin/python3"
 
@@ -1734,8 +1734,8 @@ if run_release_assets '[[{"name":"release-checksums.txt","id":42}]]' \
   exit 1
 fi
 for invalid_assets in \
-  '[[{"name":"KyuzanInc.Peak.Sdk.1.0.0.nupkg","id":41}]]' \
-  '[[{"name":"KyuzanInc.Peak.Sdk.1.0.0.snupkg","id":41}]]' \
+  '[[{"name":"KyuzanInc.Peak.Sdk.1.0.1.nupkg","id":41}]]' \
+  '[[{"name":"KyuzanInc.Peak.Sdk.1.0.1.snupkg","id":41}]]' \
   '[[{"name":"release-checksums.txt","id":41},{"name":"release-checksums.txt","id":42}]]' \
   '{"name":"release-checksums.txt","id":41}' \
   '[[{"name":4,"id":41}]]'; do
@@ -1836,7 +1836,7 @@ run_registry() {
   local package_inventory=$1
   local version_inventory=$2
   local download_status=$3
-  local download_source=${4:-"$package_dir/KyuzanInc.Peak.Sdk.1.0.0.nupkg"}
+  local download_source=${4:-"$package_dir/KyuzanInc.Peak.Sdk.1.0.1.nupkg"}
   local package_inventory_status=${5:-200}
   local version_inventory_status=${6:-200}
   local script=${7:-"$registry_script"}
@@ -1855,8 +1855,8 @@ run_registry() {
     STUB_GH_LOG="$gh_log" \
     STUB_CURL_LOG="$curl_log" \
     REPOSITORY_OWNER=KyuzanInc \
-    PACKAGE_VERSION=1.0.0 \
-    NUPKG_PATH="$package_dir/KyuzanInc.Peak.Sdk.1.0.0.nupkg" \
+    PACKAGE_VERSION=1.0.1 \
+    NUPKG_PATH="$package_dir/KyuzanInc.Peak.Sdk.1.0.1.nupkg" \
     PUBLISH_CONFIG="$publish_config" \
     PUBLISH_USERNAME_FILE="$publish_username_file" \
     PUBLISH_TOKEN_FILE="$publish_token_file" \
@@ -1883,7 +1883,7 @@ grep -Fq 'nuget push' "$dotnet_log"
 
 run_registry \
   '[[{"name":"KyuzanInc.Peak.Sdk","package_type":"nuget"}]]' \
-  '[[{"name":"1.0.0","id":101}]]' \
+  '[[{"name":"1.0.1","id":101}]]' \
   200
 if [[ -s "$dotnet_log" ]]; then
   echo "existing byte-identical package must not be republished" >&2
@@ -1894,7 +1894,7 @@ fi
 printf 'different nupkg\n' > "$local_test_dir/different.nupkg"
 if run_registry \
   '[[{"name":"KyuzanInc.Peak.Sdk","package_type":"nuget"}]]' \
-  '[[{"name":"1.0.0","id":101}]]' \
+  '[[{"name":"1.0.1","id":101}]]' \
   200 \
   "$local_test_dir/different.nupkg" >/dev/null 2>&1; then
   echo "existing byte-different package must fail closed" >&2
@@ -1925,7 +1925,7 @@ extract_workflow_run_from \
   "$mutated_registry_script"
 if ! run_registry \
   '[[{"name":"KyuzanInc.Peak.Sdk","package_type":"nuget"}]]' \
-  '[[{"name":"1.0.0","id":101}]]' \
+  '[[{"name":"1.0.1","id":101}]]' \
   200 \
   "$local_test_dir/different.nupkg" \
   200 200 \
@@ -1933,11 +1933,11 @@ if ! run_registry \
   echo "inert comparison mutation no longer demonstrates unsafe package replacement" >&2
   exit 1
 fi
-printf 'nupkg bytes\n' > "$package_dir/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
+printf 'nupkg bytes\n' > "$package_dir/KyuzanInc.Peak.Sdk.1.0.1.nupkg"
 
 if run_registry \
   '[[{"name":"KyuzanInc.Peak.Sdk","package_type":"nuget"}]]' \
-  '[[{"name":"1.0.0","id":101}]]' \
+  '[[{"name":"1.0.1","id":101}]]' \
   404 >/dev/null 2>&1; then
   echo "inventory-present version with download 404 must fail closed" >&2
   exit 1
@@ -1945,7 +1945,7 @@ fi
 
 for inventory_status in 401 404; do
   if run_registry '[[]]' '[[]]' 000 \
-    "$package_dir/KyuzanInc.Peak.Sdk.1.0.0.nupkg" \
+    "$package_dir/KyuzanInc.Peak.Sdk.1.0.1.nupkg" \
     "$inventory_status" 200 >/dev/null 2>&1; then
     echo "package inventory HTTP $inventory_status must fail closed" >&2
     exit 1
@@ -1968,8 +1968,8 @@ for malformed_version_inventory in \
   '[]' \
   '{}' \
   '[[{"name":4,"id":101}]]' \
-  '[[{"name":"1.0.0","id":"101"}]]' \
-  '[[{"name":"1.0.0","id":101}],[{"name":"1.0.0","id":102}]]'; do
+  '[[{"name":"1.0.1","id":"101"}]]' \
+  '[[{"name":"1.0.1","id":101}],[{"name":"1.0.1","id":102}]]'; do
   if run_registry \
     '[[{"name":"KyuzanInc.Peak.Sdk","package_type":"nuget"}]]' \
     "$malformed_version_inventory" \
@@ -1984,7 +1984,7 @@ for version_inventory_status in 401 404; do
     '[[{"name":"KyuzanInc.Peak.Sdk","package_type":"nuget"}]]' \
     '[[]]' \
     000 \
-    "$package_dir/KyuzanInc.Peak.Sdk.1.0.0.nupkg" \
+    "$package_dir/KyuzanInc.Peak.Sdk.1.0.1.nupkg" \
     200 "$version_inventory_status" >/dev/null 2>&1; then
     echo "version inventory HTTP $version_inventory_status must fail closed" >&2
     exit 1
@@ -1993,7 +1993,7 @@ done
 
 run_registry \
   '[[],[{"name":"KyuzanInc.Peak.Sdk","package_type":"nuget"}]]' \
-  '[[],[{"name":"1.0.0","id":101}]]' \
+  '[[],[{"name":"1.0.1","id":101}]]' \
   200
 if [[ -s "$dotnet_log" ]]; then
   echo "all inventory pages must be considered before deciding to publish" >&2
@@ -2003,7 +2003,7 @@ fi
 
 run_registry \
   '[[{"name":"kyuzaninc.peak.sdk","package_type":"nuget"}]]' \
-  '[[{"name":"1.0.0","id":101}]]' \
+  '[[{"name":"1.0.1","id":101}]]' \
   200
 if [[ -s "$dotnet_log" ]]; then
   echo "case variants of the NuGet package id must not be treated as absent" >&2
@@ -2015,7 +2015,7 @@ run_registry \
   '[[]]' \
   000
 grep -Fq 'nuget push' "$dotnet_log"
-grep -Fq 'KyuzanInc.Peak.Sdk.1.0.0.nupkg' "$dotnet_log"
+grep -Fq 'KyuzanInc.Peak.Sdk.1.0.1.nupkg' "$dotnet_log"
 grep -Fq -- '--no-symbols' "$dotnet_log"
 if grep -Eqi 'snupkg|skip-duplicate|api\.nuget\.org' "$dotnet_log"; then
   echo "inventory-proven absence must publish only the nupkg to GitHub Packages" >&2

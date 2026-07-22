@@ -3,7 +3,7 @@
 `KyuzanInc.Peak.Sdk` is a .NET SDK for the Peak embedded-wallet platform. It
 supports modern .NET hosts, including console applications and .NET MAUI.
 
-- Stable version: `1.0.0`
+- Stable version: `1.0.1`
 - Distribution: private GitHub Packages for explicitly authorized consumers
 - Dependency: `KyuzanInc.Turnkey.Sdk [1.0.0]`
 

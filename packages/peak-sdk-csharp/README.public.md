@@ -4,7 +4,7 @@
 supports OTP login, account listing, private-key import/export, and session JWT
 handling.
 
-- Stable version: `1.0.0`
+- Stable version: `1.0.1`
 - Distribution: private GitHub Packages for explicitly authorized consumers
 - Dependency: `KyuzanInc.Turnkey.Sdk [1.0.0]`
 
@@ -43,7 +43,7 @@ for the full setup and troubleshooting.
 ## Install
 
 ```bash
-dotnet add package KyuzanInc.Peak.Sdk --version 1.0.0
+dotnet add package KyuzanInc.Peak.Sdk --version 1.0.1
 ```
 
 ## Quick start

@@ -965,7 +965,7 @@ def validate_strict_release_structure(path, root):
             "TAG_NAME": "${{ github.event.release.tag_name }}",
             "TAG_COMMIT": "${{ github.sha }}",
             "PROJECT_FILE": "packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj",
-            "EXPECTED_VERSION": "1.0.0",
+            "EXPECTED_VERSION": "1.0.1",
         },
         "dedicated-credential-check": {
             "NUGET_READ_USERNAME": "${{ secrets.NUGET_READ_USERNAME }}",
@@ -1040,7 +1040,7 @@ def validate_strict_release_structure(path, root):
         },
         "registry": {
             "REPOSITORY_OWNER": "${{ github.repository_owner }}",
-            "PACKAGE_VERSION": "1.0.0",
+            "PACKAGE_VERSION": "1.0.1",
             "NUPKG_PATH": "${{ steps.package.outputs.nupkg_path }}",
             "PUBLISH_CONFIG": "${{ runner.temp }}/nuget-publish.config",
             "PUBLISH_USERNAME_FILE": "${{ runner.temp }}/nuget-publish-username",
@@ -1173,7 +1173,7 @@ def validate_strict_consumer_structure(path, root):
                 "package_version": {
                     "description": "Exact published package version to verify",
                     "required": "true",
-                    "default": "1.0.0",
+                    "default": "1.0.1",
                 }
             }
         },
@@ -1292,7 +1292,7 @@ def validate_strict_consumer_structure(path, root):
             "WORKFLOW_RUN_CONCLUSION": (
                 "${{ github.event.workflow_run.conclusion }}"
             ),
-            "EXPECTED_VERSION": "1.0.0",
+            "EXPECTED_VERSION": "1.0.1",
         },
         "dedicated-credential-check": {
             "NUGET_READ_USERNAME": "${{ secrets.NUGET_READ_USERNAME }}",
@@ -1367,12 +1367,12 @@ def validate_consumer(path, active_lines, active_text):
 
     reviewed_hashes = {
         "initialize-paths": "ffab10a73a8b151832b229be41462b2e360e6d5696cf527e775302dae8b3fa42",
-        "preflight": "214990694bfd2c653b96631ccd45b3673a279c380a5543dc90be3e27b02aa3f7",
+        "preflight": "f2a50b2ad81434b0165ca03437f4475e3cad2fa77c27021f18c1830329704318",
         "dedicated-credential-check": "9fb92ac398c94c3a0ac80d36d70a8ecb341c97fd475afc89ca33c91136f7ea48",
-        "prepare-consumer": "12086072b008d3d4080b36fee039e281d3d45b16e9adf7f8348bcc8060270cc2",
+        "prepare-consumer": "34e82735b15dc2ffdb4868a8bd7daea1ba7d9ce720fdfa0db1a0904ad83097d5",
         "configure-dedicated": "df61495d07edf060b218afc4d64bdb78a2e486dff25d68aa1d8ad4f68902e1b5",
         "restore": "630756c60c7bb755a6a3528815a731e787403211dd4ef3316e62c970d68b77be",
-        "assert-package-graph": "2b338dcc9bbae928223cbeabe7a7b5bf85ce7a8cd3b949c4e65bbe0f4ac4eeeb",
+        "assert-package-graph": "587bc83c244d13aeeae25ba2f1cd5b2b81691b2bcc3a8af39f8237eeb15688dd",
         "cleanup-config": "4f26f02575d06620e3780ae17c1f0568d9128b0edb73781ebae816390c6337d9",
         "build": "d4c7631358478fc465f319bc4ebd6f384835c8b36fba44b5d0915bd6a8e2783a",
         "run": "d22b208c4ad31279ed42ea5ad0dce0d1676e84b5501509df764b74033303a43f",
@@ -1418,7 +1418,7 @@ def validate_consumer(path, active_lines, active_text):
         path,
         steps_by_id["prepare-consumer"],
         [
-            '<PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.0]" />',
+            '<PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.1]" />',
             '<package pattern="KyuzanInc.Turnkey.*" />',
             "PeakClient.Initialize(new PeakClientOptions",
             "new InMemoryStorage()",
@@ -1512,8 +1512,9 @@ def validate_consumer(path, active_lines, active_text):
         [
             "kyuzaninc.peak.sdk",
             "kyuzaninc.turnkey.sdk",
+            'split("/")[1] == "1.0.1"',
             'split("/")[1] == "1.0.0"',
-            'metadata="$NUGET_PACKAGES/kyuzaninc.peak.sdk/1.0.0/.nupkg.metadata"',
+            'metadata="$NUGET_PACKAGES/kyuzaninc.peak.sdk/1.0.1/.nupkg.metadata"',
             '.source == "https://nuget.pkg.github.com/KyuzanInc/index.json"',
         ],
     )
@@ -1636,7 +1637,7 @@ def validate_release(path, active_lines, active_text):
     for identifier in required_ids:
         require_step(path, steps_by_id, identifier)
     expected_run_sha256 = {
-        "preflight": "82c14567f2d6be2645adf59a795f1299a3dd5dc612762b8c77b70fc923f3e556",
+        "preflight": "1c729a78211d360b0cdba90670e9793edd4ef5af50e30a786a8ba2e32d62eb78",
         "dedicated-credential-check": "afedfff7a9ec2d548bd423f2fd0dcce731c1873e5669aba5916ea6e41ad8671a",
         "credential-mode": "b17669336596988f3b205dc5070e4ccb6e727cfb8b9f237fbbfd2378f8f8f839",
         "read-public-internal": "85774f46421df6762856a9c3ff6b25d5a52f434a427adef40c416a47d459a292",
@@ -1647,7 +1648,7 @@ def validate_release(path, active_lines, active_text):
         "build": "540982ff771869914cb47509f42a822657d480d19fd34c6cf8ca50ed1ef7963c",
         "test": "09961f0949f5944d4cd61f4f7af3d6d728f8584ea78d365d09405affead70a64",
         "pack": "33f3665a5cb3d5dfe2c81333f6cae627a3ec8fe4dcb35eecb81dff66d1542ae1",
-        "package": "8b39602306a4f1b7489c20731c7647f13600ba25011c4d12999f2a0705ce115c",
+        "package": "92dd0d3ba9695ff67bf52d63d78d96c146c1920b682f95e6d234de3878b6ecf5",
         "release-assets": "9d218a0d0cd80952205a2f880bf64382d232e07f6cd19282b4f4efed34a0e54f",
         "publish-public-internal": "e3d2df2213ebd3df5283834d1ffce894f183050e7f5b1b1b904ad3b8cf4e9d37",
         "publish-private-dedicated": "e3d2df2213ebd3df5283834d1ffce894f183050e7f5b1b1b904ad3b8cf4e9d37",
@@ -1678,7 +1679,7 @@ def validate_release(path, active_lines, active_text):
             "TAG_NAME": "${{ github.event.release.tag_name }}",
             "TAG_COMMIT": "${{ github.sha }}",
             "PROJECT_FILE": "packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj",
-            "EXPECTED_VERSION": "1.0.0",
+            "EXPECTED_VERSION": "1.0.1",
         },
     )
     require_fragments(
@@ -2002,8 +2003,8 @@ def validate_release(path, active_lines, active_text):
         package_step,
         [
             "bash tools/package/validate-package.sh \"$NUPKG_PATH\" \"$SNUPKG_PATH\"",
-            "KyuzanInc.Peak.Sdk.1.0.0.nupkg",
-            "KyuzanInc.Peak.Sdk.1.0.0.snupkg",
+            "KyuzanInc.Peak.Sdk.1.0.1.nupkg",
+            "KyuzanInc.Peak.Sdk.1.0.1.snupkg",
             "python3 tools/package/canonicalize-nuget-package.py \"$NUPKG_PATH\"",
             "python3 tools/package/canonicalize-nuget-package.py \"$SNUPKG_PATH\"",
             "LC_ALL=C sort",
