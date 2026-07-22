@@ -16,7 +16,7 @@ internal static class Program
     private const string TurnkeyResolvedVersion = "1.0.0";
     private const string TurnkeyPublishedContentHash =
         "I3vQF6qcpQh2rpxnPQ7FzrcyS80vT8Rv8DDD4h8YrBAROpfRq3LuHiAqXTsjeT2gK4XQcEMfm4G8yr0CFoqSng==";
-    private const string PeakVersion = "1.0.0";
+    private const string PeakVersion = "1.0.1";
 
     private static readonly string[] ItemOperationAttributes =
     {

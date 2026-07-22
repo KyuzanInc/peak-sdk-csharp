@@ -57,7 +57,7 @@ for path in \
   'plans/internal.md' \
   'docs/superpowers/plans/internal.md' \
   'upstream-snapshots/peak-sdk-unity/Runtime/PeakSdk.cs' \
-  'artifacts/KyuzanInc.Peak.Sdk.1.0.0.nupkg'; do
+  'artifacts/KyuzanInc.Peak.Sdk.1.0.1.nupkg'; do
   mkdir -p "$fixture/$(dirname "$path")"
   printf 'fixture\n' > "$fixture/$path"
   git -C "$fixture" add "$path"

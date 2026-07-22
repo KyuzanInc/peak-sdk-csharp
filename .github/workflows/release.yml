@@ -40,7 +40,7 @@ jobs:
           TAG_NAME: ${{ github.event.release.tag_name }}
           TAG_COMMIT: ${{ github.sha }}
           PROJECT_FILE: packages/peak-sdk-csharp/src/peak-sdk-csharp.csproj
-          EXPECTED_VERSION: 1.0.0
+          EXPECTED_VERSION: 1.0.1
         run: |
           set -euo pipefail
 
@@ -54,7 +54,7 @@ jobs:
             echo "::error::Release tag must be a strict final SemVer"; exit 1;
           }
           [[ "$TAG_NAME" == "v$EXPECTED_VERSION" ]] || {
-            echo "::error::Only v1.0.0 may publish this package"; exit 1;
+            echo "::error::Only v1.0.1 may publish this package"; exit 1;
           }
 
           checked_out_commit="$(git rev-parse HEAD)"
@@ -238,7 +238,7 @@ jobs:
         id: test
         run: dotnet test peak-sdk-csharp.sln --no-build -c Release --filter "Category!=E2E" -m:1 /nr:false
 
-      - name: Pack Peak 1.0.0
+      - name: Pack Peak 1.0.1
         id: pack
         shell: bash
         env:
@@ -258,8 +258,8 @@ jobs:
           MANIFEST_PATH: ${{ runner.temp }}/release-checksums.txt
         run: |
           set -euo pipefail
-          NUPKG_PATH="$PACKAGE_DIR/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
-          SNUPKG_PATH="$PACKAGE_DIR/KyuzanInc.Peak.Sdk.1.0.0.snupkg"
+          NUPKG_PATH="$PACKAGE_DIR/KyuzanInc.Peak.Sdk.1.0.1.nupkg"
+          SNUPKG_PATH="$PACKAGE_DIR/KyuzanInc.Peak.Sdk.1.0.1.snupkg"
           test -f "$NUPKG_PATH"
           test -f "$SNUPKG_PATH"
           if [[ "$(find "$PACKAGE_DIR" -maxdepth 1 -type f -name '*.nupkg' | wc -l | tr -d ' ')" != 1 ]]; then
@@ -276,8 +276,8 @@ jobs:
           (
             cd "$PACKAGE_DIR"
             printf '%s\n' \
-              KyuzanInc.Peak.Sdk.1.0.0.nupkg \
-              KyuzanInc.Peak.Sdk.1.0.0.snupkg |
+              KyuzanInc.Peak.Sdk.1.0.1.nupkg \
+              KyuzanInc.Peak.Sdk.1.0.1.snupkg |
               LC_ALL=C sort |
               while IFS= read -r package; do
                 sha256sum "$package"
@@ -433,7 +433,7 @@ jobs:
         shell: bash
         env:
           REPOSITORY_OWNER: ${{ github.repository_owner }}
-          PACKAGE_VERSION: 1.0.0
+          PACKAGE_VERSION: 1.0.1
           NUPKG_PATH: ${{ steps.package.outputs.nupkg_path }}
           PUBLISH_CONFIG: ${{ runner.temp }}/nuget-publish.config
           PUBLISH_USERNAME_FILE: ${{ runner.temp }}/nuget-publish-username

@@ -93,7 +93,7 @@ if [[ "$tfm" == netstandard2.1 ]]; then
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.0]" />
+    <PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.1]" />
   </ItemGroup>
 </Project>
 XML
@@ -129,7 +129,7 @@ else
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.0]" />
+    <PackageReference Include="KyuzanInc.Peak.Sdk" Version="[1.0.1]" />
   </ItemGroup>
 </Project>
 XML
@@ -176,7 +176,7 @@ if not isinstance(libraries, dict):
     raise SystemExit(1)
 
 expected = {
-    "KyuzanInc.Peak.Sdk": "KyuzanInc.Peak.Sdk/1.0.0",
+    "KyuzanInc.Peak.Sdk": "KyuzanInc.Peak.Sdk/1.0.1",
     "KyuzanInc.Turnkey.Sdk": "KyuzanInc.Turnkey.Sdk/1.0.0",
 }
 for package_id, identity in expected.items():
@@ -194,4 +194,4 @@ if [[ "$tfm" == net8.0 ]]; then
   dotnet run --project "$project" -c Release --no-build --no-restore
 fi
 
-printf 'consumer smoke passed: %s (Peak 1.0.0, Turnkey 1.0.0)\n' "$tfm"
+printf 'consumer smoke passed: %s (Peak 1.0.1, Turnkey 1.0.0)\n' "$tfm"

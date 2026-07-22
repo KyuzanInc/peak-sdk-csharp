@@ -33,26 +33,26 @@ TurnkeySourceProject= dotnet pack "$project" \
   -c Release --no-build --no-restore -p:RepositoryBranch= --output "$second"
 
 for package in \
-  "$first/KyuzanInc.Peak.Sdk.1.0.0.nupkg" \
-  "$first/KyuzanInc.Peak.Sdk.1.0.0.snupkg" \
-  "$second/KyuzanInc.Peak.Sdk.1.0.0.nupkg" \
-  "$second/KyuzanInc.Peak.Sdk.1.0.0.snupkg"; do
+  "$first/KyuzanInc.Peak.Sdk.1.0.1.nupkg" \
+  "$first/KyuzanInc.Peak.Sdk.1.0.1.snupkg" \
+  "$second/KyuzanInc.Peak.Sdk.1.0.1.nupkg" \
+  "$second/KyuzanInc.Peak.Sdk.1.0.1.snupkg"; do
   python3 "$canonicalizer" "$package"
 done
 
 cmp --silent \
-  "$first/KyuzanInc.Peak.Sdk.1.0.0.nupkg" \
-  "$second/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
+  "$first/KyuzanInc.Peak.Sdk.1.0.1.nupkg" \
+  "$second/KyuzanInc.Peak.Sdk.1.0.1.nupkg"
 cmp --silent \
-  "$first/KyuzanInc.Peak.Sdk.1.0.0.snupkg" \
-  "$second/KyuzanInc.Peak.Sdk.1.0.0.snupkg"
+  "$first/KyuzanInc.Peak.Sdk.1.0.1.snupkg" \
+  "$second/KyuzanInc.Peak.Sdk.1.0.1.snupkg"
 
-cp "$first/KyuzanInc.Peak.Sdk.1.0.0.nupkg" "$fixture/canonical.nupkg"
+cp "$first/KyuzanInc.Peak.Sdk.1.0.1.nupkg" "$fixture/canonical.nupkg"
 python3 "$canonicalizer" "$fixture/canonical.nupkg"
-cmp --silent "$first/KyuzanInc.Peak.Sdk.1.0.0.nupkg" "$fixture/canonical.nupkg"
+cmp --silent "$first/KyuzanInc.Peak.Sdk.1.0.1.nupkg" "$fixture/canonical.nupkg"
 
 branch_package="$fixture/branch-metadata.nupkg"
-python3 - "$first/KyuzanInc.Peak.Sdk.1.0.0.nupkg" "$branch_package" <<'PY'
+python3 - "$first/KyuzanInc.Peak.Sdk.1.0.1.nupkg" "$branch_package" <<'PY'
 import sys
 import xml.etree.ElementTree as ET
 import zipfile

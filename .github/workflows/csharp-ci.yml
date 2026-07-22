@@ -85,7 +85,7 @@ jobs:
           bash tools/package/verify-version-contract.sh
           bash tools/publication/verify-workflows.sh
 
-      - name: Pack and validate Peak 1.0.0
+      - name: Pack and validate Peak 1.0.1
         if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
@@ -99,12 +99,12 @@ jobs:
             -c Release --no-build --no-restore -p:RepositoryBranch= \
             -o .artifacts/peak-feed
           python3 tools/package/canonicalize-nuget-package.py \
-            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.1.nupkg
           python3 tools/package/canonicalize-nuget-package.py \
-            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.1.snupkg
           bash tools/package/validate-package.sh \
-            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg \
-            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.1.nupkg \
+            .artifacts/peak-feed/KyuzanInc.Peak.Sdk.1.0.1.snupkg
 
       - name: Validate local consumers
         if: matrix.os == 'ubuntu-latest'
@@ -152,7 +152,7 @@ jobs:
           dotnet restore peak-sdk-csharp.sln --force-evaluate
           --configfile nuget.public-ci.config
 
-      - name: Build and pack Peak 1.0.0
+      - name: Build and pack Peak 1.0.1
         shell: bash
         run: |
           dotnet build peak-sdk-csharp.sln --no-restore -c Release

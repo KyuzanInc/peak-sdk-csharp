@@ -56,8 +56,8 @@ TurnkeySourceProject= dotnet pack \
   "$project" -c Release --no-build --no-restore -p:RepositoryBranch= \
   --output "$feed"
 
-package="$feed/KyuzanInc.Peak.Sdk.1.0.0.nupkg"
-symbols="$feed/KyuzanInc.Peak.Sdk.1.0.0.snupkg"
+package="$feed/KyuzanInc.Peak.Sdk.1.0.1.nupkg"
+symbols="$feed/KyuzanInc.Peak.Sdk.1.0.1.snupkg"
 if [[ ! -f "$package" || ! -f "$symbols" ]]; then
   echo "real package or symbol package was not produced" >&2
   exit 1
@@ -110,13 +110,13 @@ with zipfile.ZipFile(destination, "w") as archive:
                     raise SystemExit("fixture source does not have three exact Turnkey dependencies")
                 content = content.replace(old, new)
             elif mode == "duplicate-version":
-                marker = b"<version>1.0.0</version>"
+                marker = b"<version>1.0.1</version>"
                 if content.count(marker) != 1:
                     raise SystemExit("fixture source does not have one package version")
                 content = content.replace(marker, marker + marker)
             elif mode == "nested-version":
-                marker = b"<version>1.0.0</version>"
-                replacement = b"<version>1.0.0<version>0.1.0-alpha.0</version></version>"
+                marker = b"<version>1.0.1</version>"
+                replacement = b"<version>1.0.1<version>1.0.0</version></version>"
                 if content.count(marker) != 1:
                     raise SystemExit("fixture source does not have one package version")
                 content = content.replace(marker, replacement)
