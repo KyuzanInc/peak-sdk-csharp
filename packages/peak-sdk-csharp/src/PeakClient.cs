@@ -29,6 +29,11 @@ namespace KyuzanInc.Peak.Sdk
     public sealed class PeakClientOptions
     {
         public required string ProjectApiKey { get; init; }
+
+        /// <summary>
+        /// Absolute HTTPS base URI for Peak API requests. User info, query,
+        /// fragment, and ambiguous path-escape components are not accepted.
+        /// </summary>
         public required string ApiUrl { get; init; }
         public IStorage? Storage { get; init; }
         public IPeakHttpClient? HttpClient { get; init; }
@@ -54,6 +59,17 @@ namespace KyuzanInc.Peak.Sdk
                 throw new PeakError(PeakErrorCode.InitializationFailed, "ProjectApiKey is required");
             if (string.IsNullOrWhiteSpace(options.ApiUrl))
                 throw new PeakError(PeakErrorCode.InitializationFailed, "ApiUrl is required");
+            try
+            {
+                DefaultPeakHttpClient.ValidateBaseUri(options.ApiUrl);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new PeakError(
+                    PeakErrorCode.InitializationFailed,
+                    "ApiUrl must be an absolute HTTPS URI without user info, query, fragment, or ambiguous path escapes.",
+                    ex);
+            }
 
             this.options = options;
             this.storage = options.Storage ?? new InMemoryStorage();

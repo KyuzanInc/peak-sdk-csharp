@@ -68,6 +68,18 @@ namespace KyuzanInc.Peak.Sdk.Tests
             SessionJwt.IsExpired(payload).Should().BeFalse();
         }
 
+        [Theory]
+        [InlineData(-1, true)]
+        [InlineData(0, true)]
+        [InlineData(1, false)]
+        public void IsExpiredAt_UsesExpirationAsExclusiveUpperBound(long expiryOffset, bool expectedExpired)
+        {
+            const long nowUnixSeconds = 1_900_000_000;
+            var payload = new SessionJwtPayload { Expiry = nowUnixSeconds + expiryOffset };
+
+            SessionJwt.IsExpiredAt(payload, nowUnixSeconds).Should().Be(expectedExpired);
+        }
+
         private static string ToBase64Url(byte[] bytes)
         {
             return Convert.ToBase64String(bytes)

@@ -189,6 +189,11 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Audit pinned OpenAPI codegen dependencies
+        run: >-
+          npm --prefix packages/peak-public-api-client-csharp audit
+          --package-lock-only --audit-level=moderate
+
       - name: Regenerate the C# client from the pinned spec
         run: ./scripts/generate-public-api-client.sh
 

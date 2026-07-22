@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using KyuzanInc.Peak.Sdk.Storage;
+using KyuzanInc.Peak.Sdk.Utils;
+using NSubstitute;
 using Xunit;
 
 namespace KyuzanInc.Peak.Sdk.Tests
@@ -20,6 +22,70 @@ namespace KyuzanInc.Peak.Sdk.Tests
         {
             Action act = () => PeakClient.Initialize(new PeakClientOptions { ApiUrl = "", ProjectApiKey = "k" });
             act.Should().Throw<PeakError>().Which.Code.Should().Be(PeakErrorCode.InitializationFailed);
+        }
+
+        [Theory]
+        [InlineData("http://api.peak.xyz")]
+        [InlineData("api.peak.xyz")]
+        [InlineData("/relative")]
+        [InlineData("https://api.peak.xyz/#fragment")]
+        public void Initialize_RejectsUnsafeApiUrl(string apiUrl)
+        {
+            Action act = () => PeakClient.Initialize(new PeakClientOptions
+            {
+                ApiUrl = apiUrl,
+                ProjectApiKey = "k",
+            });
+
+            act.Should().Throw<PeakError>()
+                .Which.Code.Should().Be(PeakErrorCode.InitializationFailed);
+        }
+
+        [Fact]
+        public void Initialize_RejectsApiUrlWithUserInfo()
+        {
+            var apiUrl = new UriBuilder(Uri.UriSchemeHttps, "api.peak.xyz")
+            {
+                UserName = "sdk-user",
+            }.Uri.AbsoluteUri;
+            Action act = () => PeakClient.Initialize(new PeakClientOptions
+            {
+                ApiUrl = apiUrl,
+                ProjectApiKey = "k",
+            });
+
+            act.Should().Throw<PeakError>()
+                .Which.Code.Should().Be(PeakErrorCode.InitializationFailed);
+        }
+
+        [Fact]
+        public void Initialize_RejectsUnsafeApiUrl_WhenCustomTransportIsInjected()
+        {
+            var transport = Substitute.For<IPeakHttpClient>();
+            Action act = () => PeakClient.Initialize(new PeakClientOptions
+            {
+                ApiUrl = "http://api.peak.xyz",
+                ProjectApiKey = "k",
+                HttpClient = transport,
+            });
+
+            act.Should().Throw<PeakError>()
+                .Which.Code.Should().Be(PeakErrorCode.InitializationFailed);
+        }
+
+        [Fact]
+        public void Initialize_AcceptsCustomTransportWithHttpsApiUrl()
+        {
+            var transport = Substitute.For<IPeakHttpClient>();
+
+            var client = PeakClient.Initialize(new PeakClientOptions
+            {
+                ApiUrl = "https://api.peak.xyz",
+                ProjectApiKey = "k",
+                HttpClient = transport,
+            });
+
+            client.Should().NotBeNull();
         }
 
         [Fact]

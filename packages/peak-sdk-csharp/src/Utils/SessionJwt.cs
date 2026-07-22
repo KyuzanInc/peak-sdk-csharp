@@ -115,8 +115,11 @@ namespace KyuzanInc.Peak.Sdk.Utils
 
         public static bool IsExpired(SessionJwtPayload payload)
         {
-            return payload.Expiry < DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            return IsExpiredAt(payload, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         }
+
+        internal static bool IsExpiredAt(SessionJwtPayload payload, long nowUnixSeconds) =>
+            payload.Expiry <= nowUnixSeconds;
 
         /// <summary>
         /// Verify signature + check expiry + verify public key match. Throws
