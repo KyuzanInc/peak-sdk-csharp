@@ -29,7 +29,10 @@ namespace KyuzanInc.Peak.Sdk.Utils
     /// </summary>
     public sealed class DefaultPeakHttpClient : IPeakHttpClient
     {
-        private static readonly HttpClient SharedClient = new HttpClient();
+        private static readonly HttpClient SharedClient = new HttpClient(CreateDefaultHandler());
+
+        internal static HttpClientHandler CreateDefaultHandler() =>
+            new HttpClientHandler { AllowAutoRedirect = false };
 
         /// <summary>
         /// User-Agent sent on every outgoing request (e.g.
@@ -69,7 +72,7 @@ namespace KyuzanInc.Peak.Sdk.Utils
             return new ProductInfoHeaderValue("KyuzanInc.Peak.Sdk", version);
         }
 
-        private readonly string baseUrl;
+        private readonly Uri baseUri;
         private readonly string projectApiKey;
         private readonly ILogger<DefaultPeakHttpClient> logger;
         private readonly HttpClient httpClient;
@@ -80,11 +83,33 @@ namespace KyuzanInc.Peak.Sdk.Utils
             HttpClient? httpClient = null,
             ILogger<DefaultPeakHttpClient>? logger = null)
         {
-            if (string.IsNullOrWhiteSpace(baseUrl)) throw new ArgumentException(nameof(baseUrl));
-            this.baseUrl = baseUrl.TrimEnd('/');
+            this.baseUri = ValidateBaseUri(baseUrl);
             this.projectApiKey = projectApiKey ?? string.Empty;
             this.httpClient = httpClient ?? SharedClient;
             this.logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<DefaultPeakHttpClient>.Instance;
+        }
+
+        internal static Uri ValidateBaseUri(string baseUrl)
+        {
+            if (string.IsNullOrWhiteSpace(baseUrl)
+                || !Uri.TryCreate(baseUrl, UriKind.Absolute, out var parsed)
+                || !parsed.IsWellFormedOriginalString()
+                || !string.Equals(parsed.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+                || string.IsNullOrEmpty(parsed.Host)
+                || !string.IsNullOrEmpty(parsed.UserInfo)
+                || parsed.GetLeftPart(UriPartial.Authority).IndexOf('@') >= 0
+                || ContainsAmbiguousPathEscape(baseUrl)
+                || !string.IsNullOrEmpty(parsed.Query)
+                || !string.IsNullOrEmpty(parsed.Fragment))
+            {
+                throw new ArgumentException(
+                    "Base URL must be an absolute HTTPS URI without user info, query, fragment, or ambiguous path escapes.",
+                    nameof(baseUrl));
+            }
+
+            return parsed.AbsoluteUri.EndsWith("/", StringComparison.Ordinal)
+                ? parsed
+                : new Uri(parsed.AbsoluteUri + "/", UriKind.Absolute);
         }
 
         public async Task<T?> GetAsync<T>(string endpoint, IReadOnlyDictionary<string, string>? headers = null, CancellationToken cancellationToken = default) where T : class
@@ -132,9 +157,38 @@ namespace KyuzanInc.Peak.Sdk.Utils
 
         private Uri BuildUri(string endpoint)
         {
+            if (string.IsNullOrWhiteSpace(endpoint)
+                || endpoint.StartsWith("//", StringComparison.Ordinal)
+                || endpoint.IndexOf('\\') >= 0
+                || Uri.TryCreate(endpoint, UriKind.Absolute, out _))
+            {
+                throw new ArgumentException("Endpoint must be a relative URI.", nameof(endpoint));
+            }
+
             var trimmed = endpoint.StartsWith("/", StringComparison.Ordinal) ? endpoint.Substring(1) : endpoint;
-            return new Uri($"{baseUrl}/{trimmed}");
+            if (!Uri.TryCreate(trimmed, UriKind.Relative, out var relativeUri))
+            {
+                throw new ArgumentException("Endpoint must be a relative URI.", nameof(endpoint));
+            }
+
+            var requestUri = new Uri(baseUri, relativeUri);
+            if (!string.Equals(requestUri.Scheme, baseUri.Scheme, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(requestUri.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase)
+                || requestUri.Port != baseUri.Port
+                || ContainsAmbiguousPathEscape(requestUri.AbsolutePath)
+                || !requestUri.AbsolutePath.StartsWith(baseUri.AbsolutePath, StringComparison.Ordinal))
+            {
+                throw new ArgumentException("Endpoint must remain within the configured base URI.", nameof(endpoint));
+            }
+
+            return requestUri;
         }
+
+        private static bool ContainsAmbiguousPathEscape(string path) =>
+            path.IndexOf("%25", StringComparison.OrdinalIgnoreCase) >= 0
+            || path.IndexOf("%2e", StringComparison.OrdinalIgnoreCase) >= 0
+            || path.IndexOf("%2f", StringComparison.OrdinalIgnoreCase) >= 0
+            || path.IndexOf("%5c", StringComparison.OrdinalIgnoreCase) >= 0;
 
         private void ApplyHeaders(HttpRequestMessage req, IReadOnlyDictionary<string, string>? headers)
         {

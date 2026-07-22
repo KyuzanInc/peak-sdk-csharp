@@ -7,7 +7,7 @@ is what it is.
 
 | Host | Package | Class | `IsAvailable` | Persistence backend |
 |---|---|---|---|---|
-| Windows .NET 8 (`net8.0-windows`) | `KyuzanInc.Peak.Sdk` (`net8.0-windows` TFM) | `DpapiSecureStorage` | `true` | Per-user DPAPI (`System.Security.Cryptography.ProtectedData`); blob path `%LOCALAPPDATA%\KyuzanInc\PeakSdk\<namespace>\` |
+| Windows .NET 8 (`net8.0-windows`) | `KyuzanInc.Peak.Sdk` (`net8.0-windows` TFM) | `DpapiSecureStorage` | `true` | Per-user DPAPI (`System.Security.Cryptography.ProtectedData`); blob path `%LOCALAPPDATA%\KyuzanInc\PeakSdk\<namespace>\`; `.` / `..` namespaces are rejected, while an explicit `baseDirectory` remains a consumer-owned override |
 | Linux .NET 8 | `KyuzanInc.Peak.Sdk` (no extra package) | `UnavailableSecureStorage` | `false` | None in v0.1.0. v0.2+ may add a `libsecret` adapter package. |
 | macOS .NET 8 | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | None in v0.1.0. v0.2+ may add a Keychain Services adapter. |
 | Godot 4.x / console | `KyuzanInc.Peak.Sdk` | `UnavailableSecureStorage` | `false` | Same as host OS row above. |

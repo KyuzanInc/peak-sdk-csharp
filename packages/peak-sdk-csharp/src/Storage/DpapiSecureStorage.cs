@@ -20,7 +20,9 @@ namespace KyuzanInc.Peak.Sdk.Storage
     /// or machines.
     ///
     /// Persistence path: <c>%LOCALAPPDATA%\KyuzanInc\PeakSdk\&lt;namespace&gt;\</c>
-    /// (override with the constructor).
+    /// (override with the constructor). Dot-segment namespaces are rejected;
+    /// an explicit <c>baseDirectory</c> is used as-is without appending the
+    /// namespace.
     /// </summary>
     public sealed class DpapiSecureStorage : ISecureStorage
     {
@@ -30,27 +32,10 @@ namespace KyuzanInc.Peak.Sdk.Storage
 
         public DpapiSecureStorage(string? baseDirectory = null, string @namespace = "default")
         {
-            // Sanitise the namespace: only [A-Za-z0-9._-] allowed, no path
-            // separators / drive letters / parent refs. This blocks path
-            // traversal via a hostile @namespace argument.
-            if (string.IsNullOrEmpty(@namespace)) @namespace = "default";
-            foreach (var c in @namespace)
-            {
-                bool ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-                       || (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-';
-                if (!ok)
-                {
-                    throw new ArgumentException(
-                        $"DpapiSecureStorage namespace must match [A-Za-z0-9._-]+ (got: '{@namespace}')",
-                        nameof(@namespace));
-                }
-            }
-
-            baseDirectory ??= Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "KyuzanInc",
-                "PeakSdk",
-                @namespace);
+            baseDirectory = DpapiStoragePath.ResolveBaseDirectory(
+                baseDirectory,
+                @namespace,
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
             Directory.CreateDirectory(baseDirectory);
             this.baseDirectory = baseDirectory;
         }

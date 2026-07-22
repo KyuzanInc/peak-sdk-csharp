@@ -41,18 +41,18 @@ namespace KyuzanInc.Peak.Sdk.Services
 
         public async Task<InitOtpLoginResponse?> InitOtpLoginAsync(string email, CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("Starting init OTP login for: {Email}", email);
+            logger.LogInformation("Starting init OTP login");
             var payload = new InitOtpLoginRequest { Email = email };
             var response = await httpClient.PostAsync<InitOtpLoginRequest, InitOtpLoginResponse>(
                 "public-api/v1/auth/otp/init-login", payload, cancellationToken: cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("Init OTP login successful - OTP ID: {OtpId}", response?.OtpId);
+            logger.LogInformation("Init OTP login successful");
             return response;
         }
 
         public async Task<CompleteOtpLoginResult> CompleteOtpLoginAsync(
             string email, string otpId, string otpCode, bool signup = true, CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("Starting complete OTP login for: {Email} (signup={Signup})", email, signup);
+            logger.LogInformation("Starting complete OTP login (signup={Signup})", signup);
 
             var keyPair = keyPairFactory.Invoke()
                 ?? throw new PeakError(PeakErrorCode.AuthenticationFailed,

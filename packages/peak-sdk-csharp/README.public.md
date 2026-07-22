@@ -63,6 +63,14 @@ var auth = client.Authenticate();
 var accounts = await auth.ListAccountsAsync();
 ```
 
+`ApiUrl` must be an absolute HTTPS URI without user information, a query, a
+fragment, or ambiguous path escapes. This validation also applies when a custom
+`IPeakHttpClient` is injected; custom transports remain supported for HTTPS
+endpoints. The built-in transport does not follow redirects, preventing
+credential headers from being replayed to another origin. Consumers injecting
+an `HttpClient` or custom transport are responsible for an equivalent redirect
+policy.
+
 ## Errors
 
 Failures surface as `PeakError`, with a string `Code` from `PeakErrorCode` and

@@ -35,6 +35,64 @@ namespace KyuzanInc.Peak.Sdk.Tests
         private static DefaultPeakHttpClient ClientReturning(HttpStatusCode status, string body) =>
             new DefaultPeakHttpClient("https://api.peak.xyz", "test-key", new HttpClient(new StubHandler(status, body)));
 
+        [Fact]
+        public void CreateDefaultHandler_DisablesAutomaticRedirects()
+        {
+            using var handler = DefaultPeakHttpClient.CreateDefaultHandler();
+
+            handler.AllowAutoRedirect.Should().BeFalse();
+        }
+
+        [Fact]
+        public void Constructor_AcceptsAbsoluteHttpsBaseUrl()
+        {
+            var client = new DefaultPeakHttpClient("https://api.peak.xyz/v1", "test-key");
+
+            client.Should().NotBeNull();
+        }
+
+        [Theory]
+        [InlineData("http://api.peak.xyz")]
+        [InlineData("api.peak.xyz")]
+        [InlineData("/relative")]
+        [InlineData("https://api.peak.xyz/#fragment")]
+        [InlineData("https://api.peak.xyz/?tenant=one")]
+        [InlineData("https://api.peak.xyz/gateway%2Ftenant")]
+        [InlineData("https://api.peak.xyz/gateway/%2e%2e/tenant")]
+        public void Constructor_RejectsUnsafeBaseUrl(string baseUrl)
+        {
+            Action act = () => new DefaultPeakHttpClient(baseUrl, "test-key");
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [Fact]
+        public void Constructor_RejectsBaseUrlWithUserInfo()
+        {
+            var baseUrl = new UriBuilder(Uri.UriSchemeHttps, "api.peak.xyz")
+            {
+                UserName = "sdk-user",
+            }.Uri.AbsoluteUri;
+
+            Action act = () => new DefaultPeakHttpClient(baseUrl, "test-key");
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [Fact]
+        public void Constructor_RejectsBaseUrlWithEmptyUserInfo()
+        {
+            var baseUrl = string.Concat(
+                Uri.UriSchemeHttps,
+                Uri.SchemeDelimiter,
+                "@",
+                "api.peak.xyz");
+
+            Action act = () => new DefaultPeakHttpClient(baseUrl, "test-key");
+
+            act.Should().Throw<ArgumentException>();
+        }
+
         // Captures the outgoing HttpRequestMessage so tests can assert on the
         // headers the SDK actually puts on the wire (e.g. User-Agent).
         private sealed class CapturingHandler : HttpMessageHandler
@@ -53,6 +111,41 @@ namespace KyuzanInc.Peak.Sdk.Tests
                     Content = new StringContent("{\"otpId\":\"otp-1\"}"),
                 };
             }
+        }
+
+        [Fact]
+        public async Task GetAsync_PreservesBasePathWhenCombiningRelativeEndpoint()
+        {
+            var handler = new CapturingHandler();
+            var client = new DefaultPeakHttpClient(
+                "https://api.peak.xyz/gateway",
+                "test-key",
+                new HttpClient(handler));
+
+            await client.GetAsync<InitOtpLoginResponse>("public-api/v1/auth/otp/init-login");
+
+            handler.LastRequest!.RequestUri.Should().Be(
+                new Uri("https://api.peak.xyz/gateway/public-api/v1/auth/otp/init-login"));
+        }
+
+        [Theory]
+        [InlineData("https://attacker.example/request")]
+        [InlineData("//attacker.example/request")]
+        [InlineData("../outside-base")]
+        [InlineData("%2e%2e%2foutside-base")]
+        [InlineData("..%2Foutside-base")]
+        [InlineData("%2e%2e%5Coutside-base")]
+        [InlineData("%252e%252e%252foutside-base")]
+        public async Task GetAsync_RejectsEndpointThatIsNotContainedByBaseUri(string endpoint)
+        {
+            var client = new DefaultPeakHttpClient(
+                "https://api.peak.xyz/gateway",
+                "test-key",
+                new HttpClient(new CapturingHandler()));
+
+            Func<Task> act = () => client.GetAsync<InitOtpLoginResponse>(endpoint);
+
+            await act.Should().ThrowAsync<ArgumentException>();
         }
 
         private sealed class CollectingLogger<T> : ILogger<T>

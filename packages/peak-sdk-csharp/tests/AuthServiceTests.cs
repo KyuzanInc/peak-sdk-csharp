@@ -7,6 +7,7 @@ using FluentAssertions;
 using KyuzanInc.Peak.Sdk.Models;
 using KyuzanInc.Peak.Sdk.Services;
 using KyuzanInc.Peak.Sdk.Utils;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
@@ -14,6 +15,23 @@ namespace KyuzanInc.Peak.Sdk.Tests
 {
     public class AuthServiceTests
     {
+        private sealed class CollectingLogger<T> : ILogger<T>
+        {
+            public List<string> Messages { get; } = new List<string>();
+
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) => true;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter) =>
+                Messages.Add(formatter(state, exception));
+        }
+
         [Fact]
         public async Task InitOtpLogin_ReturnsPublicDto()
         {
@@ -29,6 +47,30 @@ namespace KyuzanInc.Peak.Sdk.Tests
             var result = await svc.InitOtpLoginAsync("a@b.c");
 
             result!.OtpId.Should().Be("otp-123");
+        }
+
+        [Fact]
+        public async Task InitOtpLogin_DoesNotLogEmailOrOtpId()
+        {
+            const string email = "sensitive-email@example.invalid";
+            const string otpId = "sensitive-otp-id";
+            var http = Substitute.For<IPeakHttpClient>();
+            http.PostAsync<InitOtpLoginRequest, InitOtpLoginResponse>(
+                    "public-api/v1/auth/otp/init-login",
+                    Arg.Any<InitOtpLoginRequest>(),
+                    Arg.Any<IReadOnlyDictionary<string, string>>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(new InitOtpLoginResponse { OtpId = otpId });
+            var logger = new CollectingLogger<AuthService>();
+            var service = new AuthService("https://api.peak.xyz", "k", http, logger: logger);
+
+            await service.InitOtpLoginAsync(email);
+
+            var messages = string.Join(Environment.NewLine, logger.Messages);
+            messages.Should().Contain("Starting init OTP login");
+            messages.Should().Contain("Init OTP login successful");
+            messages.Should().NotContain(email);
+            messages.Should().NotContain(otpId);
         }
 
         // A custom transport that knows nothing about the SDK's source-gen context
@@ -86,6 +128,32 @@ namespace KyuzanInc.Peak.Sdk.Tests
             result.IsNewUser.Should().BeTrue();
             result.User!.Email.Should().Be("a@b.c");
             result.KeyPair!.PrivateKey.Should().NotBeNullOrEmpty();
+        }
+
+        [Fact]
+        public async Task CompleteOtpLogin_DoesNotLogAuthenticationInputs()
+        {
+            const string email = "sensitive-email@example.invalid";
+            const string otpId = "sensitive-otp-id";
+            const string otpCode = "sensitive-otp-code";
+            var http = Substitute.For<IPeakHttpClient>();
+            http.PostAsync<CompleteOtpLoginRequest, CompleteOtpLoginResponse>(
+                    "public-api/v1/auth/otp/complete-login",
+                    Arg.Any<CompleteOtpLoginRequest>(),
+                    Arg.Any<IReadOnlyDictionary<string, string>>(),
+                    Arg.Any<CancellationToken>())
+                .Returns(new CompleteOtpLoginResponse { IsNewUser = false });
+            var logger = new CollectingLogger<AuthService>();
+            var service = new AuthService("https://api.peak.xyz", "k", http, logger: logger);
+
+            await service.CompleteOtpLoginAsync(email, otpId, otpCode);
+
+            var messages = string.Join(Environment.NewLine, logger.Messages);
+            messages.Should().Contain("Starting complete OTP login");
+            messages.Should().Contain("Complete OTP login successful");
+            messages.Should().NotContain(email);
+            messages.Should().NotContain(otpId);
+            messages.Should().NotContain(otpCode);
         }
 
         [Fact]

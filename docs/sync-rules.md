@@ -102,4 +102,4 @@ and field-coverage checks.
 
 The `openapi-client-drift` CI job regenerates from the committed sanitized
 contract and compares the generated `src/` tree byte-for-byte. It needs Java
-and Node, but it does not fetch `KyuzanInc/peak`.
+and Node 20.19.0 or later, but it does not fetch `KyuzanInc/peak`.
