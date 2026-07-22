@@ -24,7 +24,7 @@ jobs:
     env:
       TurnkeySourceProject: ${{ github.workspace }}/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7
@@ -133,7 +133,7 @@ jobs:
     env:
       TurnkeySourceProject: ${{ github.workspace }}/.artifacts/turnkey-source/src/turnkey-sdk-csharp.csproj
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7
@@ -176,7 +176,7 @@ jobs:
     name: openapi client drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Setup JRE (openapi-generator runs on Java)
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
